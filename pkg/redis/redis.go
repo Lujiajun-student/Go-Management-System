@@ -18,7 +18,7 @@ func InitRedis() {
 	// 获取config里的Redis
 	redisConfig := config.Config.Redis
 	// 创建Redis客户端
-	RedisClient := redis.NewClient(&redis.Options{
+	RedisClient = redis.NewClient(&redis.Options{
 		Addr:     redisConfig.Address,
 		Password: redisConfig.Password,
 		DB:       redisConfig.DB,
