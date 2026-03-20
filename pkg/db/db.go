@@ -9,6 +9,10 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+var (
+	Db *gorm.DB
+)
+
 // InitDB 数据库初始化
 func InitDB() {
 	var err error
@@ -22,17 +26,17 @@ func InitDB() {
 		dbConfig.DbName,
 		dbConfig.Charset,
 	)
-	db, err := gorm.Open(mysql.Open(url), &gorm.Config{
+	Db, err = gorm.Open(mysql.Open(url), &gorm.Config{
 		Logger:                                   logger.Default.LogMode(logger.Info),
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
 		panic(err)
 	}
-	if db.Error != nil {
-		panic(db.Error)
+	if Db.Error != nil {
+		panic(Db.Error)
 	}
-	sqlDB, err := db.DB()
+	sqlDB, err := Db.DB()
 	if err != nil {
 		panic(err)
 	}

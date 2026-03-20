@@ -262,6 +262,10 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+var (
+	Db *gorm.DB
+)
+
 // InitDB 数据库初始化
 func InitDB() {
 	var err error
@@ -272,20 +276,20 @@ func InitDB() {
 		dbConfig.Password,
 		dbConfig.Host,
 		dbConfig.Port,
-		dbConfig.Db,
+		dbConfig.DbName,
 		dbConfig.Charset,
 	)
-	db, err := gorm.Open(mysql.Open(url), &gorm.Config{
+	Db, err = gorm.Open(mysql.Open(url), &gorm.Config{
 		Logger:                                   logger.Default.LogMode(logger.Info),
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
 		panic(err)
 	}
-	if db.Error != nil {
-		panic(db.Error)
+	if Db.Error != nil {
+		panic(Db.Error)
 	}
-	sqlDB, err := db.DB()
+	sqlDB, err := Db.DB()
 	if err != nil {
 		panic(err)
 	}
@@ -1068,3 +1072,288 @@ go get github.com/swaggo/swag
 并且能够测试这里的验证码接口。
 
 ![image-20260319204232728](README_Picture/image-20260319204232728.png)
+
+## 3.2 登录接口
+
+这里首先需要实现两个工具类，在uitl下创建`times.go`。
+
+```go
+package util
+
+import (
+	"database/sql/driver"
+	"fmt"
+	"time"
+)
+
+// HTime 自定义时间类型
+type HTime struct {
+	time.Time
+}
+
+// 使用一个具体的时间来定义格式
+var (
+	formatTime = "2006-01-02 15:04:05"
+)
+
+// MarshalJSON 通过json.Marshal来序列化包含HTime的结构体时，会使用自定义的时间输出
+func (t HTime) MarshalJSON() ([]byte, error) {
+	formatted := fmt.Sprintf("\"%s\"", t.Format(formatTime))
+	return []byte(formatted), nil
+}
+
+// UnmarshalJSON 通过json.Unmarshal来反序列化包含HTime的结构体时，会使用自定义的时间输入
+func (t *HTime) UnmarshalJSON(data []byte) (err error) {
+	now, err := time.ParseInLocation(`"`+formatTime+`"`, string(data), time.Local)
+	*t = HTime{Time: now}
+	return
+}
+
+// Value 写入数据库前进行转换
+func (t HTime) Value() (driver.Value, error) {
+	var zeroTime time.Time
+	if t.Time.UnixNano() == zeroTime.UnixNano() {
+		return nil, nil
+	}
+	return t.Time, nil
+}
+
+// Scan 从数据库读取时进行转换
+func (t *HTime) Scan(v any) error {
+	value, ok := v.(time.Time)
+	if ok {
+		*t = HTime{Time: value}
+		return nil
+	}
+	return fmt.Errorf("can not convert %v to timestamp", v)
+}
+```
+
+登录时需要加密密码，因此添加`encryption.go`。
+
+```go
+package util
+
+import (
+	"crypto/md5"
+	"encoding/hex"
+)
+
+// EncryptionMd5 字符串加密
+func EncryptionMd5(s string) string {
+	// 创建md5哈希计算器
+	ctx := md5.New()
+	// 向计算器写入目标数据
+	ctx.Write([]byte(s))
+	// 输出十六进制字符串，Sum的nil表示不添加前缀
+	return hex.EncodeToString(ctx.Sum(nil))
+}
+```
+
+然后，在api的entity中创建用户信息实体。
+
+```go
+package entity
+
+import "Go-Management-System/common/util"
+
+// SysAdmin 用户模型对象
+type SysAdmin struct {
+	ID         uint       `gorm:"column:id;comment:'主键';primaryKey;NOT NULL" json:"id"`
+	PostId     int        `gorm:"column:post_id;comment:'岗位id'" json:"post_id"`
+	DeptId     int        `gorm:"column:dept_id;comment:'部门id'" json:"dept_id"`
+	Username   string     `gorm:"column:username;varchar(64);comment:'用户账号';NOT NULL" json:"username"`
+	Password   string     `gorm:"column:password;varchar(64);comment:'密码';NOT NULL" json:"password"`
+	NickName   string     `gorm:"column:nickname;varchar(64);comment:'昵称'" json:"nickname"`
+	Status     int        `gorm:"column:status;default:1;comment:'账号启用状态：1->启用；2->禁用';NOT NULL" json:"status"`
+	Icon       string     `gorm:"column:icon;varchar(500);comment:'头像'" json:"icon"`
+	Email      string     `gorm:"column:email;varchar(64);comment:'邮箱'" json:"email"`
+	Phone      string     `gorm:"column:phone;varchar(64);comment:'电话'" json:"phone"`
+	Note       string     `gorm:"column:note;varchar(500);comment:'备注'" json:"note"`
+	CreateTime util.HTime `gorm:"column:create_time;comment:'创建时间';NOT NULL" json:"create_time"`
+}
+
+func (SysAdmin) TableName() string {
+	return "sys_admin"
+}
+
+// JwtAdmin 鉴权用户结构体
+type JwtAdmin struct {
+	Id       uint   `json:"id"`
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	Icon     string `json:"icon"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Note     string `json:"note"`
+}
+
+// 登陆对象
+type LoginDto struct {
+	Username string `json:"username" validate:"required"` // 用户名
+	Password string `json:"password" validate:"required"` // 密码
+	Image string `json:"image" validate:"required,min=4,max=6"` // 验证码
+	IdKey string `json:"id_key" validate:"required"` // uuid
+}
+```
+
+然后根据资料中的sql来创建对应的表。
+
+![image-20260320111337993](README_Picture/image-20260320111337993.png)
+
+接下来在pkg的`jwt/jwt.go`中实现token生成和校验。
+
+```go
+// Package jwt JWT 工具类，生成token和解析token，以及获取当前登录用户的id及用户信息
+package jwt
+
+import (
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/constant"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+)
+
+// userStdClaims 自定义Claims结构体，包含用户数据以及标准字段
+type userStdClaims struct {
+	entity.JwtAdmin
+	jwt.StandardClaims
+}
+
+// TokenExpireDuration 过期时间
+const TokenExpireDuration = time.Hour * 24
+
+// Secret token密钥，对称加密，服务端用同一个Secret来签名和验证
+var Secret = []byte("admin-go-api")
+
+// 定义错误
+var (
+	ErrAbsent  = "jwt token absent"  // 令牌不存在
+	ErrInvalid = "jwt token invalid" // 令牌无效
+)
+
+// GenerateTokenByAdmin 根据用户信息生成token
+func GenerateTokenByAdmin(admin entity.SysAdmin) (string, error) {
+	// 获取jwt专用的实体，专门构建这个实体的目的是避免敏感信息存到token中
+	var jwtAdmin = entity.JwtAdmin{
+		Id:       admin.ID,
+		Username: admin.Username,
+		Nickname: admin.Nickname,
+		Icon:     admin.Icon,
+		Email:    admin.Email,
+		Phone:    admin.Phone,
+		Note:     admin.Note,
+	}
+	// 构建完整的Claims
+	c := userStdClaims{
+		// 放入业务数据
+		jwtAdmin,
+		// 放入标准字段
+		jwt.StandardClaims{
+			// 设置过期时间
+			ExpiresAt: time.Now().Add(TokenExpireDuration).Unix(),
+			// 签发人
+			Issuer: "admin",
+		},
+	}
+	// 签名并传入Claims来生成token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
+	// 使用密钥进行哈希运算
+	return token.SignedString(Secret)
+}
+
+// ValidateToken 解析JWT
+func ValidateToken(tokenString string) (*entity.JwtAdmin, error) {
+	// 没有token直接返回
+	if tokenString == "" {
+		return nil, errors.New(ErrAbsent)
+	}
+
+	// 通过Secret解析token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		return Secret, nil
+	})
+	if token == nil {
+		return nil, errors.New(ErrInvalid)
+	}
+	// 准备Claims容器
+	claims := userStdClaims{}
+	// 传入Claims容器来解析token
+	_, err = jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return Secret, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &claims.JwtAdmin, nil
+}
+
+// GetAdminId 返回用户Id
+func GetAdminId(c *gin.Context) (uint, error) {
+	u, exist := c.Get(constant.ContextKeyUserObj)
+	if !exist {
+		return 0, errors.New("can't get user id")
+	}
+	admin, ok := u.(*entity.JwtAdmin)
+	if ok {
+		return admin.Id, nil
+	}
+	return 0, errors.New("can't convert to id struct")
+}
+
+// GetAdminName 返回用户名
+func GetAdminName(c *gin.Context) (string, error) {
+	u, exist := c.Get(constant.ContextKeyUserObj)
+	if !exist {
+		return "", errors.New("can't get user name")
+	}
+	admin, ok := u.(*entity.JwtAdmin)
+	if ok {
+		return admin.Username, nil
+	}
+	return "", errors.New("can't convert to api name")
+}
+
+// GetAdmin 返回admin信息
+func GetAdmin(c *gin.Context) (*entity.JwtAdmin, error) {
+	u, exist := c.Get(constant.ContextKeyUserObj)
+	if !exist {
+		return nil, errors.New("can't get user id")
+	}
+	admin, ok := u.(*entity.JwtAdmin)
+	if ok {
+		return admin, nil
+	}
+	return nil, errors.New("can't convert to api admin struct")
+}
+```
+
+由于这里的token可能会暴露密码，因此需要使用不包含密码的JwtAdmin鉴权结构体来生成token。
+
+接下来在dao的`sysAdmin.go`中做好获取用户名的方法。
+
+```go
+// Package dao 用户数据层
+package dao
+
+import (
+	"Go-Management-System/api/entity"
+	. "Go-Management-System/pkg/db"
+)
+
+// SysAdminDetail 用户详情
+func SysAdminDetail(dto entity.LoginDto) (sysAdmin entity.SysAdmin) {
+	username := dto.Username
+	Db.Where("username = ?", username).First(&sysAdmin)
+	return sysAdmin
+}
+```
+
