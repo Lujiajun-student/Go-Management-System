@@ -425,22 +425,46 @@ package result
 
 // Codes 定义状态
 type Codes struct {
-	SUCCESS uint
-	FAILED  uint
-	Message map[uint]string
+	SUCCESS                    uint
+	FAILED                     uint
+	NOAUTH                     uint
+	AUTHFORMATERROR            uint
+	Message                    map[uint]string
+	INVALIDTOKEN               uint
+	MissingLoginParameter      uint
+	VerificationCodeHasExpired uint
+	CAPTCHANOTTRUE             uint
+	PASSWORDNOTTRUE            uint
+	STATUSISENABLE             uint
 }
 
 // ApiCode 状态码
 var ApiCode = &Codes{
-	SUCCESS: 200,
-	FAILED:  501,
+	SUCCESS:                    200,
+	FAILED:                     501,
+	NOAUTH:                     403,
+	AUTHFORMATERROR:            405,
+	INVALIDTOKEN:               406,
+	MissingLoginParameter:      407,
+	VerificationCodeHasExpired: 408,
+	CAPTCHANOTTRUE:             409,
+	PASSWORDNOTTRUE:            410,
+	STATUSISENABLE:             411,
 }
 
 // init 初始化状态信息
 func init() {
 	ApiCode.Message = map[uint]string{
-		ApiCode.SUCCESS: "成功",
-		ApiCode.FAILED:  "失败",
+		ApiCode.SUCCESS:         "成功",
+		ApiCode.FAILED:          "失败",
+		ApiCode.NOAUTH:          "未授权",
+		ApiCode.AUTHFORMATERROR: "授权格式错误",
+		ApiCode.INVALIDTOKEN: "无效的Token",
+		ApiCode.MissingLoginParameter: "缺少登录参数",
+		ApiCode.VerificationCodeHasExpired: "验证码已失效",
+		ApiCode.CAPTCHANOTTRUE: "验证码不正确",
+		ApiCode.PASSWORDNOTTRUE: "密码不正确",
+		ApiCode.STATUSISENABLE: "您的账号被停用",
 	}
 }
 
@@ -947,6 +971,15 @@ func CreateCaptcha() (id, b64s string) {
 	// 生成并返回结果
 	lid, lb64s, _, _ := captcha.Generate()
 	return lid, lb64s
+
+}
+
+// CaptVerify 验证Captcha是否正确
+func CaptVerify(id string, capt string) bool {
+	if store.Verify(id, capt, false) {
+		return true
+	}
+	return false
 }
 ```
 
@@ -1356,4 +1389,135 @@ func SysAdminDetail(dto entity.LoginDto) (sysAdmin entity.SysAdmin) {
 	return sysAdmin
 }
 ```
+
+接下来在service下的`sysAdmin.go`实现登录功能。
+
+```go
+// Package service 用户服务层
+package service
+
+import (
+	"Go-Management-System/api/dao"
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/result"
+	"Go-Management-System/common/util"
+	"Go-Management-System/pkg/jwt"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+)
+
+// ISysAdminService 定义接口
+type ISysAdminService interface {
+	Login(c *gin.Context, dto entity.LoginDto)
+}
+
+type SysAdminServiceImpl struct {
+}
+
+var sysAdminService = SysAdminServiceImpl{}
+
+func SysAdminService() ISysAdminService {
+	return &sysAdminService
+}
+
+// Login 用户登录
+func (s SysAdminServiceImpl) Login(c *gin.Context, dto entity.LoginDto) {
+	// 登录参数校验，根据结构体的validate标签校验属性值是否合法
+	err := validator.New().Struct(dto)
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.MissingLoginParameter), result.ApiCode.GetMessage(result.ApiCode.MissingLoginParameter))
+		return
+	}
+	// 验证码是否过期
+	code := util.RedisStore{}.Get(dto.IdKey, true)
+	if len(code) == 0 {
+		result.Failed(c, int(result.ApiCode.VerificationCodeHasExpired), result.ApiCode.GetMessage(result.ApiCode.VerificationCodeHasExpired))
+		return
+	}
+	// 校验验证码
+	verifyRes := CaptVerify(dto.IdKey, dto.Image)
+	if !verifyRes {
+		result.Failed(c, int(result.ApiCode.CAPTCHANOTTRUE), result.ApiCode.GetMessage(result.ApiCode.CAPTCHANOTTRUE))
+		return
+	}
+	//校验密码
+	sysAdmin := dao.SysAdminDetail(dto)
+	if sysAdmin.Password != util.EncryptionMd5(dto.Password) {
+		result.Failed(c, int(result.ApiCode.PASSWORDNOTTRUE), result.ApiCode.GetMessage(result.ApiCode.PASSWORDNOTTRUE))
+		return
+	}
+	// 判断用户是否被禁用
+	const status int = 2
+	if sysAdmin.Status == status {
+		result.Failed(c, int(result.ApiCode.STATUSISENABLE), result.ApiCode.GetMessage(result.ApiCode.STATUSISENABLE))
+		return
+	}
+	// 生成token
+	tokenString, _ := jwt.GenerateTokenByAdmin(sysAdmin)
+	result.Success(c, map[string]any{
+		"token":    tokenString,
+		"sysAdmin": sysAdmin,
+	})
+
+}
+```
+
+在这里，登录分为了多个步骤。
+
+1. 登录参数校验。首先校验从前端获取到的信息，看看是否符合后端要求的格式。
+2. 登录时需要输入验证码，查看验证码是否过期。
+3. 验证码未过期，则校验验证码是否正确。
+4. 验证码没问题，校验密码是否正确。
+5. 获取用户后，查看用户的状态，被禁用则不可用。
+6. 用户合法，生成token。
+
+然后在controller中创建用户登录的控制层`sysAdmin.go`。
+
+```go
+// Package controller 用户控制层
+package controller
+
+import (
+	"Go-Management-System/api/entity"
+	"Go-Management-System/api/service"
+
+	"github.com/gin-gonic/gin"
+)
+
+// Login 登录
+// @Summary 用户登录接口
+// @Produce json
+// @Description 用户登录接口
+// @param data body entity.LoginDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/login [post]
+func Login(c *gin.Context) {
+	var dto entity.LoginDto
+	_ = c.BindJSON(&dto)
+	service.SysAdminService().Login(c, dto)
+}
+```
+
+最后，在`router.go`中注册用户登录的接口。
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+}
+```
+
+这样，可以访问`localhsot:8080/swwagger/index.html`来访问swagger文档。此外，每次添加一个swagger注释的接口，都需要执行一次`swag init`来重新生成文档。
+
+这样，可以在swagger中进行测试。
+
+![image-20260321194912588](README_Picture/image-20260321194912588.png)
+
+这里的id_key是验证码的id，image是验证码的结果，登录的用户是默认初始化的用户。
+
+![image-20260321194958533](README_Picture/image-20260321194958533.png)
 

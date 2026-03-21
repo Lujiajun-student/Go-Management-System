@@ -2,28 +2,46 @@ package result
 
 // Codes 定义状态
 type Codes struct {
-	SUCCESS                  uint
-	FAILED                   uint
-	NOAUTHORIZATION          uint
-	AUTHORIZATIONFORMATERROR uint
-	Message                  map[uint]string
+	SUCCESS                    uint
+	FAILED                     uint
+	NOAUTH                     uint
+	AUTHFORMATERROR            uint
+	Message                    map[uint]string
+	INVALIDTOKEN               uint
+	MissingLoginParameter      uint
+	VerificationCodeHasExpired uint
+	CAPTCHANOTTRUE             uint
+	PASSWORDNOTTRUE            uint
+	STATUSISENABLE             uint
 }
 
 // ApiCode 状态码
 var ApiCode = &Codes{
-	SUCCESS:                  200,
-	FAILED:                   501,
-	NOAUTHORIZATION:          403,
-	AUTHORIZATIONFORMATERROR: 405,
+	SUCCESS:                    200,
+	FAILED:                     501,
+	NOAUTH:                     403,
+	AUTHFORMATERROR:            405,
+	INVALIDTOKEN:               406,
+	MissingLoginParameter:      407,
+	VerificationCodeHasExpired: 408,
+	CAPTCHANOTTRUE:             409,
+	PASSWORDNOTTRUE:            410,
+	STATUSISENABLE:             411,
 }
 
 // init 初始化状态信息
 func init() {
 	ApiCode.Message = map[uint]string{
-		ApiCode.SUCCESS:                  "成功",
-		ApiCode.FAILED:                   "失败",
-		ApiCode.NOAUTHORIZATION:          "未授权",
-		ApiCode.AUTHORIZATIONFORMATERROR: "授权格式错误",
+		ApiCode.SUCCESS:                    "成功",
+		ApiCode.FAILED:                     "失败",
+		ApiCode.NOAUTH:                     "未授权",
+		ApiCode.AUTHFORMATERROR:            "授权格式错误",
+		ApiCode.INVALIDTOKEN:               "无效的Token",
+		ApiCode.MissingLoginParameter:      "缺少登录参数",
+		ApiCode.VerificationCodeHasExpired: "验证码已失效",
+		ApiCode.CAPTCHANOTTRUE:             "验证码不正确",
+		ApiCode.PASSWORDNOTTRUE:            "密码不正确",
+		ApiCode.STATUSISENABLE:             "您的账号被停用",
 	}
 }
 

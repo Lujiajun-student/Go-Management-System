@@ -39,3 +39,11 @@ func CreateCaptcha() (id, b64s string) {
 	return lid, lb64s
 
 }
+
+// CaptVerify 验证Captcha是否正确
+func CaptVerify(id string, capt string) bool {
+	if store.Verify(id, capt, false) {
+		return true
+	}
+	return false
+}

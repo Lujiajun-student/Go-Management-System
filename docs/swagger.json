@@ -22,9 +22,66 @@
                     }
                 }
             }
+        },
+        "/api/login": {
+            "post": {
+                "description": "用户登录接口",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "用户登录接口",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.LoginDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "entity.LoginDto": {
+            "type": "object",
+            "required": [
+                "id_key",
+                "image",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "id_key": {
+                    "description": "uuid",
+                    "type": "string"
+                },
+                "image": {
+                    "description": "验证码",
+                    "type": "string",
+                    "maxLength": 6,
+                    "minLength": 4
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string"
+                }
+            }
+        },
         "result.Result": {
             "type": "object",
             "properties": {
