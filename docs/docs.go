@@ -59,6 +59,34 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/post/add": {
+            "post": {
+                "description": "新增岗位接口",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "新增岗位接口",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysPost"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -91,6 +119,29 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.SysPost": {
+            "type": "object",
+            "properties": {
+                "createTime": {
+                    "$ref": "#/definitions/util.HTime"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "postCode": {
+                    "type": "string"
+                },
+                "postName": {
+                    "type": "string"
+                },
+                "postStatus": {
+                    "type": "integer"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
         "result.Result": {
             "type": "object",
             "properties": {
@@ -103,6 +154,14 @@ const docTemplate = `{
                 },
                 "message": {
                     "description": "提示信息",
+                    "type": "string"
+                }
+            }
+        },
+        "util.HTime": {
+            "type": "object",
+            "properties": {
+                "time.Time": {
                     "type": "string"
                 }
             }

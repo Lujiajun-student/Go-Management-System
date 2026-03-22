@@ -8,7 +8,7 @@
 
 首先做好项目的目录搭建。
 
-![image-20260319110318948](README_Picture/image-20260319110318948.png)
+![image-20260319110318948](assets/image-20260319110318948.png)
 
 ## 1.2 项目依赖
 
@@ -875,7 +875,7 @@ func init() {
 
 这里实现的是Graceful Shutdown优雅关闭。
 
-![image-20260319195824135](README_Picture/image-20260319195824135.png)
+![image-20260319195824135](assets/image-20260319195824135.png)
 
 这样就是启动成功。
 
@@ -1100,11 +1100,11 @@ go get github.com/swaggo/swag
 
 访问`http://localhost:8080/swagger/index.html`可以获取swagger文档。
 
-![image-20260319203744292](README_Picture/image-20260319203744292.png)
+![image-20260319203744292](assets/image-20260319203744292.png)
 
 并且能够测试这里的验证码接口。
 
-![image-20260319204232728](README_Picture/image-20260319204232728.png)
+![image-20260319204232728](assets/image-20260319204232728.png)
 
 ## 3.2 登录接口
 
@@ -1232,7 +1232,7 @@ type LoginDto struct {
 
 然后根据资料中的sql来创建对应的表。
 
-![image-20260320111337993](README_Picture/image-20260320111337993.png)
+![image-20260320111337993](assets/image-20260320111337993.png)
 
 接下来在pkg的`jwt/jwt.go`中实现token生成和校验。
 
@@ -1515,9 +1515,272 @@ func register(router *gin.Engine) {
 
 这样，可以在swagger中进行测试。
 
-![image-20260321194912588](README_Picture/image-20260321194912588.png)
+![image-20260321194912588](assets/image-20260321194912588.png)
 
 这里的id_key是验证码的id，image是验证码的结果，登录的用户是默认初始化的用户。
 
-![image-20260321194958533](README_Picture/image-20260321194958533.png)
+![image-20260321194958533](assets/image-20260321194958533.png)
+
+这样就成功实现了登录和验证码的开发。
+
+# 4. 岗位相关接口
+
+上面实现了用户，这里需要实现与用户绑定的岗位。
+
+## 4.1 岗位实体
+
+首先在entity创建岗位的实体`sysPost.go`。
+
+```go
+// Package entity 岗位相关模型
+package entity
+
+import "Go-Management-System/common/util"
+
+type SysPost struct {
+	ID         uint       `gorm:"column:id; comment:'主键';primaryKey;NOT NULL" json:"id"`
+	PostCode   string     `gorm:"column:post_code;varchar(64);comment:'岗位编码;NOT NULL" json:"postCode"`
+	PostName   string     `gorm:"column:post_name;varchar(50);comment:'岗位名称';NOT NULL" json:"postName"`
+	PostStatus int        `gorm:"column:post_status;default:1;comment:'状态（1->正常 2->停用）';NOT NULL" json:"postStatus"`
+	CreateTime util.HTime `gorm:"column:create_time;comment:'创建时间';NOT NULL" json:"createTime"`
+	Remark     string     `gorm:"column:remark;varchar(500);comment:'备注'" json:"remark"`
+}
+
+func (SysPost) TableName() string {
+	return "sys_post"
+}
+```
+
+## 4.2 岗位dao层
+
+现在需要实现岗位的存储。
+
+首先，为了适配岗位的错误信息，需要在`code.go`中添加新的错误信息和状态码。
+
+```go
+package result
+
+// Codes 定义状态
+type Codes struct {
+	SUCCESS                    uint
+	FAILED                     uint
+	NOAUTH                     uint
+	AUTHFORMATERROR            uint
+	Message                    map[uint]string
+	INVALIDTOKEN               uint
+	MissingLoginParameter      uint
+	VerificationCodeHasExpired uint
+	CAPTCHANOTTRUE             uint
+	PASSWORDNOTTRUE            uint
+	STATUSISENABLE             uint
+	ROLENAMEALREADYEXISTS      uint
+	MENUISEXIST                uint
+	DELSYSMENUFAILED           uint
+	DEPTISEXIST                uint
+	DEPTISDISTRIBUTE           uint
+	POSTALREADYEXISTS           uint
+}
+
+// ApiCode 状态码
+var ApiCode = &Codes{
+	SUCCESS:                    200,
+	FAILED:                     501,
+	NOAUTH:                     403,
+	AUTHFORMATERROR:            405,
+	INVALIDTOKEN:               406,
+	MissingLoginParameter:      407,
+	VerificationCodeHasExpired: 408,
+	CAPTCHANOTTRUE:             409,
+	PASSWORDNOTTRUE:            410,
+	STATUSISENABLE:             411,
+	ROLENAMEALREADYEXISTS:      412,
+	MENUISEXIST:                413,
+	DELSYSMENUFAILED:           414,
+	DEPTISEXIST:                415,
+	DEPTISDISTRIBUTE:           416,
+	POSTALREADYEXISTS:           417,
+}
+
+// init 初始化状态信息
+func init() {
+	ApiCode.Message = map[uint]string{
+		ApiCode.SUCCESS:                    "成功",
+		ApiCode.FAILED:                     "失败",
+		ApiCode.NOAUTH:                     "未授权",
+		ApiCode.AUTHFORMATERROR:            "授权格式错误",
+		ApiCode.INVALIDTOKEN:               "无效的Token",
+		ApiCode.MissingLoginParameter:      "缺少登录参数",
+		ApiCode.VerificationCodeHasExpired: "验证码已失效",
+		ApiCode.CAPTCHANOTTRUE:             "验证码不正确",
+		ApiCode.PASSWORDNOTTRUE:            "密码不正确",
+		ApiCode.STATUSISENABLE:             "您的账号被停用",
+		ApiCode.ROLENAMEALREADYEXISTS:      "角色名称已存在，重新输入",
+		ApiCode.MENUISEXIST:                "菜单已存在，重新输入",
+		ApiCode.DELSYSMENUFAILED:           "菜单已分配",
+		ApiCode.DEPTISEXIST:                "部门名称已存在",
+		ApiCode.DEPTISDISTRIBUTE:           "部门已分配，不能删除",
+		ApiCode.POSTALREADYEXISTS:           "岗位名称已存在",
+	}
+}
+
+// GetMessage 供外部使用的获取数据方法，提供状态码到状态信息的映射
+func (c *Codes) GetMessage(code uint) string {
+	message, ok := c.Message[code]
+	if !ok {
+		return ""
+	}
+	return message
+}
+```
+
+然后实现岗位的dao层。
+
+```go
+package dao
+
+import (
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/util"
+	"Go-Management-System/pkg/db"
+	"time"
+)
+
+// GetSysPostByCode 根据postCode查询岗位
+func GetSysPostByCode(postCode string) (sysPost entity.SysPost) {
+	db.Db.Where("post_code = ?", postCode).First(&sysPost)
+	return sysPost
+}
+
+// GetSysPostByName 根据岗位名称查询
+func GetSysPostByName(postName string) (sysPost entity.SysPost) {
+	db.Db.Where("post_name = ?", postName).First(&sysPost)
+	return sysPost
+}
+
+// CreateSysPost 新增岗位
+func CreateSysPost(sysPost entity.SysPost) bool {
+	// 查看postCode是否重复
+	sysPostByCode := GetSysPostByCode(sysPost.PostCode)
+	if sysPostByCode.ID > 0 {
+		return false
+	}
+	// 查看postName是否重复
+	sysPostByName := GetSysPostByName(sysPost.PostName)
+	if sysPostByName.ID > 0 {
+		return false
+	}
+	// 创建新增岗位实例
+	addSysPost := entity.SysPost{
+		PostCode:   sysPost.PostCode,
+		PostName:   sysPost.PostName,
+		PostStatus: sysPost.PostStatus,
+		CreateTime: util.HTime{Time: time.Now()},
+		Remark:     sysPost.Remark,
+	}
+	// 保存到数据库的sys_post表中
+	tx := db.Db.Save(&addSysPost)
+	if tx.RowsAffected > 0 {
+		return true
+	}
+	return false
+}
+```
+
+## 4.3 岗位service层
+
+有了dao层，就能在service中进行封装。
+
+```go
+// Package service 岗位服务层
+package service
+
+import (
+	"Go-Management-System/api/dao"
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/result"
+
+	"github.com/gin-gonic/gin"
+)
+
+type ISysPostService interface {
+	CreateSysPost(c *gin.Context, sysPost entity.SysPost)
+}
+
+type SysPostServiceImpl struct {
+}
+
+var sysPostService = SysPostServiceImpl{}
+
+func SysPostService() ISysPostService {
+	return &sysPostService
+}
+
+// CreateSysPost 新增岗位
+func (s SysPostServiceImpl) CreateSysPost(c *gin.Context, sysPost entity.SysPost) {
+	ok := dao.CreateSysPost(sysPost)
+	if !ok {
+		result.Failed(c, int(result.ApiCode.POSTALREADYEXISTS), result.ApiCode.GetMessage(result.ApiCode.POSTALREADYEXISTS))
+		return
+	}
+	result.Success(c, true)
+}
+```
+
+## 4.4 controller层
+
+在controller中写`sysPost.go`。
+
+```go
+// Package controller 岗位控制层
+package controller
+
+import (
+	"Go-Management-System/api/entity"
+	"Go-Management-System/api/service"
+
+	"github.com/gin-gonic/gin"
+)
+
+var sysPost entity.SysPost
+
+// CreateSysPost 新增岗位
+// @Summary 新增岗位接口
+// @Produce json
+// @Description 新增岗位接口
+// @Param data body entity.SysPost true "data"
+// @Success 200 {object} result.Result
+// @router /api/post/add [post]
+func CreateSysPost(c *gin.Context) {
+	// 从请求中获取JSON数据并绑定到sysPost结构体
+	_ = c.BindJSON(&sysPost)
+	service.SysPostService().CreateSysPost(c, sysPost)
+}
+```
+
+这里实现了较为简单的新增岗位的方法。
+
+## 4.5 配置router
+
+写了controller后，在`router.go`中配置好路由。
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/post/add", controller.CreateSysPost)
+}
+```
+
+## 4.6 Swagger测试
+
+在`localhost:8080/swagger/index.html`中能够测试成功。
+
+![image-20260322174933761](assets/image-20260322174933761.png)
+
+![image-20260322174942379](assets/image-20260322174942379.png)
+
+![image-20260322175049574](assets/image-20260322175049574.png)
 
