@@ -88,6 +88,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/post/info": {
+            "get": {
+                "description": "根据id查询岗位",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "根据id查询岗位",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/post/list": {
             "get": {
                 "description": "分页查询岗位列表",

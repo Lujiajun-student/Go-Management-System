@@ -47,3 +47,15 @@ func GetSysPostList(c *gin.Context) {
 	EndTime := c.Query("endTime")
 	service.SysPostService().GetSysPostList(c, PageNum, PageSize, PostName, PostStatus, BeginTime, EndTime)
 }
+
+// GetSysPostById 根据id查询岗位
+// @Summary 根据id查询岗位
+// @Produce json
+// @Description 根据id查询岗位
+// @Param id query int true "ID"
+// @Success 200 {object} result.Result
+// @router /api/post/info [get]
+func GetSysPostById(c *gin.Context) {
+	Id, _ := strconv.Atoi(c.Query("id"))
+	service.SysPostService().GetSysPostById(c, entity.SysPost{ID: uint(Id)})
+}

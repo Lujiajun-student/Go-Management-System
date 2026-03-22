@@ -1925,3 +1925,71 @@ func register(router *gin.Engine) {
 
 ## 4.3 根据岗位id查询岗位
 
+### 4.3.1 dao层
+
+在dao上实现id查询。
+
+```go
+// GetSysPostById 根据id查询岗位
+func GetSysPostById(post entity.SysPost) (sysPost entity.SysPost) {
+	db.Db.First(&sysPost, post.ID)
+	return sysPost
+}
+```
+
+为了完整性，即使只需要id，也要封装为SysPost来使用。
+
+### 4.3.2 service层
+
+```go
+// GetSysPostById 根据id查询岗位
+func (s SysPostServiceImpl) GetSysPostById(c *gin.Context, post entity.SysPost) {
+	result.Success(c, dao.GetSysPostById(post))
+}
+```
+
+注意，这里的方法需要在ISysPostService接口上声明。
+
+```go
+// ISysPostService 岗位相关接口
+type ISysPostService interface {
+	CreateSysPost(c *gin.Context, sysPost entity.SysPost)
+	GetSysPostList(c *gin.Context, PageNum, PageSize int, PostName, PostStatus, BeginTime, EndTime string)
+	GetSysPostById(c *gin.Context, post entity.SysPost)
+}
+```
+
+### 4.3.3 controller层
+
+```go
+// GetSysPostById 根据id查询岗位
+// @Summary 根据id查询岗位
+// @Produce json
+// @Description 根据id查询岗位
+// @Param id query int true "ID"
+// @Success 200 {object} result.Result
+// @router /api/post/info [get]
+func GetSysPostById(c *gin.Context) {
+	Id, _ := strconv.Atoi(c.Query("id"))
+	service.SysPostService().GetSysPostById(c, entity.SysPost{ID: uint(Id)})
+}
+```
+
+### 4.3.4 router层
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/post/add", controller.CreateSysPost)
+	router.GET("/api/post/list", controller.GetSysPostList)
+	router.GET("/api/post/:id", controller.GetSysPostById)
+}
+```
+
+### 4.3.5 Swagger测试
+
+![image-20260322191408663](assets/image-20260322191408663.png)

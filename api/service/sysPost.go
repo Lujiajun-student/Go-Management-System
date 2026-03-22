@@ -13,6 +13,7 @@ import (
 type ISysPostService interface {
 	CreateSysPost(c *gin.Context, sysPost entity.SysPost)
 	GetSysPostList(c *gin.Context, PageNum, PageSize int, PostName, PostStatus, BeginTime, EndTime string)
+	GetSysPostById(c *gin.Context, post entity.SysPost)
 }
 
 // SysPostServiceImpl 岗位的实现类
@@ -51,4 +52,9 @@ func (s SysPostServiceImpl) GetSysPostList(c *gin.Context, PageNum, PageSize int
 	sysPost, count := dao.GetSysPostList(PageNum, PageSize, PostName, PostStatus, BeginTime, EndTime)
 	// 返回结果
 	result.Success(c, map[string]any{"total": count, "pageSize": PageSize, "pageNum": PageNum, "list": sysPost})
+}
+
+// GetSysPostById 根据id查询岗位
+func (s SysPostServiceImpl) GetSysPostById(c *gin.Context, post entity.SysPost) {
+	result.Success(c, dao.GetSysPostById(post))
 }

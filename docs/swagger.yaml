@@ -104,6 +104,23 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 新增岗位接口
+  /api/post/info:
+    get:
+      description: 根据id查询岗位
+      parameters:
+      - description: ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 根据id查询岗位
   /api/post/list:
     get:
       description: 分页查询岗位列表
