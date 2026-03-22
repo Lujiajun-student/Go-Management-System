@@ -46,3 +46,23 @@ func CreateSysPost(sysPost entity.SysPost) bool {
 	}
 	return false
 }
+
+// GetSysPostList 分页查询岗位列表
+func GetSysPostList(PageNum, PageSize int, PostName, PostStatus, BeginTime, EndTime string) (sysPost []entity.SysPost, count int64) {
+	// 指定sys_post表，能够得到可以链式调用的查询对象
+	curDb := db.Db.Table("sys_post")
+	if PostName != "" {
+		curDb = curDb.Where("post_name = ?", PostName)
+	}
+	if PostStatus != "" {
+		curDb = curDb.Where("post_status = ?", PostStatus)
+	}
+	if BeginTime != "" && EndTime != "" {
+		curDb = curDb.Where("create_time BETWEEN ? AND ?", BeginTime, EndTime)
+	}
+	// 统计符合条件的总数
+	curDb.Count(&count)
+	// 分页查询符合条件的岗位列表
+	curDb.Limit(PageSize).Offset((PageNum - 1) * PageSize).Order("create_time desc").Find(&sysPost)
+	return sysPost, count
+}

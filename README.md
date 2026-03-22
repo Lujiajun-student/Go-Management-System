@@ -1527,7 +1527,9 @@ func register(router *gin.Engine) {
 
 上面实现了用户，这里需要实现与用户绑定的岗位。
 
-## 4.1 岗位实体
+## 4.1 新增岗位
+
+### 4.1.1 岗位实体
 
 首先在entity创建岗位的实体`sysPost.go`。
 
@@ -1551,7 +1553,7 @@ func (SysPost) TableName() string {
 }
 ```
 
-## 4.2 岗位dao层
+### 4.1.2 岗位dao层
 
 现在需要实现岗位的存储。
 
@@ -1686,7 +1688,7 @@ func CreateSysPost(sysPost entity.SysPost) bool {
 }
 ```
 
-## 4.3 岗位service层
+### 4.1.3 岗位service层
 
 有了dao层，就能在service中进行封装。
 
@@ -1726,7 +1728,7 @@ func (s SysPostServiceImpl) CreateSysPost(c *gin.Context, sysPost entity.SysPost
 }
 ```
 
-## 4.4 controller层
+### 4.1.4 controller层
 
 在controller中写`sysPost.go`。
 
@@ -1759,7 +1761,7 @@ func CreateSysPost(c *gin.Context) {
 
 这里实现了较为简单的新增岗位的方法。
 
-## 4.5 配置router
+### 4.1.5 配置router
 
 写了controller后，在`router.go`中配置好路由。
 
@@ -1774,7 +1776,7 @@ func register(router *gin.Engine) {
 }
 ```
 
-## 4.6 Swagger测试
+### 4.1.6 Swagger测试
 
 在`localhost:8080/swagger/index.html`中能够测试成功。
 
@@ -1783,4 +1785,141 @@ func register(router *gin.Engine) {
 ![image-20260322174942379](assets/image-20260322174942379.png)
 
 ![image-20260322175049574](assets/image-20260322175049574.png)
+
+## 4.2 岗位列表查询
+
+上面实现了新增的方法，接下来实现查询方法。
+
+### 4.2.1 dao层
+
+首先在dao层实现分页查询效果。而查询时可能会输入岗位的名称、状态或者时间范围，这些都要考虑到，同时通过sql的limit和offset来实现分页。在dao的`sysPost.go`中实现。
+
+```go
+// GetSysPostList 分页查询岗位列表
+func GetSysPostList(PageNum, PageSize int, PostName, PostStatus, BeginTime, EndTime string) (sysPost []entity.SysPost, count int64) {
+	// 指定sys_post表，能够得到可以链式调用的查询对象
+	curDb := db.Db.Table("sys_post")
+	if PostName != "" {
+		curDb = curDb.Where("post_name = ?", PostName)
+	}
+	if PostStatus != "" {
+		curDb = curDb.Where("post_status = ?", PostStatus)
+	}
+	if BeginTime != "" && EndTime != "" {
+		curDb = curDb.Where("create_time BETWEEN ? AND ?", BeginTime, EndTime)
+	}
+	// 统计符合条件的总数
+	curDb.Count(&count)
+	// 分页查询符合条件的岗位列表
+	curDb.Limit(PageSize).Offset((PageNum - 1) * PageSize).Order("create_time desc").Find(&sysPost)
+	return sysPost, count
+}
+```
+
+### 4.2.2 service层
+
+service层中，首先要先识别页数和每页大小是否合法，不合法则给出默认值。然后调用dao层的方法来查询岗位列表和总数，返回成功结果即可。
+
+```go
+// GetSysPostList 分页查询岗位列表
+func (s SysPostServiceImpl) GetSysPostList(c *gin.Context, PageNum, PageSize int, PostName, PostStatus, BeginTime, EndTime string) {
+	// 未设置页面大小，给出默认值
+	if PageSize < 1 {
+		PageSize = 10
+	}
+	// 未设置页数，给出首页
+	if PageNum < 1 {
+		PageNum = 1
+	}
+	// 调用dao层方法获取特定的岗位列表和总数
+	sysPost, count := dao.GetSysPostList(PageNum, PageSize, PostName, PostStatus, BeginTime, EndTime)
+	// 返回结果
+	result.Success(c, map[string]any{"total": count, "pageSize": PageSize, "pageNum": PageNum, "list": sysPost})
+}
+```
+
+### 4.2.3 controller层
+
+controller比较简单，从请求上下文获取参数后调用service层接口即可。
+
+```go
+// GetSysPostList 根据条件分页查询岗位
+// @Summary 分页查询岗位列表
+// @Produce json
+// @Description 分页查询岗位列表
+// @Param pageNum query int false "分页数"
+// @Param pageSize query int false "每页数"
+// @Param postName query string false "岗位名称"
+// @Param postStatus query string false "状态：1-> 启用，2->停用"
+// @Param beginTime query string false "开始时间"
+// @Param endTime query string false "结束时间"
+// @Success 200 {object} result.Result
+// @router /api/post/list [get]
+func GetSysPostList(c *gin.Context) {
+	// 从请求中获取参数，int类型需要通过strconv.Atoi来转换
+	PageNum, _ := strconv.Atoi(c.Query("pageNum"))
+	PageSize, _ := strconv.Atoi(c.Query("pageSize"))
+	// string类型可直接通过Query获取
+	PostName := c.Query("postName")
+	PostStatus := c.Query("postStatus")
+	BeginTime := c.Query("beginTime")
+	EndTime := c.Query("endTime")
+	service.SysPostService().GetSysPostList(c, PageNum, PageSize, PostName, PostStatus, BeginTime, EndTime)
+}
+```
+
+这里controller只负责获取参数和转发，不负责响应，页面的响应完全交给result类来实现。这里是之前定义好的成功和失败的返回类型，调用`c.JSON`就能实现响应。
+
+```go
+// Success 返回成功
+func Success(c *gin.Context, data any) {
+	if data == nil {
+		data = gin.H{}
+	}
+	res := Result{}
+	res.Code = int(ApiCode.SUCCESS)
+	res.Message = ApiCode.GetMessage(ApiCode.SUCCESS)
+	res.Data = data
+	c.JSON(http.StatusOK, res)
+}
+
+// Failed 返回失败
+func Failed(c *gin.Context, code int, message string) {
+	res := Result{}
+	res.Code = code
+	res.Message = message
+	res.Data = gin.H{}
+	c.JSON(http.StatusOK, res)
+}
+```
+
+### 4.2.4 router配置
+
+在`router.go`中添加路由。
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/post/add", controller.CreateSysPost)
+	router.GET("/api/post/list", controller.GetSysPostList)
+}
+```
+
+刷新swagger，打开`localhost:8080/swagger/index.html`就能实现分页查询。
+
+### 4.2.5 Swagger测试
+
+![image-20260322183840555](assets/image-20260322183840555.png)
+
+![image-20260322183847965](assets/image-20260322183847965.png)
+
+按名称查询。
+
+![image-20260322184122316](assets/image-20260322184122316.png)
+
+![image-20260322184129980](assets/image-20260322184129980.png)
 

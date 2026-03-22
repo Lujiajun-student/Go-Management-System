@@ -78,6 +78,61 @@
                     }
                 }
             }
+        },
+        "/api/post/list": {
+            "get": {
+                "description": "分页查询岗位列表",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "分页查询岗位列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "分页数",
+                        "name": "pageNum",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "岗位名称",
+                        "name": "postName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "状态：1-\u003e 启用，2-\u003e停用",
+                        "name": "postStatus",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "开始时间",
+                        "name": "beginTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间",
+                        "name": "endTime",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

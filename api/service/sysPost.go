@@ -9,15 +9,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ISysPostService 岗位相关接口
 type ISysPostService interface {
 	CreateSysPost(c *gin.Context, sysPost entity.SysPost)
+	GetSysPostList(c *gin.Context, PageNum, PageSize int, PostName, PostStatus, BeginTime, EndTime string)
 }
 
+// SysPostServiceImpl 岗位的实现类
 type SysPostServiceImpl struct {
 }
 
+// sysPostService 实现类实例
 var sysPostService = SysPostServiceImpl{}
 
+// SysPostService 工厂函数，向外提供service层实例
 func SysPostService() ISysPostService {
 	return &sysPostService
 }
@@ -30,4 +35,20 @@ func (s SysPostServiceImpl) CreateSysPost(c *gin.Context, sysPost entity.SysPost
 		return
 	}
 	result.Success(c, true)
+}
+
+// GetSysPostList 分页查询岗位列表
+func (s SysPostServiceImpl) GetSysPostList(c *gin.Context, PageNum, PageSize int, PostName, PostStatus, BeginTime, EndTime string) {
+	// 未设置页面大小，给出默认值
+	if PageSize < 1 {
+		PageSize = 10
+	}
+	// 未设置页数，给出首页
+	if PageNum < 1 {
+		PageNum = 1
+	}
+	// 调用dao层方法获取特定的岗位列表和总数
+	sysPost, count := dao.GetSysPostList(PageNum, PageSize, PostName, PostStatus, BeginTime, EndTime)
+	// 返回结果
+	result.Success(c, map[string]any{"total": count, "pageSize": PageSize, "pageNum": PageNum, "list": sysPost})
 }

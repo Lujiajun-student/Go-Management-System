@@ -104,6 +104,42 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 新增岗位接口
+  /api/post/list:
+    get:
+      description: 分页查询岗位列表
+      parameters:
+      - description: 分页数
+        in: query
+        name: pageNum
+        type: integer
+      - description: 每页数
+        in: query
+        name: pageSize
+        type: integer
+      - description: 岗位名称
+        in: query
+        name: postName
+        type: string
+      - description: 状态：1-> 启用，2->停用
+        in: query
+        name: postStatus
+        type: string
+      - description: 开始时间
+        in: query
+        name: beginTime
+        type: string
+      - description: 结束时间
+        in: query
+        name: endTime
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 分页查询岗位列表
 securityDefinitions:
   ApiKeyAuth:
     in: header
