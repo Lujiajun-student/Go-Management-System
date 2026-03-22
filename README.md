@@ -1986,10 +1986,86 @@ func register(router *gin.Engine) {
 	router.POST("/api/login", controller.Login)
 	router.POST("/api/post/add", controller.CreateSysPost)
 	router.GET("/api/post/list", controller.GetSysPostList)
-	router.GET("/api/post/:id", controller.GetSysPostById)
+	router.GET("/api/post/info", controller.GetSysPostById)
 }
 ```
 
 ### 4.3.5 Swagger测试
 
 ![image-20260322191408663](assets/image-20260322191408663.png)
+
+## 4.4 修改岗位接口
+
+### 4.4.1 dao层
+
+```go
+// UpdateSysPost 修改岗位
+func UpdateSysPost(post entity.SysPost) (sysPost entity.SysPost) {
+	// 先查找源数据
+	db.Db.First(&sysPost, post.ID)
+	sysPost.PostName = post.PostName
+	sysPost.PostCode = post.PostCode
+	sysPost.PostStatus = post.PostStatus
+	if post.Remark != "" {
+		sysPost.Remark = post.Remark
+	}
+	// sysPost存在主键，因此Save会执行更新操作
+	db.Db.Save(&sysPost)
+	return sysPost
+}
+```
+
+修改和更新的区别就是有无主键，修改的时候会获取到主键，因此执行`Save()`时会使用update语句而不是insert语句。
+
+### 4.4.2 service层
+
+service层也是直接获取controller传来的post形参来实现修改。注意还要在接口中声明这个方法。
+
+```go
+// UpdateSysPost 修改岗位
+func (s SysPostServiceImpl) UpdateSysPost(c *gin.Context, post entity.SysPost) {
+	result.Success(c, dao.UpdateSysPost(post))
+}
+```
+
+### 4.4.3 controller层
+
+接下来是在controller中通过上下文来绑定结构体，并将这个包含新岗位的结构体post传入到service中完成修改。
+
+```go
+// UpdateSysPost 修改岗位
+// @Summary 修改岗位接口
+// @Producce json
+// @Description 修改岗位接口
+// @Param data body entity.SysPost true "data"
+// @Success 200 {object} result.Result
+// @router /api/post/update [put]
+func UpdateSysPost(c *gin.Context) {
+	_ = c.BindJSON(&sysPost)
+	service.SysPostService().UpdateSysPost(c, sysPost)
+}
+```
+
+### 4.4.4 router配置
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/post/add", controller.CreateSysPost)
+	router.GET("/api/post/list", controller.GetSysPostList)
+	router.GET("/api/post/info", controller.GetSysPostById)
+	router.PUT("/api/post/update", controller.UpdateSysPost)
+}
+```
+
+### 4.4.5 Swagger测试
+
+![image-20260322201451768](assets/image-20260322201451768.png)
+
+![image-20260322201501757](assets/image-20260322201501757.png)
+
+这样就实现了岗位修改。

@@ -14,6 +14,7 @@ type ISysPostService interface {
 	CreateSysPost(c *gin.Context, sysPost entity.SysPost)
 	GetSysPostList(c *gin.Context, PageNum, PageSize int, PostName, PostStatus, BeginTime, EndTime string)
 	GetSysPostById(c *gin.Context, post entity.SysPost)
+	UpdateSysPost(c *gin.Context, sysPost entity.SysPost)
 }
 
 // SysPostServiceImpl 岗位的实现类
@@ -57,4 +58,9 @@ func (s SysPostServiceImpl) GetSysPostList(c *gin.Context, PageNum, PageSize int
 // GetSysPostById 根据id查询岗位
 func (s SysPostServiceImpl) GetSysPostById(c *gin.Context, post entity.SysPost) {
 	result.Success(c, dao.GetSysPostById(post))
+}
+
+// UpdateSysPost 修改岗位
+func (s SysPostServiceImpl) UpdateSysPost(c *gin.Context, post entity.SysPost) {
+	result.Success(c, dao.UpdateSysPost(post))
 }

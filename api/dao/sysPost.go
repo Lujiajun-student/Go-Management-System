@@ -72,3 +72,18 @@ func GetSysPostById(post entity.SysPost) (sysPost entity.SysPost) {
 	db.Db.First(&sysPost, post.ID)
 	return sysPost
 }
+
+// UpdateSysPost 修改岗位
+func UpdateSysPost(post entity.SysPost) (sysPost entity.SysPost) {
+	// 先查找源数据
+	db.Db.First(&sysPost, post.ID)
+	sysPost.PostName = post.PostName
+	sysPost.PostCode = post.PostCode
+	sysPost.PostStatus = post.PostStatus
+	if post.Remark != "" {
+		sysPost.Remark = post.Remark
+	}
+	// sysPost存在主键，因此Save会执行更新操作
+	db.Db.Save(&sysPost)
+	return sysPost
+}

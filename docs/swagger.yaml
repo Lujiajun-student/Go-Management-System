@@ -157,6 +157,22 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 分页查询岗位列表
+  /api/post/update:
+    put:
+      description: 修改岗位接口
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.SysPost'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 修改岗位接口
 securityDefinitions:
   ApiKeyAuth:
     in: header

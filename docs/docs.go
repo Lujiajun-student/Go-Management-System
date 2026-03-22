@@ -168,6 +168,31 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/post/update": {
+            "put": {
+                "description": "修改岗位接口",
+                "summary": "修改岗位接口",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysPost"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
