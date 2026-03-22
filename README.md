@@ -1923,3 +1923,5 @@ func register(router *gin.Engine) {
 
 ![image-20260322184129980](assets/image-20260322184129980.png)
 
+## 4.3 根据岗位id查询岗位
+

@@ -66,3 +66,9 @@ func GetSysPostList(PageNum, PageSize int, PostName, PostStatus, BeginTime, EndT
 	curDb.Limit(PageSize).Offset((PageNum - 1) * PageSize).Order("create_time desc").Find(&sysPost)
 	return sysPost, count
 }
+
+// GetSysPostById 根据id查询岗位
+func GetSysPostById(post entity.SysPost) (sysPost entity.SysPost) {
+	db.Db.First(&sysPost, post.ID)
+	return sysPost
+}
