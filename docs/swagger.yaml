@@ -28,6 +28,25 @@ definitions:
     - password
     - username
     type: object
+  entity.SysDept:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/entity.SysDept'
+        type: array
+      createTime:
+        $ref: '#/definitions/util.HTime'
+      deptName:
+        type: string
+      deptStatus:
+        type: integer
+      deptType:
+        type: integer
+      id:
+        type: integer
+      parentId:
+        type: integer
+    type: object
   entity.SysPost:
     properties:
       createTime:
@@ -87,6 +106,24 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 验证码接口
+  /api/dept/add:
+    post:
+      description: 新增部门接口
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.SysDept'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 新增部门接口
   /api/dept/list:
     get:
       description: 查询部门列表接口

@@ -3,7 +3,9 @@ package dao
 
 import (
 	"Go-Management-System/api/entity"
+	"Go-Management-System/common/util"
 	. "Go-Management-System/pkg/db"
+	"time"
 )
 
 // GetSysDeptList 查询部门列表
@@ -17,4 +19,40 @@ func GetSysDeptList(DeptName string, DeptStatus string) (sysDept []entity.SysDep
 	}
 	curDb.Find(&sysDept)
 	return sysDept
+}
+
+// GetSysDeptByName 根据部门名称查询
+func GetSysDeptByName(deptName string) (sysDept entity.SysDept) {
+	Db.Where("dept_name = ?", deptName).First(&sysDept)
+	return sysDept
+}
+
+// CreateSysDept 新增部门
+func CreateSysDept(sysDept entity.SysDept) bool {
+	// 查重
+	sysDeptByName := GetSysDeptByName(sysDept.DeptName)
+	if sysDeptByName.ID > 0 {
+		return false
+	}
+	if sysDept.DeptType == 1 {
+		sysDept := entity.SysDept{
+			DeptStatus: sysDept.DeptStatus,
+			ParentId:   0,
+			DeptType:   sysDept.DeptType,
+			DeptName:   sysDept.DeptName,
+			CreateTime: util.HTime{Time: time.Now()},
+		}
+		Db.Create(&sysDept)
+		return true
+	} else {
+		sysDept := entity.SysDept{
+			DeptStatus: sysDept.DeptStatus,
+			ParentId:   sysDept.ParentId,
+			DeptType:   sysDept.DeptType,
+			DeptName:   sysDept.DeptName,
+			CreateTime: util.HTime{Time: time.Now()},
+		}
+		Db.Create(&sysDept)
+		return true
+	}
 }

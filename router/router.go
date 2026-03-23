@@ -46,4 +46,5 @@ func register(router *gin.Engine) {
 	router.PUT("/api/post/updateStatus", controller.UpdateSysPostStatus)
 	router.GET("/api/post/vo/list", controller.QuerySysPostVOList)
 	router.GET("/api/dept/list", controller.GetSysDeptList)
+	router.POST("/api/dept/add", controller.CreateSysDept)
 }

@@ -23,6 +23,34 @@
                 }
             }
         },
+        "/api/dept/add": {
+            "post": {
+                "description": "新增部门接口",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "新增部门接口",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysDept"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dept/list": {
             "get": {
                 "description": "查询部门列表接口",
@@ -349,6 +377,35 @@
                 "username": {
                     "description": "用户名",
                     "type": "string"
+                }
+            }
+        },
+        "entity.SysDept": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.SysDept"
+                    }
+                },
+                "createTime": {
+                    "$ref": "#/definitions/util.HTime"
+                },
+                "deptName": {
+                    "type": "string"
+                },
+                "deptStatus": {
+                    "type": "integer"
+                },
+                "deptType": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "parentId": {
+                    "type": "integer"
                 }
             }
         },

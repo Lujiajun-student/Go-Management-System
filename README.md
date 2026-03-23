@@ -2515,3 +2515,107 @@ func register(router *gin.Engine) {
 
 ![image-20260323152646973](assets/image-20260323152646973.png)
 
+## 5.2 新增部门
+
+新增部门时，需要实现名字查重效果，因此需要先写好根据部门名称查询的功能。
+
+### 5.2.1 dao层
+
+在dao下实现根据名称查询和新增部门。
+
+```go
+// GetSysDeptByName 根据部门名称查询
+func GetSysDeptByName(deptName string) (sysDept entity.SysDept) {
+	Db.Where("dept_name = ?", deptName).First(&sysDept)
+	return sysDept
+}
+
+// CreateSysDept 新增部门
+func CreateSysDept(sysDept entity.SysDept) bool {
+	// 查重
+	sysDeptByName := GetSysDeptByName(sysDept.DeptName)
+	if sysDeptByName.ID > 0 {
+		return false
+	}
+	if sysDept.DeptType == 1 {
+		sysDept := entity.SysDept{
+			DeptStatus: sysDept.DeptStatus,
+			ParentId:   0,
+			DeptType:   sysDept.DeptType,
+			DeptName:   sysDept.DeptName,
+			CreateTime: util.HTime{Time: time.Now()},
+		}
+		Db.Create(&sysDept)
+		return true
+	} else {
+		sysDept := entity.SysDept{
+			DeptStatus: sysDept.DeptStatus,
+			ParentId:   sysDept.ParentId,
+			DeptType:   sysDept.DeptType,
+			DeptName:   sysDept.DeptName,
+			CreateTime: util.HTime{Time: time.Now()},
+		}
+		Db.Create(&sysDept)
+		return true
+	}
+}
+```
+
+### 5.2.2 service层
+
+```go
+// CreateSysDept 新增部门
+func (s SysDeptServiceImpl) CreateSysDept(c *gin.Context, sysDept entity.SysDept) {
+	ok := dao.CreateSysDept(sysDept)
+	if !ok {
+		result.Failed(c, int(result.ApiCode.DEPTISEXIST), result.ApiCode.GetMessage(result.ApiCode.DEPTISEXIST))
+		return
+	}
+	result.Success(c, true)
+}
+```
+
+### 5.2.3 controller层
+
+```go
+// CreateSysDept 新增部门
+// @Summary 新增部门接口
+// @Produce json
+// @Description 新增部门接口
+// @Param data body entity.SysDept true "data"
+// @Success 200 {object} result.Result
+// @router /api/dept/add [post]
+func CreateSysDept(c *gin.Context) {
+	_ = c.BindJSON(&sysDept)
+	service.SysDeptService().CreateSysDept(c, sysDept)
+}
+```
+
+### 5.2.4 router配置
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+    // todo 添加接口url
+    router.GET("/api/captcha", controller.Captcha)
+    router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+    router.POST("/api/login", controller.Login)
+    router.POST("/api/post/add", controller.CreateSysPost)
+    router.GET("/api/post/list", controller.GetSysPostList)
+    router.GET("/api/post/info", controller.GetSysPostById)
+    router.PUT("/api/post/update", controller.UpdateSysPost)
+    router.DELETE("/api/post/delete", controller.DeleteSysPostById)
+    router.DELETE("/api/post/batch/delete", controller.BatchDeleteSysPost)
+    router.PUT("/api/post/updateStatus", controller.UpdateSysPostStatus)
+    router.GET("/api/post/vo/list", controller.QuerySysPostVOList)
+    router.GET("/api/dept/list", controller.GetSysDeptList)
+    router.POST("/api/dept/add", controller.CreateSysDept)
+}
+```
+
+### 5.2.5 swagger测试
+
+![image-20260323195423639](assets/image-20260323195423639.png)
+
+![image-20260323195433112](assets/image-20260323195433112.png)
+
