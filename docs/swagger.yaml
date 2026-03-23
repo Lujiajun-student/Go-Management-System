@@ -87,6 +87,22 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 验证码接口
+  /api/dept/list:
+    get:
+      description: 查询部门列表接口
+      parameters:
+      - description: 部门名称
+        in: query
+        name: deptName
+        type: string
+      - description: 部门状态
+        in: query
+        name: deptStatus
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 查询部门列表接口
   /api/login:
     post:
       description: 用户登录接口

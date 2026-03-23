@@ -32,6 +32,30 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dept/list": {
+            "get": {
+                "description": "查询部门列表接口",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "查询部门列表接口",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "部门名称",
+                        "name": "deptName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "部门状态",
+                        "name": "deptStatus",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/api/login": {
             "post": {
                 "description": "用户登录接口",

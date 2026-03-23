@@ -2369,3 +2369,149 @@ func register(router *gin.Engine) {
 ### 4.8.5 swagger测试
 
 ![image-20260323102508268](assets/image-20260323102508268.png)
+
+# 5. 部门相关接口
+
+用户除了有岗位，还有部门。这样，需要先创建实体类`sysDept.go`。
+
+```go
+// Package entity 部门相关模型
+package entity
+
+import "Go-Management-System/common/util"
+
+// SysDept 部门模型
+type SysDept struct {
+	ID uint `gorm:"column:id;comment:'主键';primary_key;NOT NULL" json:"id"`
+	ParentId uint `gorm:"column:parent_id;comment:'父id';NOT NULL" json:"parentId"`
+	DeptType uint `gorm:"column:dept_type;comment:'部门类型（1->公司，2->中心，3->部门）';NOT NULL" json:"deptType"`
+	DeptName string `gorm:"column:dept_name;varchar(30);comment:'部门名称';NOT NULL" json:"deptName"`
+	DeptStatus int `gorm:"column:dept_status;default:1;comment:'部门状态（1->正常，2->停用）'" json:"deptStatus"`
+	CreateTime util.HTime `gorm:"column:create_time;comment:'创建时间';NOT NULL" json:"createTime"`
+	Children []SysDept `gorm:"-" json:"children"`
+}
+
+func (SysDept) TableName() string {
+	return "sys_dept"
+}
+```
+
+## 5.1 查询部门列表
+
+### 5.1.1 dao层
+
+在`sysDept.go`中实现。
+
+```go
+// Package dao 部门dao层
+package dao
+
+import (
+	"Go-Management-System/api/entity"
+	. "Go-Management-System/pkg/db"
+)
+
+// GetSysDeptList 查询部门列表
+func GetSysDeptList(DeptName string, DeptStatus string) (sysDept []entity.SysDept) {
+	curDb := Db.Table("sys_dept")
+	if DeptName != "" {
+		curDb = curDb.Where("dept_name LIKE ?", "%"+DeptName+"%")
+	}
+	if DeptStatus != "" {
+		curDb = curDb.Where("dept_status LIKE ?", "%"+DeptStatus+"%")
+	}
+	curDb.Find(&sysDept)
+	return sysDept
+}
+```
+
+### 5.1.2 service层
+
+```go
+// Package service 部门service层
+package service
+
+import (
+	"Go-Management-System/api/dao"
+	"Go-Management-System/common/result"
+
+	"github.com/gin-gonic/gin"
+)
+
+type ISysDeptService interface {
+	GetSysDeptList(c *gin.Context, DeptName, DeptStatus string)
+}
+
+type SysDeptServiceImpl struct {
+}
+
+var sysDeptService = SysDeptServiceImpl{}
+
+func SysDeptService() ISysDeptService {
+	return &sysDeptService
+}
+
+// GetSysDeptList 部门列表查询
+func (s SysDeptServiceImpl) GetSysDeptList(c *gin.Context, DeptName, DeptStatus string) {
+	result.Success(c, dao.GetSysDeptList(DeptName, DeptStatus))
+}
+```
+
+### 5.1.3 controller层
+
+```go
+// Package controller 部门controller层
+package controller
+
+import (
+	"Go-Management-System/api/service"
+
+	"github.com/gin-gonic/gin"
+)
+
+var sysDeptService = service.SysDeptService()
+
+// GetSysDeptList 查询部门列表
+// @Summary 查询部门列表接口
+// @Produce json
+// @Description 查询部门列表接口
+// @Param deptName query string false "部门名称"
+// @Param deptStatus query string false "部门状态"
+// @Succss 200 {object} result.Result
+// @router /api/dept/list [get]
+func GetSysDeptList(c *gin.Context) {
+	DeptName := c.Query("deptName")
+	DeptStatus := c.Query("deptStatus")
+	sysDeptService.GetSysDeptList(c, DeptName, DeptStatus)
+}
+```
+
+### 5.1.4 router配置
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/post/add", controller.CreateSysPost)
+	router.GET("/api/post/list", controller.GetSysPostList)
+	router.GET("/api/post/info", controller.GetSysPostById)
+	router.PUT("/api/post/update", controller.UpdateSysPost)
+	router.DELETE("/api/post/delete", controller.DeleteSysPostById)
+	router.DELETE("/api/post/batch/delete", controller.BatchDeleteSysPost)
+	router.PUT("/api/post/updateStatus", controller.UpdateSysPostStatus)
+	router.GET("/api/post/vo/list", controller.QuerySysPostVOList)
+	router.GET("/api/dept/list", controller.GetSysDeptList)
+}
+```
+
+### 5.1.5 swagger测试
+
+![image-20260323151901866](assets/image-20260323151901866.png)
+
+![image-20260323151909708](assets/image-20260323151909708.png)
+
+![image-20260323152646973](assets/image-20260323152646973.png)
+
