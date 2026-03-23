@@ -81,7 +81,7 @@ func UpdateSysPost(c *gin.Context) {
 // @router /api/post/delete [delete]
 func DeleteSysPostById(c *gin.Context) {
 	var dto entity.SysPostIdDto
-	_ = c.ShouldBindJSON(&dto)
+	_ = c.BindJSON(&dto)
 	service.SysPostService().DeleteSysPostById(c, dto)
 }
 
@@ -94,6 +94,29 @@ func DeleteSysPostById(c *gin.Context) {
 // @router /api/post/batch/delete [delete]
 func BatchDeleteSysPost(c *gin.Context) {
 	var dto entity.DelSysPostDto
-	_ = c.ShouldBindJSON(&dto)
+	_ = c.BindJSON(&dto)
 	service.SysPostService().BatchDeleteSysPost(c, dto)
+}
+
+// UpdateSysPostStatus 修改岗位状态
+// @Summary 岗位状态启用/停用窗口
+// @Produce json
+// @Description 岗位状态启用/停用窗口
+// @Param data body entity.UpdateSysPostStatusDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/post/updateStatus [put]
+func UpdateSysPostStatus(c *gin.Context) {
+	var dto entity.UpdateSysPostStatusDto
+	_ = c.BindJSON(&dto)
+	service.SysPostService().UpdateSysPostStatus(c, dto)
+}
+
+// QuerySysPostVOList 查询岗位下拉列表
+// @Summary 岗位下拉列表
+// @Produce json
+// @Description 岗位下拉列表
+// @Success 200 {object} result.Result
+// @router /api/post/vo/list [get]
+func QuerySysPostVOList(c *gin.Context) {
+	service.SysPostService().QuerySysPostVOList(c)
 }

@@ -97,3 +97,17 @@ func DeleteSysPostById(dto entity.SysPostIdDto) {
 func BatchDeleteSysPost(dto entity.DelSysPostDto) {
 	db.Db.Where("id in (?)", dto.Ids).Delete(&entity.SysPost{})
 }
+
+// UpdateSysPostStatus 修改岗位状态
+func UpdateSysPostStatus(dto entity.UpdateSysPostStatusDto) {
+	var sysPost entity.SysPost
+	db.Db.First(&sysPost, dto.Id)
+	sysPost.PostStatus = dto.PostStatus
+	db.Db.Save(&sysPost)
+}
+
+// QuerySysPostVOList 岗位下拉列表
+func QuerySysPostVOList() (sysPostVO []entity.SysPostVO) {
+	db.Db.Table("sys_post").Select("id, post_name").Scan(&sysPostVO)
+	return sysPostVO
+}

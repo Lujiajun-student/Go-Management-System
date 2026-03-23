@@ -240,6 +240,51 @@
                     }
                 }
             }
+        },
+        "/api/post/updateStatus": {
+            "put": {
+                "description": "岗位状态启用/停用窗口",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "岗位状态启用/停用窗口",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UpdateSysPostStatusDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/post/vo/list": {
+            "get": {
+                "description": "岗位下拉列表",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "岗位下拉列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -310,6 +355,17 @@
             "type": "object",
             "properties": {
                 "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entity.UpdateSysPostStatusDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "postStatus": {
                     "type": "integer"
                 }
             }

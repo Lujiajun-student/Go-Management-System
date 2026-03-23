@@ -33,3 +33,19 @@ type DelSysPostDto struct {
 func (DelSysPostDto) TableName() string {
 	return "sys_post"
 }
+
+// UpdateSysPostStatusDto 修改状态参数
+type UpdateSysPostStatusDto struct {
+	Id         uint `json:"id"`
+	PostStatus int  `json:"postStatus"`
+}
+
+func (UpdateSysPostStatusDto) TableName() string {
+	return "sys_post"
+}
+
+// SysPostVO 返回给前端的岗位列表信息
+type SysPostVO struct {
+	Id       uint   `json:"id"`
+	PostName string `json:"postName"`
+}

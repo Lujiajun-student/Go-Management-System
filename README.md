@@ -2222,3 +2222,150 @@ func register(router *gin.Engine) {
 ![image-20260323095811710](assets/image-20260323095811710.png)
 
 ## 4.7 修改岗位状态
+
+修改岗位状态时，只需要获取岗位id和新的岗位状态即可，因此需要将这两个属性封装到新的实体类。
+
+```go
+// UpdateSysPostStatusDto 修改状态参数
+type UpdateSysPostStatusDto struct {
+	Id uint `json:"id"`
+	PostStatus int `json:"postStatus"`
+}
+
+func (UpdateSysPostStatusDto) TableName() string {
+	return "sys_post"
+}
+```
+
+### 4.7.1 dao层
+
+```go
+// UpdateSysPostStatus 修改岗位状态
+func UpdateSysPostStatus(dto entity.UpdateSysPostStatusDto) {
+	var sysPost entity.SysPost
+	db.Db.First(&sysPost, dto.Id)
+	sysPost.PostStatus = dto.PostStatus
+	db.Db.Save(&sysPost)
+}
+```
+
+### 4.7.2 service层
+
+```go
+// UpdateSysPostStatus 修改岗位状态
+func (s SysPostServiceImpl) UpdateSysPostStatus(c *gin.Context, dto entity.UpdateSysPostStatusDto) {
+	dao.UpdateSysPostStatus(dto)
+	result.Success(c, true)
+}
+```
+
+### 4.7.3 controller层
+
+```go
+// UpdateSysPostStatus 修改岗位状态
+// @Summary 岗位状态启用/停用窗口
+// @Produce json
+// @Description 岗位状态启用/停用窗口
+// @Param data body entity.UpdateSysPostStatusDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/post/updateStatus [put]
+func UpdateSysPostStatus(c *gin.Context) {
+	var dto entity.UpdateSysPostStatusDto
+	_ = c.BindJSON(&dto)
+	service.SysPostService().UpdateSysPostStatus(c, dto)
+}
+```
+
+### 4.7.4 router配置
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/post/add", controller.CreateSysPost)
+	router.GET("/api/post/list", controller.GetSysPostList)
+	router.GET("/api/post/info", controller.GetSysPostById)
+	router.PUT("/api/post/update", controller.UpdateSysPost)
+	router.DELETE("/api/post/delete", controller.DeleteSysPostById)
+	router.DELETE("/api/post/batch/delete", controller.BatchDeleteSysPost)
+	router.PUT("/api/post/updateStatus", controller.UpdateSysPostStatus)
+}
+```
+
+### 4.7.5 swagger配置
+
+![image-20260323101342040](assets/image-20260323101342040.png)
+
+![image-20260323101350302](assets/image-20260323101350302.png)
+
+## 4.8 岗位下拉列表
+
+岗位下拉列表是为了给前端的用户快速查看当前的所有岗位，这里只需要岗位的id和岗位名字。因此需要封装实体类。
+
+```go
+// SysPostVO 返回给前端的岗位列表信息
+type SysPostVO struct {
+	Id uint `json:"id"`
+	PostName string `json:"postName"`
+}
+```
+
+### 4.8.1 dao层
+
+```go
+// QuerySysPostVOList 岗位下拉列表
+func QuerySysPostVOList() (sysPostVO []entity.SysPostVO) {
+    db.Db.Table("sys_post").Select("id, post_name").Scan(&sysPostVO)
+    return sysPostVO
+}
+```
+
+### 4.8.2 service层
+
+```go
+// QuerySysPostVOList 查询岗位下拉列表
+func (s SysPostServiceImpl) QuerySysPostVOList(c *gin.Context) {
+    result.Success(c, dao.QuerySysPostVOList())
+}
+```
+
+### 4.8.3 controller层
+
+```go
+// QuerySysPostVOList 查询岗位下拉列表
+// @Summary 岗位下拉列表
+// @Produce json
+// @Description 岗位下拉列表
+// @Success 200 {object} result.Result
+// @router /api/post/vo/list [get]
+func QuerySysPostVOList(c *gin.Context) {
+	service.SysPostService().QuerySysPostVOList(c)
+}
+```
+
+### 4.8.4 router配置
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/post/add", controller.CreateSysPost)
+	router.GET("/api/post/list", controller.GetSysPostList)
+	router.GET("/api/post/info", controller.GetSysPostById)
+	router.PUT("/api/post/update", controller.UpdateSysPost)
+	router.DELETE("/api/post/delete", controller.DeleteSysPostById)
+	router.DELETE("/api/post/batch/delete", controller.BatchDeleteSysPost)
+	router.PUT("/api/post/updateStatus", controller.UpdateSysPostStatus)
+	router.GET("/api/post/vo/list", controller.QuerySysPostVOList)
+}
+```
+
+### 4.8.5 swagger测试
+
+![image-20260323102508268](assets/image-20260323102508268.png)
