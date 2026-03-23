@@ -2069,3 +2069,156 @@ func register(router *gin.Engine) {
 ![image-20260322201501757](assets/image-20260322201501757.png)
 
 这样就实现了岗位修改。
+
+## 4.5 删除岗位接口
+
+由于删除只需要id参数，因此为了适配单个删除和多个删除，需要新增对应的实体类。
+
+```go
+// SysPostIdDto Id参数
+type SysPostIdDto struct {
+	Id uint `json:"id"`
+}
+
+func (SysPostIdDto) TableName() string {
+	return "sys_post"
+}
+```
+
+### 4.4.1 dao层
+
+```go
+// DeleteSysPostById 根据id删除岗位
+func DeleteSysPostById(dto entity.SysPost) {
+	db.Db.Delete(&dto)
+}
+```
+
+### 4.4.2 service层
+
+```go
+// DeleteSysPostById 根据id删除岗位
+func (s SysPostServiceImpl) DeleteSysPostById(c *gin.Context, post entity.SysPost) {
+	dao.DeleteSysPostById(post)
+	result.Success(c, true)
+}
+```
+
+### 4.4.3 controller层
+
+```go
+// DeleteSysPostById 根据id删除岗位
+// @Summary 根据id删除岗位
+// @Produce json
+// @Description 根据id删除岗位
+// @Param data body entity.SysPostIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/post/delete [delete]
+func DeleteSysPostById(c *gin.Context) {
+	var dto entity.SysPostIdDto
+	_ = c.ShouldBindJSON(&dto)
+	service.SysPostService().DeleteSysPostById(c, dto)
+}
+```
+
+### 4.4.4 router配置
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/post/add", controller.CreateSysPost)
+	router.GET("/api/post/list", controller.GetSysPostList)
+	router.GET("/api/post/info", controller.GetSysPostById)
+	router.PUT("/api/post/update", controller.UpdateSysPost)
+	router.DELETE("/api/post/delete", controller.DeleteSysPostById)
+}
+```
+
+### 4.4.5 Swagger 测试
+
+访问`localhost:8080/swagger/index.html`即可使用swagger测试删除接口。
+
+![image-20260323094223129](assets/image-20260323094223129.png)
+
+![image-20260323094231777](assets/image-20260323094231777.png)
+
+## 4.6 批量删除岗位
+
+现在是批量删除岗位，需要新建对应的实体类，保存id数组。
+
+```go
+// DelSysPostDto 删除多个岗位
+type DelSysPostDto struct {
+	Ids []uint
+}
+
+func (DelSysPostDto) TableName() string {
+	return "sys_post"
+}
+```
+
+### 4.6.1 dao 层
+
+```go
+// BatchDeleteSysPost 批量删除岗位
+func BatchDeleteSysPost(dto entity.DelSysPostDto) {
+	db.Db.Where("id in (?)", dto.Ids).Delete(&entity.SysPost{})
+}
+```
+
+### 4.6.2 service层
+
+```go
+// BatchDeleteSysPost 批量删除岗位
+func (s SysPostServiceImpl) BatchDeleteSysPost(c *gin.Context, dto entity.DelSysPostDto) {
+	dao.BatchDeleteSysPost(dto)
+	result.Success(c, true)
+}
+```
+
+### 4.6.3 controller层
+
+```go
+// BatchDeleteSysPost 批量删除岗位
+// @Summary 批量删除岗位
+// @Produce json
+// @Description 批量删除岗位
+// @Param data body entity.DelSysPostDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/post/batch/delete [delete]
+func BatchDeleteSysPost(c *gin.Context) {
+	var dto entity.DelSysPostDto
+	_ = c.ShouldBindJSON(&dto)
+	service.SysPostService().BatchDeleteSysPost(c, dto)
+}
+```
+
+### 4.6.4 router配置
+
+```go
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	router.POST("/api/post/add", controller.CreateSysPost)
+	router.GET("/api/post/list", controller.GetSysPostList)
+	router.GET("/api/post/info", controller.GetSysPostById)
+	router.PUT("/api/post/update", controller.UpdateSysPost)
+	router.DELETE("/api/post/delete", controller.DeleteSysPostById)
+	router.DELETE("/api/post/batch/delete", controller.BatchDeleteSysPost)
+}
+```
+
+### 4.6.5 Swagger测试
+
+![image-20260323095802770](assets/image-20260323095802770.png)
+
+![image-20260323095811710](assets/image-20260323095811710.png)
+
+## 4.7 修改岗位状态

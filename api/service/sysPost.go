@@ -15,6 +15,8 @@ type ISysPostService interface {
 	GetSysPostList(c *gin.Context, PageNum, PageSize int, PostName, PostStatus, BeginTime, EndTime string)
 	GetSysPostById(c *gin.Context, post entity.SysPost)
 	UpdateSysPost(c *gin.Context, sysPost entity.SysPost)
+	DeleteSysPostById(c *gin.Context, dto entity.SysPostIdDto)
+	BatchDeleteSysPost(c *gin.Context, dto entity.DelSysPostDto)
 }
 
 // SysPostServiceImpl 岗位的实现类
@@ -63,4 +65,16 @@ func (s SysPostServiceImpl) GetSysPostById(c *gin.Context, post entity.SysPost) 
 // UpdateSysPost 修改岗位
 func (s SysPostServiceImpl) UpdateSysPost(c *gin.Context, post entity.SysPost) {
 	result.Success(c, dao.UpdateSysPost(post))
+}
+
+// DeleteSysPostById 根据id删除岗位
+func (s SysPostServiceImpl) DeleteSysPostById(c *gin.Context, post entity.SysPostIdDto) {
+	dao.DeleteSysPostById(post)
+	result.Success(c, true)
+}
+
+// BatchDeleteSysPost 批量删除岗位
+func (s SysPostServiceImpl) BatchDeleteSysPost(c *gin.Context, dto entity.DelSysPostDto) {
+	dao.BatchDeleteSysPost(dto)
+	result.Success(c, true)
 }

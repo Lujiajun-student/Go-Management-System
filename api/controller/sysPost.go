@@ -71,3 +71,29 @@ func UpdateSysPost(c *gin.Context) {
 	_ = c.BindJSON(&sysPost)
 	service.SysPostService().UpdateSysPost(c, sysPost)
 }
+
+// DeleteSysPostById 根据id删除岗位
+// @Summary 根据id删除岗位
+// @Produce json
+// @Description 根据id删除岗位
+// @Param data body entity.SysPostIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/post/delete [delete]
+func DeleteSysPostById(c *gin.Context) {
+	var dto entity.SysPostIdDto
+	_ = c.ShouldBindJSON(&dto)
+	service.SysPostService().DeleteSysPostById(c, dto)
+}
+
+// BatchDeleteSysPost 批量删除岗位
+// @Summary 批量删除岗位
+// @Produce json
+// @Description 批量删除岗位
+// @Param data body entity.DelSysPostDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/post/batch/delete [delete]
+func BatchDeleteSysPost(c *gin.Context) {
+	var dto entity.DelSysPostDto
+	_ = c.ShouldBindJSON(&dto)
+	service.SysPostService().BatchDeleteSysPost(c, dto)
+}

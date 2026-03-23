@@ -88,6 +88,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/post/batch/delete": {
+            "delete": {
+                "description": "批量删除岗位",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "批量删除岗位",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.DelSysPostDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/post/delete": {
+            "delete": {
+                "description": "根据id删除岗位",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "根据id删除岗位",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysPostIdDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/post/info": {
             "get": {
                 "description": "根据id查询岗位",
@@ -196,6 +252,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "entity.DelSysPostDto": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "entity.LoginDto": {
             "type": "object",
             "required": [
@@ -245,6 +312,14 @@ const docTemplate = `{
                 },
                 "remark": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.SysPostIdDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
                 }
             }
         },

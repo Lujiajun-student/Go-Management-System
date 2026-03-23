@@ -1,4 +1,11 @@
 definitions:
+  entity.DelSysPostDto:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
   entity.LoginDto:
     properties:
       id_key:
@@ -35,6 +42,11 @@ definitions:
         type: integer
       remark:
         type: string
+    type: object
+  entity.SysPostIdDto:
+    properties:
+      id:
+        type: integer
     type: object
   result.Result:
     properties:
@@ -104,6 +116,42 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 新增岗位接口
+  /api/post/batch/delete:
+    delete:
+      description: 批量删除岗位
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.DelSysPostDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 批量删除岗位
+  /api/post/delete:
+    delete:
+      description: 根据id删除岗位
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.SysPostIdDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 根据id删除岗位
   /api/post/info:
     get:
       description: 根据id查询岗位
