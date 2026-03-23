@@ -60,6 +60,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dept/info": {
+            "get": {
+                "description": "根据id查询部门",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "根据id查询部门",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dept/list": {
             "get": {
                 "description": "查询部门列表接口",
@@ -82,6 +108,34 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        },
+        "/api/dept/update": {
+            "put": {
+                "description": "修改部门",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "修改部门",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysDept"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
             }
         },
         "/api/login": {

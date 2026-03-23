@@ -12,6 +12,8 @@ import (
 type ISysDeptService interface {
 	GetSysDeptList(c *gin.Context, DeptName, DeptStatus string)
 	CreateSysDept(c *gin.Context, sysDept entity.SysDept)
+	GetSysDeptById(c *gin.Context, sysDept entity.SysDept)
+	UpdateSysDept(c *gin.Context, sysDept entity.SysDept)
 }
 
 type SysDeptServiceImpl struct {
@@ -36,4 +38,15 @@ func (s SysDeptServiceImpl) CreateSysDept(c *gin.Context, sysDept entity.SysDept
 		return
 	}
 	result.Success(c, true)
+}
+
+// GetSysDeptById 根据id查询部门
+func (s SysDeptServiceImpl) GetSysDeptById(c *gin.Context, sysDept entity.SysDept) {
+	result.Success(c, dao.GetSysDeptById(sysDept))
+}
+
+// UpdateSysDept 修改部门
+func (s SysDeptServiceImpl) UpdateSysDept(c *gin.Context, sysDept entity.SysDept) {
+	dao.UpdateSysDept(sysDept)
+	result.Success(c, sysDept)
 }

@@ -2489,22 +2489,7 @@ func GetSysDeptList(c *gin.Context) {
 ### 5.1.4 router配置
 
 ```go
-// register 路由注册
-func register(router *gin.Engine) {
-	// todo 添加接口url
-	router.GET("/api/captcha", controller.Captcha)
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	router.POST("/api/login", controller.Login)
-	router.POST("/api/post/add", controller.CreateSysPost)
-	router.GET("/api/post/list", controller.GetSysPostList)
-	router.GET("/api/post/info", controller.GetSysPostById)
-	router.PUT("/api/post/update", controller.UpdateSysPost)
-	router.DELETE("/api/post/delete", controller.DeleteSysPostById)
-	router.DELETE("/api/post/batch/delete", controller.BatchDeleteSysPost)
-	router.PUT("/api/post/updateStatus", controller.UpdateSysPostStatus)
-	router.GET("/api/post/vo/list", controller.QuerySysPostVOList)
-	router.GET("/api/dept/list", controller.GetSysDeptList)
-}
+router.GET("/api/dept/list", controller.GetSysDeptList)
 ```
 
 ### 5.1.5 swagger测试
@@ -2594,23 +2579,7 @@ func CreateSysDept(c *gin.Context) {
 ### 5.2.4 router配置
 
 ```go
-// register 路由注册
-func register(router *gin.Engine) {
-    // todo 添加接口url
-    router.GET("/api/captcha", controller.Captcha)
-    router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-    router.POST("/api/login", controller.Login)
-    router.POST("/api/post/add", controller.CreateSysPost)
-    router.GET("/api/post/list", controller.GetSysPostList)
-    router.GET("/api/post/info", controller.GetSysPostById)
-    router.PUT("/api/post/update", controller.UpdateSysPost)
-    router.DELETE("/api/post/delete", controller.DeleteSysPostById)
-    router.DELETE("/api/post/batch/delete", controller.BatchDeleteSysPost)
-    router.PUT("/api/post/updateStatus", controller.UpdateSysPostStatus)
-    router.GET("/api/post/vo/list", controller.QuerySysPostVOList)
-    router.GET("/api/dept/list", controller.GetSysDeptList)
-    router.POST("/api/dept/add", controller.CreateSysDept)
-}
+router.POST("/api/dept/add", controller.CreateSysDept)
 ```
 
 ### 5.2.5 swagger测试
@@ -2619,3 +2588,107 @@ func register(router *gin.Engine) {
 
 ![image-20260323195433112](assets/image-20260323195433112.png)
 
+## 5.3 根据id查询部门
+
+### 5.3.1 dao层
+
+```go
+// GetSysDeptById 根据id查询部门
+func GetSysDeptById(sysDept entity.SysDept) entity.SysDept {
+    Db.Where("id = ?", sysDept.ID).First(&sysDept)
+    return sysDept
+}
+```
+
+### 5.3.2 service层
+
+```go
+// GetSysDeptById 根据id查询部门
+func (s SysDeptServiceImpl) GetSysDeptById(c *gin.Context, sysDept entity.SysDept) {
+	result.Success(c, dao.GetSysDeptById(sysDept))
+}
+```
+
+### 5.3.3 controller层
+
+```go
+// GetSysDeptById 根据id查询部门
+// @Summary 根据id查询部门
+// @Produce json
+// @Description 根据id查询部门
+// @Param id query int true "id"
+// @Success 200 {object} result.Result
+// @router /api/dept/info [get]
+func GetSysDeptById(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Query("id"))
+	sysDept.ID = uint(id)
+	service.SysDeptService().GetSysDeptById(c, sysDept)
+}
+```
+
+### 5.3.4 router配置
+
+```go
+router.GET("/api/dept/info", controller.GetSysDeptById)
+```
+
+### 5.3.5 swagger测试
+
+![image-20260323200936753](assets/image-20260323200936753.png)
+
+## 5.4 修改部门
+
+### 5.4.1 dao层
+
+首先根据id查询到旧数据，用前端获取的新数据来覆盖旧数据然后调用Save即可。
+
+```go
+// UpdateSysDept 修改部门
+func UpdateSysDept(dept entity.SysDept) (sysDept entity.SysDept){
+	Db.First(&sysDept, dept.ID)
+	sysDept.ParentId = dept.ParentId
+	sysDept.DeptName = dept.DeptName
+	sysDept.DeptType = dept.DeptType
+	sysDept.DeptStatus = dept.DeptStatus
+	Db.Save(&sysDept)
+	return sysDept
+}
+```
+
+### 5.4.2 service层
+
+```go
+// UpdateSysDept 修改部门
+func (s SysDeptServiceImpl) UpdateSysDept(c *gin.Context, sysDept entity.SysDept) {
+	dao.UpdateSysDept(sysDept)
+	result.Success(c, sysDept)
+}
+```
+
+### 5.4.3 controller层
+
+```go
+// UpdateSysDept 修改部门
+// @Summary 修改部门
+// @Produce json
+// @Description 修改部门
+// @Param data body entity.SysDept true "data"
+// @Success 200 {object} result.Result
+// @router /api/dept/update [put]
+func UpdateSysDept(c *gin.Context) {
+	_ = c.BindJSON(&sysDept)
+	service.SysDeptService().UpdateSysDept(c, sysDept)
+}
+```
+
+### 5.4.4 router配置
+
+```go
+router.PUT("/api/dept/update", controller.UpdateSysDept)
+```
+
+### 5.4.5 swagger测试
+
+![image-20260323202702587](assets/image-20260323202702587.png)
+
+![image-20260323202709998](assets/image-20260323202709998.png)

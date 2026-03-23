@@ -56,3 +56,20 @@ func CreateSysDept(sysDept entity.SysDept) bool {
 		return true
 	}
 }
+
+// GetSysDeptById 根据id查询部门
+func GetSysDeptById(sysDept entity.SysDept) entity.SysDept {
+	Db.Where("id = ?", sysDept.ID).First(&sysDept)
+	return sysDept
+}
+
+// UpdateSysDept 修改部门
+func UpdateSysDept(dept entity.SysDept) (sysDept entity.SysDept) {
+	Db.First(&sysDept, dept.ID)
+	sysDept.ParentId = dept.ParentId
+	sysDept.DeptName = dept.DeptName
+	sysDept.DeptType = dept.DeptType
+	sysDept.DeptStatus = dept.DeptStatus
+	Db.Save(&sysDept)
+	return sysDept
+}

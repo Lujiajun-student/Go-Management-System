@@ -124,6 +124,23 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 新增部门接口
+  /api/dept/info:
+    get:
+      description: 根据id查询部门
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 根据id查询部门
   /api/dept/list:
     get:
       description: 查询部门列表接口
@@ -140,6 +157,24 @@ paths:
       - application/json
       responses: {}
       summary: 查询部门列表接口
+  /api/dept/update:
+    put:
+      description: 修改部门
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.SysDept'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 修改部门
   /api/login:
     post:
       description: 用户登录接口
