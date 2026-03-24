@@ -103,3 +103,31 @@ func QuerySysRoleVOList() (sysRoleVO []entity.SysRoleVO) {
 	Db.Table("sys_role").Select("id, role_name").Scan(&sysRoleVO)
 	return sysRoleVO
 }
+
+// QuerySysRoleMenuIdList 根据角色id查询菜单权限id
+func QuerySysRoleMenuIdList(id int) (idVO []entity.IdVO) {
+	const menuType int = 3
+	Db.Table("sys_menu sm").
+		Select("sm.id").
+		Joins("LEFT JOIN sys_role_menu srm ON srm.menu_id = sm.id").
+		Joins("LEFT JOIN sys_role sr ON sr.id = srm.role_id").
+		Where("sm.menu_type = ?", menuType).
+		Where("sr.id = ?", id).
+		Scan(&idVO)
+	return idVO
+}
+
+// AssignPermissions 为用户分配权限
+func AssignPermissions(menu entity.RoleMenu) (err error) {
+	err = Db.Table("sys_role_menu").Where("role_id = ?", menu.Id).Delete(&entity.SysRoleMenu{}).Error
+	if err != nil {
+		return err
+	}
+	for _, value := range menu.MenuIds {
+		var e entity.SysRoleMenu
+		e.RoleId = menu.Id
+		e.MenuId = value
+		Db.Create(&e)
+	}
+	return err
+}

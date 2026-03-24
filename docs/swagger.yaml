@@ -39,6 +39,18 @@ definitions:
     - password
     - username
     type: object
+  entity.RoleMenu:
+    properties:
+      id:
+        type: integer
+      menuIds:
+        items:
+          type: integer
+        type: array
+    required:
+    - id
+    - menuIds
+    type: object
   entity.SysDept:
     properties:
       children:
@@ -555,6 +567,24 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 新增角色接口
+  /api/role/assignPermissions:
+    put:
+      description: 分配权限
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RoleMenu'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 分配权限
   /api/role/delete:
     delete:
       description: 删除角色
@@ -662,6 +692,23 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 修改角色状态
+  /api/role/vo/idList:
+    get:
+      description: 根据角色id查询菜单数据
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 根据角色id查询菜单数据
   /api/role/vo/list:
     get:
       description: 查询角色下拉列表

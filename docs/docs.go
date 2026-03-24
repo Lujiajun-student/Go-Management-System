@@ -614,6 +614,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/role/assignPermissions": {
+            "put": {
+                "description": "分配权限",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "分配权限",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.RoleMenu"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/role/delete": {
             "delete": {
                 "description": "删除角色",
@@ -779,6 +807,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/role/vo/idList": {
+            "get": {
+                "description": "根据角色id查询菜单数据",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "根据角色id查询菜单数据",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/role/vo/list": {
             "get": {
                 "description": "查询角色下拉列表",
@@ -852,6 +906,24 @@ const docTemplate = `{
                 "username": {
                     "description": "用户名",
                     "type": "string"
+                }
+            }
+        },
+        "entity.RoleMenu": {
+            "type": "object",
+            "required": [
+                "id",
+                "menuIds"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "menuIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },

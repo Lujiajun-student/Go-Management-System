@@ -3906,3 +3906,143 @@ router.GET("/api/role/vo/list", controller.QuerySysRoleVOList)
 ### 7.7.6 swagger
 
 ![image-20260324205556662](assets/image-20260324205556662.png)
+
+## 7.8 根据角色查询菜单权限
+
+### 7.8.1 entity
+
+```go
+// IdVO 当前角色的菜单权限id
+type IdVO struct {
+    Id uint `json:"id"`
+}
+```
+
+### 7.8.2 dao
+
+```go
+// QuerySysRoleMenuIdList 根据角色id查询菜单权限id
+func QuerySysRoleMenuIdList(id int) (idVO []entity.IdVO) {
+	const menuType int = 3
+	Db.Table("sys_menu sm").
+		Select("sm.id").
+		Joins("LEFT JOIN sys_role_menu srm ON srm.menu_id = sm.id").
+		Joins("LEFT JOIN sys_role sr ON sr.id = srm.role_id").
+		Where("sm.menu_type = ?", menuType).
+		Where("sr.id = ?", id).
+		Scan(&idVO)
+	return idVO
+}
+```
+
+### 7.8.3 service
+
+```go
+// QueryRoleMenuIdList 根据角色id查询菜单数据
+func (s *SysRoleServiceImpl) QueryRoleMenuIdList(c *gin.Context, Id int) {
+    roleMenuIdList := dao.QuerySysRoleMenuIdList(Id)
+    var idList = make([]int, 0)
+    for _, id := range roleMenuIdList {
+       idList = append(idList, int(id.Id))
+    }
+    result.Success(c, idList)
+}
+```
+
+### 7.8.4 controller
+
+```go
+// QueryRoleMenuIdList 根据角色id查询菜单数据
+// @Summary 根据角色id查询菜单数据
+// @Produce json
+// @Description 根据角色id查询菜单数据
+// @Param id query int true "id"
+// @Success 200 {object} result.Result
+// @router /api/role/vo/idList [get]
+func QueryRoleMenuIdList(c *gin.Context) {
+    Id, _ := strconv.Atoi(c.Query("id"))
+    service.SysRoleService().QueryRoleMenuIdList(c, Id)
+}
+```
+
+### 7.8.5 router
+
+```go
+router.GET("/api/role/vo/idList", controller.QueryRoleMenuIdList)
+```
+
+### 7.8.6 swagger
+
+![image-20260324211717919](assets/image-20260324211717919.png)
+
+## 7.9 角色权限分配
+
+也就是为用户添加新增菜单、删除菜单等增删改查的功能，也就是修改角色的菜单权限。首先需要创建结构体，包含角色id和菜单id。
+
+### 7.9.1 entity
+
+```go
+// RoleMenu 角色id和菜单id
+type RoleMenu struct {
+    Id uint `json:"id" binding:"required"`
+    MenuIds []uint `json:"menuIds" binding:"required"`
+}
+```
+
+### 7.9.1 dao层
+
+```go
+// AssignPermissions 为用户分配权限
+func AssignPermissions(menu entity.RoleMenu) (err error) {
+    err = Db.Table("sys_role_menu").Where("role_id = ?", menu.Id).Delete(&entity.SysRoleMenu{}).Error
+    if err != nil {
+       return err
+    }
+    for _, value := range menu.MenuIds {
+       var entity entity.SysRoleMenu
+       entity.RoleId = menu.Id
+       entity.MenuId = value
+       Db.Create(&entity)
+    }
+    return err
+}
+```
+
+### 7.9.2 service
+
+```go
+// AssignPermission 为角色分配权限
+func (s SysRoleServiceImpl) AssignPermissions(c *gin.Context, menu entity.RoleMenu) {
+    result.Success(c, dao.AssignPermissions(menu))
+}
+```
+
+### 7.9.3 controller
+
+```go
+// AssignPermissions 分配权限
+// @Summary 分配权限
+// @Produce json
+// @Description 分配权限
+// @Param data body entity.RoleMenu true "data"
+// @Success 200 {object} result.Result
+// @router /api/role/assignPermissions [put]
+func AssignPermissions(c *gin.Context) {
+	var RoleMenu entity.RoleMenu
+	_ = c.BindJSON(&RoleMenu)
+	service.SysRoleService().AssignPermissions(c, RoleMenu)
+}
+```
+
+### 7.9.4 router
+
+```go
+router.PUT("/api/role/assignPermissions", controller.AssignPermissions)
+```
+
+### 7.9.5 swagger测试
+
+![image-20260324213112553](assets/image-20260324213112553.png)
+
+![image-20260324213122351](assets/image-20260324213122351.png)
+

@@ -17,6 +17,8 @@ type ISysRoleService interface {
 	UpdateSysRoleStatus(c *gin.Context, dto entity.UpdateSysRoleStatusDto)
 	GetSysRoleList(c *gin.Context, PageNum, PageSize int, RoleName, Status, BeginTime, EndTime string)
 	QuerySysRoleVOList(c *gin.Context)
+	QueryRoleMenuIdList(c *gin.Context, Id int)
+	AssignPermissions(c *gin.Context, menu entity.RoleMenu)
 }
 
 type SysRoleServiceImpl struct {
@@ -78,4 +80,19 @@ func (s SysRoleServiceImpl) GetSysRoleList(c *gin.Context, PageNum, PageSize int
 // QuerySysRoleVOList 查询角色下拉列表
 func (s SysRoleServiceImpl) QuerySysRoleVOList(c *gin.Context) {
 	result.Success(c, dao.QuerySysRoleVOList())
+}
+
+// QueryRoleMenuIdList 根据角色id查询菜单数据
+func (s *SysRoleServiceImpl) QueryRoleMenuIdList(c *gin.Context, Id int) {
+	roleMenuIdList := dao.QuerySysRoleMenuIdList(Id)
+	var idList = make([]int, 0)
+	for _, id := range roleMenuIdList {
+		idList = append(idList, int(id.Id))
+	}
+	result.Success(c, idList)
+}
+
+// AssignPermissions 为角色分配权限
+func (s SysRoleServiceImpl) AssignPermissions(c *gin.Context, menu entity.RoleMenu) {
+	result.Success(c, dao.AssignPermissions(menu))
 }

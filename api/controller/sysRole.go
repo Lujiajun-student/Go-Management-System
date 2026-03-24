@@ -107,3 +107,28 @@ func GetSysRoleList(c *gin.Context) {
 func QuerySysRoleVOList(c *gin.Context) {
 	service.SysRoleService().QuerySysRoleVOList(c)
 }
+
+// QueryRoleMenuIdList 根据角色id查询菜单数据
+// @Summary 根据角色id查询菜单数据
+// @Produce json
+// @Description 根据角色id查询菜单数据
+// @Param id query int true "id"
+// @Success 200 {object} result.Result
+// @router /api/role/vo/idList [get]
+func QueryRoleMenuIdList(c *gin.Context) {
+	Id, _ := strconv.Atoi(c.Query("id"))
+	service.SysRoleService().QueryRoleMenuIdList(c, Id)
+}
+
+// AssignPermissions 分配权限
+// @Summary 分配权限
+// @Produce json
+// @Description 分配权限
+// @Param data body entity.RoleMenu true "data"
+// @Success 200 {object} result.Result
+// @router /api/role/assignPermissions [put]
+func AssignPermissions(c *gin.Context) {
+	var RoleMenu entity.RoleMenu
+	_ = c.BindJSON(&RoleMenu)
+	service.SysRoleService().AssignPermissions(c, RoleMenu)
+}
