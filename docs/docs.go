@@ -585,9 +585,54 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/role/add": {
+            "post": {
+                "description": "新增角色接口",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "新增角色接口",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.AddSysRoleDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "entity.AddSysRoleDto": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "roleKey": {
+                    "type": "string"
+                },
+                "roleName": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
         "entity.DelSysPostDto": {
             "type": "object",
             "properties": {

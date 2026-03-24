@@ -1,4 +1,15 @@
 definitions:
+  entity.AddSysRoleDto:
+    properties:
+      description:
+        type: string
+      roleKey:
+        type: string
+      roleName:
+        type: string
+      status:
+        type: integer
+    type: object
   entity.DelSysPostDto:
     properties:
       ids:
@@ -501,6 +512,24 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 岗位下拉列表
+  /api/role/add:
+    post:
+      description: 新增角色接口
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AddSysRoleDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 新增角色接口
 securityDefinitions:
   ApiKeyAuth:
     in: header

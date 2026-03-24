@@ -3356,3 +3356,168 @@ router.GET("/api/menu/list", controller.GetSysMenuList)
 ### 6.6.5 swagger测试
 
 ![image-20260324172631307](assets/image-20260324172631307.png)
+
+# 7. 角色相关接口
+
+角色也就是用户，需要实现根据角色id查询对应的菜单、给角色分配权限等功能。
+
+## 7.1 新增角色
+
+### 7.1.1 entity
+
+首先创建角色的实体类`sysRole.go`。
+
+```go
+// Package entity 角色相关实体类
+package entity
+
+import "Go-Management-System/common/util"
+
+// SysRole 角色模型
+type SysRole struct {
+	ID          uint       `gorm:"column:id;comment:'主键';primaryKey;NOT NULL" json:"id"`
+	RoleName    string     `gorm:"column:role_name;varchar(64);comment:'角色名称';NOT NULL" json:"roleName"`
+	RoleKey     string     `gorm:"column:role_key;varchar(64);comment:'权限字符串';NOT NULL" json:"roleKey"`
+	Status      int        `gorm:"column:status;default:1;comment:'账号启用状态：1->启用；2->禁用';NOT NULL" json:"status"`
+	Description string     `gorm:"column:description;varchar(500);comment:'描述'" json:"description"`
+	CreateTime  util.HTime `gorm:"column:create_time;comment:'创建时间';NOT NULL" json:"createTime"`
+}
+
+func (SysRole) TableName() string {
+	return "sys_role"
+}
+
+// AddSysRoleDto 新增角色所需参数
+type AddSysRoleDto struct {
+	RoleName string 
+	RoleKey string
+	Status int
+	Description string
+}
+```
+
+### 7.1.2 dao层
+
+```go
+// Package dao 角色相关dao层
+package dao
+
+import (
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/util"
+	. "Go-Management-System/pkg/db"
+	"time"
+)
+
+// GetSysRoleByName 根据角色名称获取角色
+func GetSysRoleByName(roleName string) (sysRole entity.SysRole) {
+	Db.Where("role_name = ?", roleName).First(&sysRole)
+	return sysRole
+}
+// GetSysRoleByKey 根据角色权限字符串获取角色
+func GetSysRoleByKey(roleKey string) (sysRole entity.SysRole) {
+	Db.Where("role_key = ?", roleKey).First(&sysRole)
+	return sysRole
+}
+// CreateSysRole 创建角色
+func CreateSysRole(dto entity.AddSysRoleDto) bool {
+	sysRoleByName := GetSysRoleByName(dto.RoleName)
+	if sysRoleByName.ID > 0 {
+		return false
+	}
+	sysRoleByKey := GetSysRoleByKey(dto.RoleKey)
+	if sysRoleByKey.ID > 0 {
+		return false
+	}
+	addSysRole := entity.SysRole{
+		RoleName:    dto.RoleName,
+		RoleKey:     dto.RoleKey,
+		Description: dto.Description,
+		Status:      dto.Status,
+		CreateTime:  util.HTime{Time: time.Now()},
+	}
+	tx := Db.Create(&addSysRole)
+	if tx.RowsAffected > 0 {
+		return true
+	}
+	return false
+}
+```
+
+### 7.1.3 service层
+
+```go
+// Package service 角色相关service层
+package service
+
+import (
+	"Go-Management-System/api/dao"
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/result"
+
+	"github.com/gin-gonic/gin"
+)
+
+type ISysRoleService interface {
+	CreateSysRole(c *gin.Context, dto entity.AddSysRoleDto)
+}
+
+type SysRoleServiceImpl struct {
+}
+
+var sysRoleService = SysRoleServiceImpl{}
+
+func SysRoleService() ISysRoleService {
+	return &sysRoleService
+}
+
+// CreateSysRole 创建角色
+func (s SysRoleServiceImpl) CreateSysRole(c *gin.Context, dto entity.AddSysRoleDto) {
+	ok := dao.CreateSysRole(dto)
+	if !ok {
+		result.Failed(c, int(result.ApiCode.ROLENAMEALREADYEXISTS), result.ApiCode.GetMessage(result.ApiCode.ROLENAMEALREADYEXISTS))
+		return
+	}
+	result.Success(c, true)
+}
+```
+
+### 7.1.4 controller层
+
+```go
+// Package controller 角色相关controller层
+package controller
+
+import (
+	"Go-Management-System/api/entity"
+	"Go-Management-System/api/service"
+
+	"github.com/gin-gonic/gin"
+)
+
+var addSysRole entity.AddSysRoleDto
+
+// CreateSysRole 创建角色
+// @Summary 新增角色接口
+// @Produce json
+// @Description 新增角色接口
+// @Param data body entity.AddSysRoleDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/role/add [post]
+func CreateSysRole(c *gin.Context) {
+	_ = c.BindJSON(&addSysRole)
+	service.SysRoleService().CreateSysRole(c, addSysRole)
+}
+```
+
+### 7.1.5 router配置
+
+```go
+router.POST("/api/role/add", controller.CreateSysRole)
+```
+
+### 7.1.6 swagger测试
+
+![image-20260324175517415](assets/image-20260324175517415.png)
+
+![image-20260324175524460](assets/image-20260324175524460.png)
