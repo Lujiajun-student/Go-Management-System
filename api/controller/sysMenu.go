@@ -10,6 +10,8 @@ import (
 
 var sysMenu entity.SysMenu
 
+var sysMenuVO entity.SysMenuVO
+
 // CreateSysMenu 创建菜单
 // @Summary 新增菜单接口
 // @Producce json
@@ -20,4 +22,15 @@ var sysMenu entity.SysMenu
 func CreateSysMenu(c *gin.Context) {
 	_ = c.BindJSON(&sysMenu)
 	service.SysMenuService().CreateSysMenu(c, sysMenu)
+}
+
+// QuerySysMenuVOList 查询菜单列表
+// @Summary 查询菜单列表
+// @Producce json
+// @Description 查询菜单列表
+// @Success 200 {object} result.Result
+// @router /api/menu/list [get]
+func QuerySysMenuVOList(c *gin.Context) {
+	_ = c.BindJSON(&sysMenuVO)
+	service.SysMenuService().QuerySysMenuVOList(c)
 }

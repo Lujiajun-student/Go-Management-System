@@ -11,6 +11,7 @@ import (
 
 type ISysMenuService interface {
 	CreateSysMenu(c *gin.Context, SysMenu entity.SysMenu)
+	QuerySysMenuVOList(c *gin.Context)
 }
 
 type SysMenuServiceImpl struct {
@@ -30,4 +31,9 @@ func (s SysMenuServiceImpl) CreateSysMenu(c *gin.Context, SysMenu entity.SysMenu
 		return
 	}
 	result.Success(c, true)
+}
+
+// QuerySysMenuVOList 查询菜单列表
+func (s SysMenuServiceImpl) QuerySysMenuVOList(c *gin.Context) {
+	result.Success(c, dao.QuerySysMenuVOList())
 }

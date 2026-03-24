@@ -227,6 +227,20 @@
                 }
             }
         },
+        "/api/menu/list": {
+            "get": {
+                "description": "查询菜单列表",
+                "summary": "查询菜单列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/post/add": {
             "post": {
                 "description": "新增岗位接口",

@@ -3047,3 +3047,67 @@ router.POST("/api/menu/add", controller.CreateSysMenu)
 
 ![image-20260324124125389](assets/image-20260324124125389.png)
 
+## 6.2 菜单下拉列表
+
+前端的时候需要展示对应的菜单，因此需要获取菜单列表。
+
+### 6.2.1 entity
+
+首先创建对应的VO对象。
+
+```go
+// SysMenuVO 返回给前端的对象
+type SysMenuVO struct {
+	Id       uint   `json:"id"`
+	ParentId uint   `json:"parentId"`
+	Label    string `json:"label"`
+}
+
+func (SysMenuVO) TableName() string {
+	return "sys_menu"
+}
+```
+
+### 6.2.2 dao层
+
+```go
+// QuerySysMenuVOList 查询菜单列表
+func QuerySysMenuVOList() (sysMenoVO []entity.SysMenuVO) {
+	Db.Table("sys_menu").Select("id, menu_name AS label, parent_id").Scan(&sysMenoVO)
+	return sysMenoVO
+}
+```
+
+### 6.2.3 service层
+
+```go
+// QuerySysMenuVOList 查询菜单列表
+func (s SysMenuServiceImpl) QuerySysMenuVOList(c *gin.Context) {
+	result.Success(c, dao.QuerySysMenuVOList())
+}
+```
+
+### 6.2.4 controller层
+
+```go
+// QuerySysMenuVOList 查询菜单列表
+// @Summary 查询菜单列表
+// @Producce json
+// @Description 查询菜单列表
+// @Success 200 {object} result.Result
+// @router /api/menu/list [get]
+func QuerySysMenuVOList(c *gin.Context) {
+	_ = c.BindJSON(&sysMenuVO)
+	service.SysMenuService().QuerySysMenuVOList(c)
+}
+```
+
+### 6.2.5 router配置
+
+```go
+router.GET("/api/menu/list", controller.QuerySysMenuVOList)
+```
+
+### 6.2.6 swagger测试
+
+![image-20260324142114727](assets/image-20260324142114727.png)

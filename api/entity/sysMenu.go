@@ -21,3 +21,14 @@ type SysMenu struct {
 func (SysMenu) TableName() string {
 	return "sys_menu"
 }
+
+// SysMenuVO 返回给前端的对象
+type SysMenuVO struct {
+	Id       uint   `json:"id"`
+	ParentId uint   `json:"parentId"`
+	Label    string `json:"label"`
+}
+
+func (SysMenuVO) TableName() string {
+	return "sys_menu"
+}

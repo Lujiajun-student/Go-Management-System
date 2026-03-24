@@ -63,3 +63,9 @@ func CreateSysMenu(addSysMenu entity.SysMenu) bool {
 	}
 	return false
 }
+
+// QuerySysMenuVOList 查询菜单列表
+func QuerySysMenuVOList() (sysMenoVO []entity.SysMenuVO) {
+	Db.Table("sys_menu").Select("id, menu_name AS label, parent_id").Scan(&sysMenoVO)
+	return sysMenoVO
+}
