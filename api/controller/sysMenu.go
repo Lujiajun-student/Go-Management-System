@@ -4,6 +4,7 @@ package controller
 import (
 	"Go-Management-System/api/entity"
 	"Go-Management-System/api/service"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,4 +34,16 @@ func CreateSysMenu(c *gin.Context) {
 func QuerySysMenuVOList(c *gin.Context) {
 	_ = c.BindJSON(&sysMenuVO)
 	service.SysMenuService().QuerySysMenuVOList(c)
+}
+
+// GetSysMenuById 根据id查询菜单
+// @Summary 根据id查询菜单
+// @Producce json
+// @Description 根据id查询菜单
+// @Param id query int true "id"
+// @Success 200 {object} result.Result
+// @router /api/menu/info [get]
+func GetSysMenuById(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Query("id"))
+	service.SysMenuService().GetSysMenuById(c, id)
 }

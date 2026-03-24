@@ -3111,3 +3111,50 @@ router.GET("/api/menu/list", controller.QuerySysMenuVOList)
 ### 6.2.6 swagger测试
 
 ![image-20260324142114727](assets/image-20260324142114727.png)
+
+## 6.3 根据id查询菜单
+
+### 6.3.1 dao层
+
+```go
+// GetSysMenuById 根据id获取菜单
+func GetSysMenuById(id int) (sysMenu entity.SysMenu) {
+    Db.First(&sysMenu, id)
+    return sysMenu
+}
+```
+
+### 6.3.2 service层
+
+```go
+// GetSysMenuById 根据id查询菜单
+func (s SysMenuServiceImpl) GetSysMenuById(c *gin.Context, id int) {
+    result.Success(c, dao.GetSysMenuById(id))
+}
+```
+
+### 6.3.3 controller层
+
+```go
+// GetSysMenuById 根据id查询菜单
+// @Summary 根据id查询菜单
+// @Producce json
+// @Description 根据id查询菜单
+// @Param id query int true "id"
+// @Success 200 {object} result.Result
+// @router /api/menu/info [get]
+func GetSysMenuById(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Query("id"))
+	service.SysMenuService().GetSysMenuById(c, id)
+}
+```
+
+### 6.3.4 router配置
+
+```go
+router.GET("/api/menu/info", controller.GetSysMenuById)
+```
+
+### 6.3.5 swagger测试
+
+![image-20260324145044407](assets/image-20260324145044407.png)

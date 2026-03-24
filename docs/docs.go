@@ -236,6 +236,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/menu/info": {
+            "get": {
+                "description": "根据id查询菜单",
+                "summary": "根据id查询菜单",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/menu/list": {
             "get": {
                 "description": "查询菜单列表",

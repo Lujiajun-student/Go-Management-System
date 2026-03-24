@@ -69,3 +69,9 @@ func QuerySysMenuVOList() (sysMenoVO []entity.SysMenuVO) {
 	Db.Table("sys_menu").Select("id, menu_name AS label, parent_id").Scan(&sysMenoVO)
 	return sysMenoVO
 }
+
+// GetSysMenuById 根据id获取菜单
+func GetSysMenuById(id int) (sysMenu entity.SysMenu) {
+	Db.First(&sysMenu, id)
+	return sysMenu
+}

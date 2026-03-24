@@ -270,6 +270,21 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 新增菜单接口
+  /api/menu/info:
+    get:
+      description: 根据id查询菜单
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 根据id查询菜单
   /api/menu/list:
     get:
       description: 查询菜单列表
