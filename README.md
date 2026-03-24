@@ -2839,3 +2839,211 @@ router.GET("/api/dept/vo/list", controller.QuerySysDeptVOList)
 ### 5.6.6 swagger测试
 
 ![image-20260324115306420](assets/image-20260324115306420.png)
+
+# 6. 菜单相关接口
+
+这里的菜单接口用于绑定角色与角色选定的menu。
+
+![image-20260324115523854](assets/image-20260324115523854.png)
+
+## 6.1 新增菜单
+
+首先制作菜单的对应实体类`sysRoleMenu.go`。
+
+```go
+// Package entity 角色菜单模型
+package entity
+
+// SysRoleMenu 角色与菜单关系模型
+type SysRoleMenu struct {
+	RoleId uint `gorm:"column:role_id;comment:'角色ID';NOT NULL" json:"roleId"`
+	MenuId uint `gorm:"column:menu_id;comment:'用户id';NOT NULL" json:"menuId"`
+}
+
+func (SysRoleMenu) TableName() string {
+	return "sys_role_menu"
+}
+
+```
+
+同时，也要创建菜单的实体类`sysMenu.go`。
+
+```go
+// Package entity 菜单模型
+package entity
+
+import "Go-Management-System/common/util"
+
+// SysMenu 菜单模型
+type SysMenu struct {
+	ID         uint       `gorm:"column:id;comment:'主键';primaryKey;NOT NULL" json:"id"`
+	ParentId   uint       `gorm:"column:parent_id;comment:'父菜单id'" json:"parentId"`
+	MenuName   string     `gorm:"column:menu_name;varchar(100);comment:'菜单名称'" json:"menuName"`
+	Icon       string     `gorm:"column:icon;varchar(100);comment:'菜单图标'" json:"icon"`
+	Value      string     `gorm:"column:value;varchar(100);comment:'权限值'" json:"value"`
+	MenuType   uint       `gorm:"column:menu_type;comment:'菜单类型：1->目录；2->菜单；3->按钮'" json:"menuType"`
+	Url        string     `gorm:"column:url;varchar(100);comment:'菜单URL'" json:"url"`
+	MenuStatus uint       `gorm:"column:menu_status;comment:'启动状态：1->启用；2->禁用'" json:"menuStatus"`
+	Sort       uint       `gorm:"column:sort;comment:'排序'" json:"sort"`
+	CreateTime util.HTime `gorm:"column:create_time;comment:'创建时间'" json:"createTime"`
+	Children   []SysMenu  `gorm:"-" json:"children"`
+}
+
+func (SysMenu) TableName() string {
+	return "sys_menu"
+}
+
+```
+
+### 6.1.1 dao层
+
+这里菜单有三种类型，需要分别进行传值。
+
+```go
+// Package dao 菜单dao层
+package dao
+
+import (
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/util"
+	. "Go-Management-System/pkg/db"
+	"fmt"
+	"time"
+)
+
+// GetSysMenuByName 根据菜单名称进行查询
+func GetSysMenuByName(menuName string) (sysMenu entity.SysMenu) {
+	Db.Where("menu_name = ?", menuName).First(&sysMenu)
+	return sysMenu
+}
+
+// CreateSysMenu 新增菜单
+func CreateSysMenu(addSysMenu entity.SysMenu) bool {
+	sysMenuByName := GetSysMenuByName(addSysMenu.MenuName)
+	if sysMenuByName.ID > 0 {
+		fmt.Println(sysMenuByName.ID)
+		return false
+	}
+	// 目录
+	if addSysMenu.MenuType == 1 {
+		sysMenu := entity.SysMenu{
+			ParentId:   0,
+			MenuName:   addSysMenu.MenuName,
+			Icon:       addSysMenu.Icon,
+			MenuType:   addSysMenu.MenuType,
+			Url:        addSysMenu.Url,
+			MenuStatus: addSysMenu.MenuStatus,
+			Sort:       addSysMenu.Sort,
+			CreateTime: util.HTime{Time: time.Now()},
+		}
+		Db.Create(&sysMenu)
+		return true
+	} else if addSysMenu.MenuType == 2 {
+		sysMenu := entity.SysMenu{
+			ParentId:   addSysMenu.ParentId,
+			MenuName:   addSysMenu.MenuName,
+			Icon:       addSysMenu.Icon,
+			MenuType:   addSysMenu.MenuType,
+			MenuStatus: addSysMenu.MenuStatus,
+			Value:      addSysMenu.Value,
+			Url:        addSysMenu.Url,
+			Sort:       addSysMenu.Sort,
+			CreateTime: util.HTime{Time: time.Now()},
+		}
+		Db.Create(&sysMenu)
+		return true
+	} else if addSysMenu.MenuType == 3 {
+		sysMenu := entity.SysMenu{
+			ParentId:   addSysMenu.ParentId,
+			MenuName:   addSysMenu.MenuName,
+			MenuType:   addSysMenu.MenuType,
+			MenuStatus: addSysMenu.MenuStatus,
+			Value:      addSysMenu.Value,
+			Sort:       addSysMenu.Sort,
+			CreateTime: util.HTime{Time: time.Now()},
+		}
+		Db.Create(&sysMenu)
+		return true
+	}
+	return false
+}
+```
+
+### 6.1.2 service层
+
+```go
+// Package service 菜单service层
+package service
+
+import (
+	"Go-Management-System/api/dao"
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/result"
+
+	"github.com/gin-gonic/gin"
+)
+
+type ISysMenuService interface {
+	CreateSysMenu(c *gin.Context, SysMenu entity.SysMenu)
+}
+
+type SysMenuServiceImpl struct {
+}
+
+var sysMenuService = SysMenuServiceImpl{}
+
+func SysMenuService() ISysMenuService {
+	return &sysMenuService
+}
+
+// CreateSysMenu 创建菜单
+func (s SysMenuServiceImpl) CreateSysMenu(c *gin.Context, SysMenu entity.SysMenu) {
+	ok := dao.CreateSysMenu(SysMenu)
+	if !ok {
+		result.Failed(c, int(result.ApiCode.MENUISEXIST), result.ApiCode.GetMessage(result.ApiCode.MENUISEXIST))
+		return
+	}
+	result.Success(c, true)
+}
+```
+
+### 6.1.3 controller层
+
+```go
+// Package controller 菜单controller层
+package controller
+
+import (
+	"Go-Management-System/api/entity"
+	"Go-Management-System/api/service"
+
+	"github.com/gin-gonic/gin"
+)
+
+var sysMenu entity.SysMenu
+
+// CreateSysMenu 创建菜单
+// @Summary 新增菜单接口
+// @Producce json
+// @Description 新增菜单接口
+// @Param data body entity.SysMenu true "data"
+// @Success 200 {object} result.Result
+// @router /api/menu/add [post]
+func CreateSysMenu(c *gin.Context) {
+	_ = c.BindJSON(&sysMenu)
+	service.SysMenuService().CreateSysMenu(c, sysMenu)
+}
+```
+
+### 6.1.4 router配置
+
+```go
+router.POST("/api/menu/add", controller.CreateSysMenu)
+```
+
+### 6.1.5 swagger测试
+
+![image-20260324124117670](assets/image-20260324124117670.png)
+
+![image-20260324124125389](assets/image-20260324124125389.png)
+
