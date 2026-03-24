@@ -166,6 +166,23 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dept/vo/list": {
+            "get": {
+                "description": "查询部门列表",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "查询部门列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/login": {
             "post": {
                 "description": "用户登录接口",

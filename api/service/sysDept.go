@@ -15,6 +15,7 @@ type ISysDeptService interface {
 	GetSysDeptById(c *gin.Context, sysDept entity.SysDept)
 	UpdateSysDept(c *gin.Context, sysDept entity.SysDept)
 	DeleteSysDeptById(c *gin.Context, dto entity.SysDeptIdDto)
+	QuerySysDeptVOList(c *gin.Context)
 }
 
 type SysDeptServiceImpl struct {
@@ -60,4 +61,9 @@ func (s SysDeptServiceImpl) DeleteSysDeptById(c *gin.Context, dto entity.SysDept
 		return
 	}
 	result.Success(c, true)
+}
+
+// QuerySysDeptVOList 查询部门列表
+func (s SysDeptServiceImpl) QuerySysDeptVOList(c *gin.Context) {
+	result.Success(c, dao.QuerySysDeptVOList())
 }

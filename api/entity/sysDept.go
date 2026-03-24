@@ -22,3 +22,18 @@ func (SysDept) TableName() string {
 type SysDeptIdDto struct {
 	Id int `json:"id"`
 }
+
+func (SysDeptIdDto) TableName() string {
+	return "sys_dept"
+}
+
+// SysDeptVO 向前端返回的对象
+type SysDeptVO struct {
+	Id       uint   `json:"id"`
+	ParentId uint   `json:"parentId"`
+	Label    string `json:"label"`
+}
+
+func (SysDeptVO) TableName() string {
+	return "sys_dept"
+}

@@ -2704,6 +2704,10 @@ router.PUT("/api/dept/update", controller.UpdateSysDept)
 type SysDeptIdDto struct {
 	Id int `json:"id"`
 }
+
+func (SysDeptIdDto) TableName() string {
+	return "sys_dept"
+}
 ```
 
 ### 5.4.2 dao层
@@ -2772,3 +2776,66 @@ router.DELETE("/api/dept/delete", controller.DeleteSysDeptById)
 ![image-20260324101802886](assets/image-20260324101802886.png)
 
 ![image-20260324101810814](assets/image-20260324101810814.png)
+
+## 5.6 部门下拉列表
+
+这里需要实现部门下拉列表，用来向前端展示所有的部门，新增用户时能够查看所有部门来选择。
+
+### 5.6.1 entity的VO对象
+
+这里的数据用于向前端展示，只需要获取id、父部门id和部门名称即可，需要封装成VO结构体。
+
+```go
+// SysDeptVO 向前端返回的对象
+type SysDeptVO struct {
+	Id uint `json:"id"`
+	ParentId uint `json:"parentId"`
+	Label string `json:"label"`
+}
+func (SysDeptVO) TableName() string {
+	return "sys_dept"
+}
+```
+
+### 5.6.2 dao层
+
+```go
+// QuerySysDeptVOList 查询部门列表
+func QuerySysDeptVOList() (sysDeptVO []entity.SysDeptVO) {
+	Db.Table("sys_dept").Select("id, dept_name AS label, parent_id").Scan(&sysDeptVO)
+	return sysDeptVO
+}
+```
+
+### 5.6.3 service层
+
+```go
+// QuerySysDeptVOList 查询部门列表
+func (s SysDeptServiceImpl) QuerySysDeptVOList(c *gin.Context) {
+	result.Success(c, dao.QuerySysDeptVOList())
+}
+```
+
+### 5.6.4 controller层
+
+```go
+// QuerySysDeptVOList 查询部门列表
+// @Summary 查询部门列表
+// @Produce json
+// @Description 查询部门列表
+// @Success 200 {object} result.Result
+// @router /api/dept/vo/list [get]
+func QuerySysDeptVOList(c *gin.Context) {
+	service.SysDeptService().QuerySysDeptVOList(c)
+}
+```
+
+### 5.6.5 router配置
+
+```go
+router.GET("/api/dept/vo/list", controller.QuerySysDeptVOList)
+```
+
+### 5.6.6 swagger测试
+
+![image-20260324115306420](assets/image-20260324115306420.png)

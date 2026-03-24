@@ -198,6 +198,17 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 修改部门
+  /api/dept/vo/list:
+    get:
+      description: 查询部门列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 查询部门列表
   /api/login:
     post:
       description: 用户登录接口

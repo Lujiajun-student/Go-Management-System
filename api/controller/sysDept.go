@@ -77,3 +77,13 @@ func DeleteSysDeptById(c *gin.Context) {
 	_ = c.BindJSON(&sysDeptIdDto)
 	service.SysDeptService().DeleteSysDeptById(c, sysDeptIdDto)
 }
+
+// QuerySysDeptVOList 查询部门列表
+// @Summary 查询部门列表
+// @Produce json
+// @Description 查询部门列表
+// @Success 200 {object} result.Result
+// @router /api/dept/vo/list [get]
+func QuerySysDeptVOList(c *gin.Context) {
+	service.SysDeptService().QuerySysDeptVOList(c)
+}
