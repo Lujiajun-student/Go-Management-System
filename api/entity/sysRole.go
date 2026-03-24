@@ -44,3 +44,9 @@ type UpdateSysRoleStatusDto struct {
 	Id     uint
 	Status int
 }
+
+// SysRoleVO 角色下拉列表
+type SysRoleVO struct {
+	Id       int    `json:"id"`
+	RoleName string `json:"roleName"`
+}

@@ -3849,3 +3849,60 @@ router.GET("/api/role/list", controller.GetSysRoleList)
 ![image-20260324204622155](assets/image-20260324204622155.png)
 
 ![image-20260324204629056](assets/image-20260324204629056.png)
+
+## 7.7 下拉查询角色
+
+在用户选择角色时，需要获取到所有角色。从数据库中获取数据只需要id和名称。
+
+### 7.7.1 entity
+
+```go
+// SysRoleVO 角色下拉列表
+type SysRoleVO struct {
+    Id int `json:"id"`
+    RoleName string `json:"roleName"`
+}
+```
+
+### 7.7.2 dao
+
+```go
+// QuerySysRoleVOList 角色下拉查询
+func QuerySysRoleVOList() (sysRoleVO []entity.SysRoleVO) {
+	Db.Table("sys_role").Select("id, role_name").Scan(&sysRoleVO)
+	return sysRoleVO
+}
+```
+
+### 7.7.3 service
+
+```go
+// QuerySysRoleVOList 查询角色下拉列表
+func (s SysRoleServiceImpl) QuerySysRoleVOList(c *gin.Context) {
+    result.Success(c, dao.QuerySysRoleVOList())
+}
+```
+
+### 7.7.4 controller
+
+```go
+// QuerySysRoleVOList 查询角色下拉列表
+// @Summary 查询角色下拉列表
+// @Produce json
+// @Description 查询角色下拉列表
+// @Success 200 {object} result.Result
+// @router /api/role/vo/list [get]
+func QuerySysRoleVOList(c *gin.Context) {
+    service.SysRoleService().QuerySysRoleVOList(c)
+}
+```
+
+### 7.7.5 router
+
+```go
+router.GET("/api/role/vo/list", controller.QuerySysRoleVOList)
+```
+
+### 7.7.6 swagger
+
+![image-20260324205556662](assets/image-20260324205556662.png)

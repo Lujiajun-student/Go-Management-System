@@ -662,6 +662,17 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 修改角色状态
+  /api/role/vo/list:
+    get:
+      description: 查询角色下拉列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 查询角色下拉列表
 securityDefinitions:
   ApiKeyAuth:
     in: header

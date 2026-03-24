@@ -16,6 +16,7 @@ type ISysRoleService interface {
 	DeleteSysRoleById(c *gin.Context, dto entity.SysRoleIdDto)
 	UpdateSysRoleStatus(c *gin.Context, dto entity.UpdateSysRoleStatusDto)
 	GetSysRoleList(c *gin.Context, PageNum, PageSize int, RoleName, Status, BeginTime, EndTime string)
+	QuerySysRoleVOList(c *gin.Context)
 }
 
 type SysRoleServiceImpl struct {
@@ -72,4 +73,9 @@ func (s SysRoleServiceImpl) GetSysRoleList(c *gin.Context, PageNum, PageSize int
 	}
 	sysRole, count := dao.GetSysRoleList(PageNum, PageSize, RoleName, Status, BeginTime, EndTime)
 	result.Success(c, map[string]any{"total": count, "pageSize": PageSize, "pageNum": PageNum, "list": sysRole})
+}
+
+// QuerySysRoleVOList 查询角色下拉列表
+func (s SysRoleServiceImpl) QuerySysRoleVOList(c *gin.Context) {
+	result.Success(c, dao.QuerySysRoleVOList())
 }

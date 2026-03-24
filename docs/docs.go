@@ -778,6 +778,23 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/role/vo/list": {
+            "get": {
+                "description": "查询角色下拉列表",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "查询角色下拉列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

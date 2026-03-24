@@ -97,3 +97,9 @@ func GetSysRoleList(PageNum, PageSize int, RoleName, status, BeginTime, EndTime 
 	curDb.Limit(PageSize).Offset((PageNum - 1) * PageSize).Order("create_time desc").Find(&sysRole)
 	return sysRole, count
 }
+
+// QuerySysRoleVOList 角色下拉查询
+func QuerySysRoleVOList() (sysRoleVO []entity.SysRoleVO) {
+	Db.Table("sys_role").Select("id, role_name").Scan(&sysRoleVO)
+	return sysRoleVO
+}
