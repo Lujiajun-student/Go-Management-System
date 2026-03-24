@@ -122,6 +122,19 @@ definitions:
       postStatus:
         type: integer
     type: object
+  entity.UpdateSysRoleDto:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      roleKey:
+        type: string
+      roleName:
+        type: string
+      status:
+        type: integer
+    type: object
   result.Result:
     properties:
       code:
@@ -547,6 +560,24 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 根据id查询角色
+  /api/role/update:
+    put:
+      description: 修改角色
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateSysRoleDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 修改角色
 securityDefinitions:
   ApiKeyAuth:
     in: header

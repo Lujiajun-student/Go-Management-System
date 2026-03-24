@@ -3569,3 +3569,74 @@ router.GET("/api/role/info", controller.GetSysRoleById)
 
 ![image-20260324185228405](assets/image-20260324185228405.png)
 
+## 7.3 修改角色
+
+首先，修改时只修改部分参数，因此需要创建新的实体类。
+
+### 7.3.1 entity
+
+```go
+// UpdateSysRoleDto 修改所需参数
+type UpdateSysRoleDto struct {
+    Id          uint
+    RoleName    string
+    RoleKey     string
+    Status      int
+    Description string
+}
+```
+
+### 7.3.2 dao层
+
+```go
+// UpdateSysRole 修改角色
+func UpdateSysRole(dto entity.UpdateSysRoleDto) (sysRole entity.SysRole) {
+	Db.First(&sysRole, dto.Id)
+	sysRole.RoleName = dto.RoleName
+	sysRole.RoleKey = dto.RoleKey
+	sysRole.Status = dto.Status
+	if dto.Description != "" {
+		sysRole.Description = dto.Description
+	}
+	Db.Save(&sysRole)
+	return sysRole
+}
+```
+
+### 7.3.3 service层
+
+```go
+// UpdateSysRole 修改角色
+func (s SysRoleServiceImpl) UpdateSysRole(c *gin.Context, dto entity.UpdateSysRoleDto) {
+	result.Success(c, dao.UpdateSysRole(dto))
+}
+```
+
+### 7.3.4 controller层
+
+```go
+// UpdateSysRole 修改角色
+// @Summary 修改角色
+// @Produce json
+// @Description 修改角色
+// @Param data body entity.UpdateSysRoleDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/role/update [put]
+func UpdateSysRole(c *gin.Context) {
+	_ = c.BindJSON(&updateSysRole)
+	service.SysRoleService().UpdateSysRole(c, updateSysRole)
+}
+```
+
+### 7.3.5 router配置
+
+```go
+router.PUT("/api/role/update", controller.UpdateSysRole)
+```
+
+### 7.3.6 swagger测试
+
+![image-20260324191702710](assets/image-20260324191702710.png)
+
+![image-20260324191709981](assets/image-20260324191709981.png)
+

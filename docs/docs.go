@@ -639,6 +639,34 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/role/update": {
+            "put": {
+                "description": "修改角色",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "修改角色",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UpdateSysRoleDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -823,6 +851,26 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "postStatus": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entity.UpdateSysRoleDto": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "roleKey": {
+                    "type": "string"
+                },
+                "roleName": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "integer"
                 }
             }

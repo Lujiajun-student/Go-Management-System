@@ -24,3 +24,12 @@ type AddSysRoleDto struct {
 	Status      int
 	Description string
 }
+
+// UpdateSysRoleDto 修改所需参数
+type UpdateSysRoleDto struct {
+	Id          uint
+	RoleName    string
+	RoleKey     string
+	Status      int
+	Description string
+}

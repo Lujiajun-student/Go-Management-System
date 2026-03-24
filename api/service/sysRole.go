@@ -12,6 +12,7 @@ import (
 type ISysRoleService interface {
 	CreateSysRole(c *gin.Context, dto entity.AddSysRoleDto)
 	GetSysRoleById(c *gin.Context, id uint)
+	UpdateSysRole(c *gin.Context, dto entity.UpdateSysRoleDto)
 }
 
 type SysRoleServiceImpl struct {
@@ -36,4 +37,9 @@ func (s SysRoleServiceImpl) CreateSysRole(c *gin.Context, dto entity.AddSysRoleD
 // GetSysRoleById 根据id查询角色
 func (s SysRoleServiceImpl) GetSysRoleById(c *gin.Context, id uint) {
 	result.Success(c, dao.GetSysRoleById(id))
+}
+
+// UpdateSysRole 修改角色
+func (s SysRoleServiceImpl) UpdateSysRole(c *gin.Context, dto entity.UpdateSysRoleDto) {
+	result.Success(c, dao.UpdateSysRole(dto))
 }

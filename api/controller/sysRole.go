@@ -11,6 +11,8 @@ import (
 
 var addSysRole entity.AddSysRoleDto
 
+var updateSysRole entity.UpdateSysRoleDto
+
 // CreateSysRole 创建角色
 // @Summary 新增角色接口
 // @Produce json
@@ -33,4 +35,16 @@ func CreateSysRole(c *gin.Context) {
 func GetSysRoleById(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Query("id"))
 	service.SysRoleService().GetSysRoleById(c, uint(id))
+}
+
+// UpdateSysRole 修改角色
+// @Summary 修改角色
+// @Produce json
+// @Description 修改角色
+// @Param data body entity.UpdateSysRoleDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/role/update [put]
+func UpdateSysRole(c *gin.Context) {
+	_ = c.BindJSON(&updateSysRole)
+	service.SysRoleService().UpdateSysRole(c, updateSysRole)
 }

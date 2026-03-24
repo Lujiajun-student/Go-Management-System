@@ -59,4 +59,5 @@ func register(router *gin.Engine) {
 	router.GET("/api/menu/list", controller.GetSysMenuList)
 	router.POST("/api/role/add", controller.CreateSysRole)
 	router.GET("/api/role/info", controller.GetSysRoleById)
+	router.PUT("/api/role/update", controller.UpdateSysRole)
 }
