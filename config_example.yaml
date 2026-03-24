@@ -1,0 +1,28 @@
+server:
+  address: ":8080"
+  model: "debug"
+
+db:
+  dialects: "mysql"
+  host: "localhost"
+  port: "3307"
+  dbName: "admin-go-api"
+  username: "root"
+  password: "YOUR_PASSWORD"
+  charset: "utf8mb4"
+  maxIdle: 10
+  maxOpen: 100
+
+redis:
+  address: "localhost:6379"
+  password: ""
+  db: 0
+
+image_settings:
+  uploadDir: "./uploads"
+  imageHost: "http://localhost:8080"
+
+log:
+  path: "./logs"
+  name: "app.log"
+  model: "debug"
