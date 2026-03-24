@@ -79,6 +79,11 @@ definitions:
       value:
         type: string
     type: object
+  entity.SysMenuIdDto:
+    properties:
+      id:
+        type: integer
+    type: object
   entity.SysPost:
     properties:
       createTime:
@@ -270,6 +275,22 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 新增菜单接口
+  /api/menu/delete:
+    delete:
+      description: 删除菜单
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.SysMenuIdDto'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 删除菜单
   /api/menu/info:
     get:
       description: 根据id查询菜单

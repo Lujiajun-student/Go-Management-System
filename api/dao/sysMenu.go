@@ -90,3 +90,20 @@ func UpdateSysMenu(menu entity.SysMenu) (sysMenu entity.SysMenu) {
 	Db.Save(&sysMenu)
 	return sysMenu
 }
+
+// GetSysRoleMenu 根据id查找菜单是否联系了用户
+func GetSysRoleMenu(id uint) (sysRoleMenu entity.SysRoleMenu) {
+	Db.Where("menu_id = ?", id).First(&sysRoleMenu)
+	return sysRoleMenu
+}
+
+// DeleteSysMenuById 删除菜单
+func DeleteSysMenuById(dto entity.SysMenuIdDto) bool {
+	sysRoleMenu := GetSysRoleMenu(dto.Id)
+	if sysRoleMenu.MenuId > 0 {
+		return false
+	}
+	Db.Where("parent_id = ?", dto.Id).Delete(&entity.SysMenu{})
+	Db.Delete(&entity.SysMenu{}, dto.Id)
+	return true
+}

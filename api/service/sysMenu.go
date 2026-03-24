@@ -14,6 +14,7 @@ type ISysMenuService interface {
 	QuerySysMenuVOList(c *gin.Context)
 	GetSysMenuById(c *gin.Context, id int)
 	UpdateSysMenu(c *gin.Context, menu entity.SysMenu)
+	DeleteSysMenuById(c *gin.Context, dto entity.SysMenuIdDto)
 }
 
 type SysMenuServiceImpl struct {
@@ -48,4 +49,14 @@ func (s SysMenuServiceImpl) GetSysMenuById(c *gin.Context, id int) {
 // UpdateSysMenu 更新菜单
 func (s SysMenuServiceImpl) UpdateSysMenu(c *gin.Context, menu entity.SysMenu) {
 	result.Success(c, dao.UpdateSysMenu(menu))
+}
+
+// DeleteSysMenuById 删除菜单
+func (s SysMenuServiceImpl) DeleteSysMenuById(c *gin.Context, dto entity.SysMenuIdDto) {
+	ok := dao.DeleteSysMenuById(dto)
+	if !ok {
+		result.Failed(c, int(result.ApiCode.DELSYSMENUFAILED), result.ApiCode.GetMessage(result.ApiCode.DELSYSMENUFAILED))
+		return
+	}
+	result.Success(c, true)
 }

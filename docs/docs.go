@@ -236,6 +236,31 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/menu/delete": {
+            "delete": {
+                "description": "删除菜单",
+                "summary": "删除菜单",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysMenuIdDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/menu/info": {
             "get": {
                 "description": "根据id查询菜单",
@@ -650,6 +675,14 @@ const docTemplate = `{
                 },
                 "value": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.SysMenuIdDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
                 }
             }
         },

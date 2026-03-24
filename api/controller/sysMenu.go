@@ -13,6 +13,8 @@ var sysMenu entity.SysMenu
 
 var sysMenuVO entity.SysMenuVO
 
+var sysMenuIdDto entity.SysMenuIdDto
+
 // CreateSysMenu 创建菜单
 // @Summary 新增菜单接口
 // @Producce json
@@ -58,4 +60,16 @@ func GetSysMenuById(c *gin.Context) {
 func UpdateSysMenu(c *gin.Context) {
 	_ = c.BindJSON(&sysMenu)
 	service.SysMenuService().UpdateSysMenu(c, sysMenu)
+}
+
+// DeleteSysMenuById 删除菜单
+// @Summary 删除菜单
+// @Producce json
+// @Description 删除菜单
+// @Param data body entity.SysMenuIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/menu/delete [delete]
+func DeleteSysMenuById(c *gin.Context) {
+	_ = c.BindJSON(&sysMenuIdDto)
+	service.SysMenuService().DeleteSysMenuById(c, sysMenuIdDto)
 }

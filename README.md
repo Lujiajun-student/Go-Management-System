@@ -3218,3 +3218,86 @@ router.PUT("/api/menu/update", controller.UpdateSysMenu)
 ![image-20260324150051702](assets/image-20260324150051702.png)
 
 ![image-20260324150057027](assets/image-20260324150057027.png)
+
+## 6.5 删除菜单功能
+
+### 6.5.1 entity
+
+首先创建dto对象。
+
+```go
+// SysMenuIdDto 只需要id
+type SysMenuIdDto struct {
+	Id uint `json:"id"`
+}
+
+func (SysMenuIdDto) TableName() string {
+	return "sys_menu"
+}
+```
+
+### 6.5.1 dao层
+
+删除前首先要确定有没有用户使用了这个菜单。
+
+```go
+// GetSysRoleMenu 根据id查找菜单是否联系了用户
+func GetSysRoleMenu(id uint) (sysRoleMenu entity.SysRoleMenu) {
+	Db.Where("menu_id = ?", id).First(&sysRoleMenu)
+	return sysRoleMenu
+}
+
+// DeleteSysMenuById 删除菜单
+func DeleteSysMenuById(dto entity.SysMenuIdDto) bool {
+	sysRoleMenu := GetSysRoleMenu(dto.Id)
+	if sysRoleMenu.MenuId > 0 {
+		return false
+	}
+	Db.Where("parent_id = ?", dto.Id).Delete(&entity.SysMenu{})
+	Db.Delete(&entity.SysMenu{}, dto.Id)
+	return true
+}
+```
+
+### 6.5.3 service层
+
+```go
+// DeleteSysMenuById 删除菜单
+func (s SysMenuServiceImpl) DeleteSysMenuById(c *gin.Context, dto entity.SysMenuIdDto) {
+	ok := dao.DeleteSysMenuById(dto)
+	if !ok {
+		result.Failed(c, int(result.ApiCode.DELSYSMENUFAILED), result.ApiCode.GetMessage(result.ApiCode.DELSYSMENUFAILED))
+		return
+	}
+	result.Success(c, true)
+}
+```
+
+### 6.5.4 controller层
+
+```go
+// DeleteSysMenuById 删除菜单
+// @Summary 删除菜单
+// @Producce json
+// @Description 删除菜单
+// @Param data body entity.SysMenuIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/menu/delete [delete]
+func DeleteSysMenuById(c *gin.Context) {
+    _ = c.BindJSON(&sysMenuIdDto)
+    service.SysMenuService().DeleteSysMenuById(c, sysMenuIdDto)
+}
+```
+
+### 6.5.5 router配置
+
+```go
+router.DELETE("/api/menu/delete", controller.DeleteSysMenuById)
+```
+
+### 6.5.6 swagger测试
+
+![image-20260324170222798](assets/image-20260324170222798.png)
+
+![image-20260324170229022](assets/image-20260324170229022.png)
+

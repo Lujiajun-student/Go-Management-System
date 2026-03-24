@@ -55,4 +55,5 @@ func register(router *gin.Engine) {
 	router.GET("/api/menu/list", controller.QuerySysMenuVOList)
 	router.GET("/api/menu/info", controller.GetSysMenuById)
 	router.PUT("/api/menu/update", controller.UpdateSysMenu)
+	router.DELETE("/api/menu/delete", controller.DeleteSysMenuById)
 }
