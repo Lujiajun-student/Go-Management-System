@@ -264,6 +264,31 @@
                 }
             }
         },
+        "/api/menu/update": {
+            "put": {
+                "description": "修改菜单",
+                "summary": "修改菜单",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysMenu"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/post/add": {
             "post": {
                 "description": "新增岗位接口",

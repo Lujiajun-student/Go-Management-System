@@ -47,3 +47,15 @@ func GetSysMenuById(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Query("id"))
 	service.SysMenuService().GetSysMenuById(c, id)
 }
+
+// UpdateSysMenu 修改菜单
+// @Summary 修改菜单
+// @Producce json
+// @Description 修改菜单
+// @Param data body entity.SysMenu true "data"
+// @Success 200 {object} result.Result
+// @router /api/menu/update [put]
+func UpdateSysMenu(c *gin.Context) {
+	_ = c.BindJSON(&sysMenu)
+	service.SysMenuService().UpdateSysMenu(c, sysMenu)
+}

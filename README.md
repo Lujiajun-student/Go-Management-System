@@ -3158,3 +3158,63 @@ router.GET("/api/menu/info", controller.GetSysMenuById)
 ### 6.3.5 swagger测试
 
 ![image-20260324145044407](assets/image-20260324145044407.png)
+
+## 6.4 修改菜单
+
+### 6.4.1 dao层
+
+同样的，先根据获取的menu从数据库中查找，然后再替换保存。
+
+```go
+// UpdateSysMenu 编辑菜单
+func UpdateSysMenu(menu entity.SysMenu) (sysMenu entity.SysMenu) {
+	Db.First(&sysMenu, menu.ID)
+	sysMenu.ParentId = menu.ParentId
+	sysMenu.MenuName = menu.MenuName
+	sysMenu.Icon = menu.Icon
+	sysMenu.Value = menu.Value
+	sysMenu.MenuType = menu.MenuType
+	sysMenu.Url = menu.Url
+	sysMenu.MenuStatus = menu.MenuStatus
+	sysMenu.Sort = menu.Sort
+	Db.Save(&sysMenu)
+	return sysMenu
+}
+```
+
+### 6.4.2 service层
+
+```go
+// UpdateSysMenu 更新菜单
+func (s SysMenuServiceImpl) UpdateSysMenu(c *gin.Context, menu entity.SysMenu) {
+	result.Success(c, dao.UpdateSysMenu(menu))
+}
+```
+
+### 6.4.3 controller层
+
+```go
+// UpdateSysMenu 修改菜单
+// @Summary 修改菜单
+// @Producce json
+// @Description 修改菜单
+// @Param data body entity.SysMenu true "data"
+// @Success 200 {object} result.Result
+// @router /api/menu/update [put]
+func UpdateSysMenu(c *gin.Context) {
+	_ = c.BindJSON(&sysMenu)
+	service.SysMenuService().UpdateSysMenu(c, sysMenu)
+}
+```
+
+### 6.4.4 router配置
+
+```go
+router.PUT("/api/menu/update", controller.UpdateSysMenu)
+```
+
+### 6.4.5 swagger测试
+
+![image-20260324150051702](assets/image-20260324150051702.png)
+
+![image-20260324150057027](assets/image-20260324150057027.png)

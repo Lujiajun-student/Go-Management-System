@@ -13,6 +13,7 @@ type ISysMenuService interface {
 	CreateSysMenu(c *gin.Context, SysMenu entity.SysMenu)
 	QuerySysMenuVOList(c *gin.Context)
 	GetSysMenuById(c *gin.Context, id int)
+	UpdateSysMenu(c *gin.Context, menu entity.SysMenu)
 }
 
 type SysMenuServiceImpl struct {
@@ -42,4 +43,9 @@ func (s SysMenuServiceImpl) QuerySysMenuVOList(c *gin.Context) {
 // GetSysMenuById 根据id查询菜单
 func (s SysMenuServiceImpl) GetSysMenuById(c *gin.Context, id int) {
 	result.Success(c, dao.GetSysMenuById(id))
+}
+
+// UpdateSysMenu 更新菜单
+func (s SysMenuServiceImpl) UpdateSysMenu(c *gin.Context, menu entity.SysMenu) {
+	result.Success(c, dao.UpdateSysMenu(menu))
 }

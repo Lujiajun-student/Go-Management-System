@@ -294,6 +294,22 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 查询菜单列表
+  /api/menu/update:
+    put:
+      description: 修改菜单
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.SysMenu'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 修改菜单
   /api/post/add:
     post:
       description: 新增岗位接口

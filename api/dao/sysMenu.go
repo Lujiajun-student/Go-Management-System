@@ -75,3 +75,18 @@ func GetSysMenuById(id int) (sysMenu entity.SysMenu) {
 	Db.First(&sysMenu, id)
 	return sysMenu
 }
+
+// UpdateSysMenu 编辑菜单
+func UpdateSysMenu(menu entity.SysMenu) (sysMenu entity.SysMenu) {
+	Db.First(&sysMenu, menu.ID)
+	sysMenu.ParentId = menu.ParentId
+	sysMenu.MenuName = menu.MenuName
+	sysMenu.Icon = menu.Icon
+	sysMenu.Value = menu.Value
+	sysMenu.MenuType = menu.MenuType
+	sysMenu.Url = menu.Url
+	sysMenu.MenuStatus = menu.MenuStatus
+	sysMenu.Sort = menu.Sort
+	Db.Save(&sysMenu)
+	return sysMenu
+}
