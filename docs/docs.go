@@ -613,6 +613,32 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/role/info": {
+            "get": {
+                "description": "根据id查询角色",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "根据id查询角色",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

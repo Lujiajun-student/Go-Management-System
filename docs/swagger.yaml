@@ -530,6 +530,23 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 新增角色接口
+  /api/role/info:
+    get:
+      description: 根据id查询角色
+      parameters:
+      - description: id
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 根据id查询角色
 securityDefinitions:
   ApiKeyAuth:
     in: header

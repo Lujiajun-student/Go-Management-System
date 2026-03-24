@@ -3521,3 +3521,51 @@ router.POST("/api/role/add", controller.CreateSysRole)
 ![image-20260324175517415](assets/image-20260324175517415.png)
 
 ![image-20260324175524460](assets/image-20260324175524460.png)
+
+## 7.2 根据id查询角色
+
+### 7.2.1 dao层
+
+```go
+// GetSysRoleById 根据id查询角色
+func GetSysRoleById(Id uint) (sysRole entity.SysRole) {
+	Db.First(&sysRole, Id)
+	return sysRole
+}
+```
+
+### 7.2.2 service层
+
+```go
+// GetSysRoleById 根据id查询角色
+func (s SysRoleServiceImpl) GetSysRoleById(c *gin.Context, id uint) {
+    result.Success(c, dao.GetSysRoleById(id))
+}
+```
+
+### 7.2.3 controller层
+
+```go
+// GetSysRoleById 根据id查询角色
+// @Summary 根据id查询角色
+// @Produce json
+// @Description 根据id查询角色
+// @Param id query int true "id"
+// @Success 200 {object} result.Result
+// @router /api/role/info [get]
+func GetSysRoleById(c *gin.Context) {
+    id, _ := strconv.Atoi(c.Query("id"))
+    service.SysRoleService().GetSysRoleById(c, uint(id))
+}
+```
+
+### 7.2.4 router配置
+
+```go
+router.GET("/api/role/info", controller.GetSysRoleById)
+```
+
+### 7.2.5 swagger测试
+
+![image-20260324185228405](assets/image-20260324185228405.png)
+

@@ -58,4 +58,5 @@ func register(router *gin.Engine) {
 	router.DELETE("/api/menu/delete", controller.DeleteSysMenuById)
 	router.GET("/api/menu/list", controller.GetSysMenuList)
 	router.POST("/api/role/add", controller.CreateSysRole)
+	router.GET("/api/role/info", controller.GetSysRoleById)
 }
