@@ -13,6 +13,8 @@ var addSysRole entity.AddSysRoleDto
 
 var updateSysRole entity.UpdateSysRoleDto
 
+var sysRoleIdDto entity.SysRoleIdDto
+
 // CreateSysRole 创建角色
 // @Summary 新增角色接口
 // @Produce json
@@ -47,4 +49,16 @@ func GetSysRoleById(c *gin.Context) {
 func UpdateSysRole(c *gin.Context) {
 	_ = c.BindJSON(&updateSysRole)
 	service.SysRoleService().UpdateSysRole(c, updateSysRole)
+}
+
+// DeleteSysRoleById 删除角色
+// @Summary 删除角色
+// @Produce json
+// @Description 删除角色
+// @Param data body entity.SysRoleIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/role/delete [delete]
+func DeleteSysRoleById(c *gin.Context) {
+	_ = c.BindJSON(&sysRoleIdDto)
+	service.SysRoleService().DeleteSysRoleById(c, sysRoleIdDto)
 }

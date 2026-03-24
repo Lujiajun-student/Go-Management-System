@@ -614,6 +614,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/role/delete": {
+            "delete": {
+                "description": "删除角色",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "删除角色",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.DeleteSysRoleDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/role/info": {
             "get": {
                 "description": "根据id查询角色",
@@ -695,6 +723,14 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                }
+            }
+        },
+        "entity.DeleteSysRoleDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
                 }
             }
         },

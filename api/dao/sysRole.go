@@ -62,3 +62,9 @@ func UpdateSysRole(dto entity.UpdateSysRoleDto) (sysRole entity.SysRole) {
 	Db.Save(&sysRole)
 	return sysRole
 }
+
+// DeleteSysRoleById 删除角色
+func DeleteSysRoleById(dto entity.SysRoleIdDto) {
+	Db.Table("sys_role").Delete(&entity.SysRole{}, dto.Id)
+	Db.Table("sys_role_menu").Where("role_id = ?", dto.Id).Delete(&entity.SysRoleMenu{})
+}

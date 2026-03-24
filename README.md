@@ -3640,3 +3640,63 @@ router.PUT("/api/role/update", controller.UpdateSysRole)
 
 ![image-20260324191709981](assets/image-20260324191709981.png)
 
+## 7.4 根据id删除角色
+
+同样的，删除只需要获取id，创建对应实体类。
+
+### 7.4.1 entity
+
+```go
+// SysRoleIdDto 删除角色所需参数
+type SysRoleIdDto struct {
+	Id uint
+}
+```
+
+### 7.4.2 dao层
+
+```go
+// DeleteSysRoleById 删除角色
+func DeleteSysRoleById(dto entity.SysRoleIdDto) {
+	Db.Table("sys_role").Delete(&entity.SysRole{}, dto.Id)
+	Db.Table("sys_role_menu").Where("role_id = ?", dto.Id).Delete(&entity.SysRoleMenu{})
+}
+```
+
+### 7.4.3 service
+
+```go
+// DeleteSysRoleById 删除角色
+func (s SysRoleServiceImpl) DeleteSysRoleById(c *gin.Context, dto entity.SysRoleIdDto) {
+	dao.DeleteSysRoleById(dto)
+	result.Success(c, true)
+}
+```
+
+### 7.4.4 controller
+
+```go
+// DeleteSysRoleById 删除角色
+// @Summary 删除角色
+// @Produce json
+// @Description 删除角色
+// @Param data body entity.SysRoleIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/role/delete [delete]
+func DeleteSysRoleById(c *gin.Context) {
+	_ = c.BindJSON(&sysRoleIdDto)
+	service.SysRoleService().DeleteSysRoleById(c, sysRoleIdDto)
+}
+```
+
+### 7.4.5 router配置
+
+```go
+router.DELETE("/api/role/delete", controller.DeleteSysRoleById)
+```
+
+### 7.4.6 swagger测试
+
+![image-20260324193012193](assets/image-20260324193012193.png)
+
+![image-20260324193018091](assets/image-20260324193018091.png)

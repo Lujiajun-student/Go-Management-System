@@ -33,3 +33,8 @@ type UpdateSysRoleDto struct {
 	Status      int
 	Description string
 }
+
+// SysRoleIdDto 删除角色所需参数
+type SysRoleIdDto struct {
+	Id uint
+}
