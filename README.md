@@ -3095,7 +3095,7 @@ func (s SysMenuServiceImpl) QuerySysMenuVOList(c *gin.Context) {
 // @Producce json
 // @Description 查询菜单列表
 // @Success 200 {object} result.Result
-// @router /api/menu/list [get]
+// @router /api/menu/vo/list [get]
 func QuerySysMenuVOList(c *gin.Context) {
 	_ = c.BindJSON(&sysMenuVO)
 	service.SysMenuService().QuerySysMenuVOList(c)
@@ -3105,7 +3105,7 @@ func QuerySysMenuVOList(c *gin.Context) {
 ### 6.2.5 router配置
 
 ```go
-router.GET("/api/menu/list", controller.QuerySysMenuVOList)
+router.GET("/api/menu/vo/list", controller.QuerySysMenuVOList)
 ```
 
 ### 6.2.6 swagger测试
@@ -3301,3 +3301,58 @@ router.DELETE("/api/menu/delete", controller.DeleteSysMenuById)
 
 ![image-20260324170229022](assets/image-20260324170229022.png)
 
+## 6.6 根据名称和状态查询菜单
+
+### 6.6.1 dao层
+
+```go
+// GetSysMenuList 查询菜单列表
+func GetSysMenuList(MenuName string, MenuStatus string) (sysMenu []*entity.SysMenu) {
+	curDb := Db.Table("sys_menu").Order("sort")
+	if MenuName != "" {
+		curDb = curDb.Where("menu_name = ?", MenuName)
+	}
+	if MenuStatus != "" {
+		curDb = curDb.Where("menu_status = ?", MenuStatus)
+	}
+	curDb.Find(&sysMenu)
+	return sysMenu
+}
+```
+
+### 6.6.2 service层
+
+```go
+// GetSysMenuList 查询菜单列表
+func (s SysMenuServiceImpl) GetSysMenuList(c *gin.Context, MenuName, MenuStatus string) {
+		result.Success(c, dao.GetSysMenuList(MenuName, MenuStatus))
+}
+```
+
+### 6.6.3 controller层
+
+```go
+// GetSysMenuList 查询菜单列表
+// @Summary 查询菜单列表
+// @Producce json
+// @Description 查询菜单列表
+// @Param MenuName query string false "MenuName"
+// @Param MenuStatus query string false "MenuStatus"
+// @Success 200 {object} result.Result
+// @router /api/menu/list [get]
+func GetSysMenuList(c *gin.Context) {
+	MenuName := c.Query("MenuName")
+	MenuStatus := c.Query("MenuStatus")
+	service.SysMenuService().GetSysMenuList(c, MenuName, MenuStatus)
+}
+```
+
+### 6.6.4 router配置
+
+```go
+router.GET("/api/menu/list", controller.GetSysMenuList)
+```
+
+### 6.6.5 swagger测试
+
+![image-20260324172631307](assets/image-20260324172631307.png)

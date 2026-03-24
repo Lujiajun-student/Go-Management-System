@@ -288,6 +288,20 @@ const docTemplate = `{
             "get": {
                 "description": "查询菜单列表",
                 "summary": "查询菜单列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "MenuName",
+                        "name": "MenuName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "MenuStatus",
+                        "name": "MenuStatus",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -313,6 +327,20 @@ const docTemplate = `{
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/menu/vo/list": {
+            "get": {
+                "description": "查询菜单列表",
+                "summary": "查询菜单列表",
                 "responses": {
                     "200": {
                         "description": "OK",

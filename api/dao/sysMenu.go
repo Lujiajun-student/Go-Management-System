@@ -107,3 +107,16 @@ func DeleteSysMenuById(dto entity.SysMenuIdDto) bool {
 	Db.Delete(&entity.SysMenu{}, dto.Id)
 	return true
 }
+
+// GetSysMenuList 查询菜单列表
+func GetSysMenuList(MenuName string, MenuStatus string) (sysMenu []*entity.SysMenu) {
+	curDb := Db.Table("sys_menu").Order("sort")
+	if MenuName != "" {
+		curDb = curDb.Where("menu_name = ?", MenuName)
+	}
+	if MenuStatus != "" {
+		curDb = curDb.Where("menu_status = ?", MenuStatus)
+	}
+	curDb.Find(&sysMenu)
+	return sysMenu
+}

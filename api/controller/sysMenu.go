@@ -32,7 +32,7 @@ func CreateSysMenu(c *gin.Context) {
 // @Producce json
 // @Description 查询菜单列表
 // @Success 200 {object} result.Result
-// @router /api/menu/list [get]
+// @router /api/menu/vo/list [get]
 func QuerySysMenuVOList(c *gin.Context) {
 	_ = c.BindJSON(&sysMenuVO)
 	service.SysMenuService().QuerySysMenuVOList(c)
@@ -72,4 +72,18 @@ func UpdateSysMenu(c *gin.Context) {
 func DeleteSysMenuById(c *gin.Context) {
 	_ = c.BindJSON(&sysMenuIdDto)
 	service.SysMenuService().DeleteSysMenuById(c, sysMenuIdDto)
+}
+
+// GetSysMenuList 查询菜单列表
+// @Summary 查询菜单列表
+// @Producce json
+// @Description 查询菜单列表
+// @Param MenuName query string false "MenuName"
+// @Param MenuStatus query string false "MenuStatus"
+// @Success 200 {object} result.Result
+// @router /api/menu/list [get]
+func GetSysMenuList(c *gin.Context) {
+	MenuName := c.Query("MenuName")
+	MenuStatus := c.Query("MenuStatus")
+	service.SysMenuService().GetSysMenuList(c, MenuName, MenuStatus)
 }
