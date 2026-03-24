@@ -14,6 +14,7 @@ type ISysRoleService interface {
 	GetSysRoleById(c *gin.Context, id uint)
 	UpdateSysRole(c *gin.Context, dto entity.UpdateSysRoleDto)
 	DeleteSysRoleById(c *gin.Context, dto entity.SysRoleIdDto)
+	UpdateSysRoleStatus(c *gin.Context, dto entity.UpdateSysRoleStatusDto)
 }
 
 type SysRoleServiceImpl struct {
@@ -48,5 +49,14 @@ func (s SysRoleServiceImpl) UpdateSysRole(c *gin.Context, dto entity.UpdateSysRo
 // DeleteSysRoleById 删除角色
 func (s SysRoleServiceImpl) DeleteSysRoleById(c *gin.Context, dto entity.SysRoleIdDto) {
 	dao.DeleteSysRoleById(dto)
+	result.Success(c, true)
+}
+
+// UpdateSysRoleStatus 修改角色状态
+func (s SysRoleServiceImpl) UpdateSysRoleStatus(c *gin.Context, dto entity.UpdateSysRoleStatusDto) {
+	ok := dao.UpdateSysRoleStatus(dto)
+	if !ok {
+		return
+	}
 	result.Success(c, true)
 }

@@ -628,7 +628,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entity.DeleteSysRoleDto"
+                            "$ref": "#/definitions/entity.SysRoleIdDto"
                         }
                     }
                 ],
@@ -695,6 +695,34 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/role/updateStatus": {
+            "put": {
+                "description": "修改角色状态",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "修改角色状态",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UpdateSysRoleStatusDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -723,14 +751,6 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
-                }
-            }
-        },
-        "entity.DeleteSysRoleDto": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
                 }
             }
         },
@@ -880,6 +900,14 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.SysRoleIdDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "entity.UpdateSysPostStatusDto": {
             "type": "object",
             "properties": {
@@ -905,6 +933,17 @@ const docTemplate = `{
                 },
                 "roleName": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entity.UpdateSysRoleStatusDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
                 },
                 "status": {
                     "type": "integer"

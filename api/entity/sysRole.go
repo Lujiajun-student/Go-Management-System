@@ -38,3 +38,9 @@ type UpdateSysRoleDto struct {
 type SysRoleIdDto struct {
 	Id uint
 }
+
+// UpdateSysRoleStatusDto 更新角色状态所需参数
+type UpdateSysRoleStatusDto struct {
+	Id     uint
+	Status int
+}

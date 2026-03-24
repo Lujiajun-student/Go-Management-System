@@ -3700,3 +3700,76 @@ router.DELETE("/api/role/delete", controller.DeleteSysRoleById)
 ![image-20260324193012193](assets/image-20260324193012193.png)
 
 ![image-20260324193018091](assets/image-20260324193018091.png)
+
+## 7.5 修改角色状态
+
+修改角色状态首先创建对应的修改结构体。
+
+### 7.5.1 entity
+
+```go
+// UpdateSysRoleStatusDto 更新角色状态所需参数
+type UpdateSysRoleStatusDto struct {
+    Id uint
+    Status int
+}
+```
+
+### 7.5.2 dao
+
+```go
+// UpdateSysRoleStatus 角色状态更新
+func UpdateSysRoleStatus(dto entity.UpdateSysRoleStatusDto) bool {
+    var sysRole entity.SysRole
+    Db.First(&sysRole, dto.Id)
+    sysRole.Status = dto.Status
+    tx := Db.Save(&sysRole)
+    if tx.RowsAffected > 0 {
+       return true
+    }
+    return false
+}
+```
+
+### 7.5.3 service
+
+```go
+// UpdateSysRoleStatus 修改角色状态
+func (s SysRoleServiceImpl) UpdateSysRoleStatus(c *gin.Context, dto entity.UpdateSysRoleStatusDto) {
+    ok := dao.UpdateSysRoleStatus(dto)
+    if !ok {
+       return
+    }
+    result.Success(c, true)
+}
+```
+
+### 7.5.4 controller
+
+```go
+// UpdateSysRoleStatus 修改角色状态
+// @Summary 修改角色状态
+// @Produce json
+// @Description 修改角色状态
+// @Param data body entity.UpdateSysRoleStatusDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/role/updateStatus [put]
+func UpdateSysRoleStatus(c *gin.Context) {
+	var dto entity.UpdateSysRoleStatusDto
+	_ = c.BindJSON(&dto)
+	service.SysRoleService().UpdateSysRoleStatus(c, dto)
+}
+```
+
+### 7.5.5 router
+
+```go
+router.PUT("/api/role/updateStatus", controller.UpdateSysRole)
+```
+
+### 7.5.6 swagger测试
+
+![image-20260324202107792](assets/image-20260324202107792.png)
+
+![image-20260324202115162](assets/image-20260324202115162.png)
+
