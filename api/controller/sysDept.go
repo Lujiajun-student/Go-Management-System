@@ -13,6 +13,8 @@ var sysDeptService = service.SysDeptService()
 
 var sysDept entity.SysDept
 
+var sysDeptIdDto entity.SysDeptIdDto
+
 // GetSysDeptList 查询部门列表
 // @Summary 查询部门列表接口
 // @Produce json
@@ -62,4 +64,16 @@ func GetSysDeptById(c *gin.Context) {
 func UpdateSysDept(c *gin.Context) {
 	_ = c.BindJSON(&sysDept)
 	service.SysDeptService().UpdateSysDept(c, sysDept)
+}
+
+// DeleteSysDeptById 删除部门
+// @Summary 删除部门
+// @Produce json
+// @Description 删除部门
+// @Param data body entity.SysDeptIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/dept/delete [delete]
+func DeleteSysDeptById(c *gin.Context) {
+	_ = c.BindJSON(&sysDeptIdDto)
+	service.SysDeptService().DeleteSysDeptById(c, sysDeptIdDto)
 }

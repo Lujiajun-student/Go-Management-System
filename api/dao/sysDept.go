@@ -73,3 +73,20 @@ func UpdateSysDept(dept entity.SysDept) (sysDept entity.SysDept) {
 	Db.Save(&sysDept)
 	return sysDept
 }
+
+// GetSysAdminDept 查询部门是否有人
+func GetSysAdminDept(id int) (sysAdmin entity.SysAdmin) {
+	Db.Where("dept_id = ?", id).First(&sysAdmin)
+	return sysAdmin
+}
+
+// DeleteSysDeptById 删除部门
+func DeleteSysDeptById(dto entity.SysDeptIdDto) bool {
+	sysAdmin := GetSysAdminDept(dto.Id)
+	if sysAdmin.ID > 0 {
+		return false
+	}
+	Db.Where("parent_id = ?", dto.Id).Delete(&entity.SysDept{})
+	Db.Delete(&entity.SysDept{}, dto.Id)
+	return true
+}

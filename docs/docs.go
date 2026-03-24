@@ -60,6 +60,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dept/delete": {
+            "delete": {
+                "description": "删除部门",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "删除部门",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysDeptIdDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dept/info": {
             "get": {
                 "description": "根据id查询部门",
@@ -468,6 +496,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "parentId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entity.SysDeptIdDto": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "integer"
                 }
             }

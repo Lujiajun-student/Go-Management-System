@@ -2692,3 +2692,83 @@ router.PUT("/api/dept/update", controller.UpdateSysDept)
 ![image-20260323202702587](assets/image-20260323202702587.png)
 
 ![image-20260323202709998](assets/image-20260323202709998.png)
+
+## 5.5 删除部门
+
+### 5.4.1 entity
+
+删除只需要获取id，因此创建对应的实体类。
+
+```go
+// SysDeptIdDto 接收id参数执行删除
+type SysDeptIdDto struct {
+	Id int `json:"id"`
+}
+```
+
+### 5.4.2 dao层
+
+这里的删除有点复杂。部门存在上级部门和下级部门，最下级的部门可以直接删除，而上级的部门需要先将下级部门全部删除。
+
+```go
+// GetSysAdminDept 查询部门是否有人
+func GetSysAdminDept(id int) (sysAdmin entity.SysAdmin) {
+	Db.Where("dept_id = ?", id).First(&sysAdmin)
+	return sysAdmin
+}
+
+// DeleteSysDeptById 删除部门
+func DeleteSysDeptById(dto entity.SysDeptIdDto) bool {
+	sysAdmin := GetSysAdminDept(dto.Id)
+	if sysAdmin.ID > 0 {
+		return false
+	}
+	Db.Where("parent_id = ?", dto.Id).Delete(&entity.SysDept{})
+	Db.Delete(&entity.SysDept{}, dto.Id)
+	return true
+}
+```
+
+这里首先查找当前部门是否有人，有人则不能删除。
+
+### 5.4.3 service层
+
+```go
+// DeleteSysDeptById 删除部门
+func (s SysDeptServiceImpl) DeleteSysDeptById(c *gin.Context, dto entity.SysDeptIdDto) {
+	ok := dao.DeleteSysDeptById(dto)
+	if !ok {
+		result.Failed(c, int(result.ApiCode.DEPTISDISTRIBUTE), result.ApiCode.GetMessage(result.ApiCode.DEPTISDISTRIBUTE))
+		return
+	}
+	result.Success(c, true)
+}
+```
+
+### 5.4.4 controller层
+
+```go
+// DeleteSysDeptById 删除部门
+// @Summary 删除部门
+// @Produce json
+// @Description 删除部门
+// @Param data body entity.SysDeptIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/dept/delete [delete]
+func DeleteSysDeptById(c *gin.Context) {
+    _ = c.BindJSON(&sysDeptIdDto)
+    service.SysDeptService().DeleteSysDeptById(c, sysDeptIdDto)
+}
+```
+
+### 5.4.5 router配置
+
+```go
+router.DELETE("/api/dept/delete", controller.DeleteSysDeptById)
+```
+
+### 5.4.6 swagger测试
+
+![image-20260324101802886](assets/image-20260324101802886.png)
+
+![image-20260324101810814](assets/image-20260324101810814.png)

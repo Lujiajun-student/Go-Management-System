@@ -17,3 +17,8 @@ type SysDept struct {
 func (SysDept) TableName() string {
 	return "sys_dept"
 }
+
+// SysDeptIdDto 接收id参数执行删除
+type SysDeptIdDto struct {
+	Id int `json:"id"`
+}

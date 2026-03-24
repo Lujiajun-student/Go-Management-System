@@ -14,6 +14,7 @@ type ISysDeptService interface {
 	CreateSysDept(c *gin.Context, sysDept entity.SysDept)
 	GetSysDeptById(c *gin.Context, sysDept entity.SysDept)
 	UpdateSysDept(c *gin.Context, sysDept entity.SysDept)
+	DeleteSysDeptById(c *gin.Context, dto entity.SysDeptIdDto)
 }
 
 type SysDeptServiceImpl struct {
@@ -49,4 +50,14 @@ func (s SysDeptServiceImpl) GetSysDeptById(c *gin.Context, sysDept entity.SysDep
 func (s SysDeptServiceImpl) UpdateSysDept(c *gin.Context, sysDept entity.SysDept) {
 	dao.UpdateSysDept(sysDept)
 	result.Success(c, sysDept)
+}
+
+// DeleteSysDeptById 删除部门
+func (s SysDeptServiceImpl) DeleteSysDeptById(c *gin.Context, dto entity.SysDeptIdDto) {
+	ok := dao.DeleteSysDeptById(dto)
+	if !ok {
+		result.Failed(c, int(result.ApiCode.DEPTISDISTRIBUTE), result.ApiCode.GetMessage(result.ApiCode.DEPTISDISTRIBUTE))
+		return
+	}
+	result.Success(c, true)
 }
