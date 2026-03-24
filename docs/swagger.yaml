@@ -590,6 +590,42 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 根据id查询角色
+  /api/role/list:
+    get:
+      description: 分页查询角色列表
+      parameters:
+      - description: 分页数
+        in: query
+        name: pageNum
+        type: integer
+      - description: 每页数
+        in: query
+        name: pageSize
+        type: integer
+      - description: 角色名称
+        in: query
+        name: roleName
+        type: string
+      - description: 状态：1->启用；2->禁用
+        in: query
+        name: status
+        type: integer
+      - description: 开始时间
+        in: query
+        name: beginTime
+        type: string
+      - description: 结束时间
+        in: query
+        name: endTime
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 分页查询角色列表
   /api/role/update:
     put:
       description: 修改角色

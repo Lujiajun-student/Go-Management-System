@@ -75,3 +75,25 @@ func UpdateSysRoleStatus(c *gin.Context) {
 	_ = c.BindJSON(&dto)
 	service.SysRoleService().UpdateSysRoleStatus(c, dto)
 }
+
+// GetSysRoleList 分页查询角色列表
+// @Summary 分页查询角色列表
+// @Produce json
+// @Description 分页查询角色列表
+// @Param pageNum query int false "分页数"
+// @Param pageSize query int false "每页数"
+// @Param roleName query string false "角色名称"
+// @Param status query int false "状态：1->启用；2->禁用"
+// @Param beginTime query string false "开始时间"
+// @Param endTime query string false "结束时间"
+// @Success 200 {object} result.Result
+// @router /api/role/list [get]
+func GetSysRoleList(c *gin.Context) {
+	PageNum, _ := strconv.Atoi(c.Query("pageNum"))
+	PageSize, _ := strconv.Atoi(c.Query("pageSize"))
+	RoleName := c.Query("roleName")
+	Status := c.Query("status")
+	BeginTime := c.Query("beginTime")
+	EndTime := c.Query("endTime")
+	service.SysRoleService().GetSysRoleList(c, PageNum, PageSize, RoleName, Status, BeginTime, EndTime)
+}

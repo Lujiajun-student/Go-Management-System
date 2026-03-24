@@ -80,3 +80,20 @@ func UpdateSysRoleStatus(dto entity.UpdateSysRoleStatusDto) bool {
 	}
 	return false
 }
+
+// GetSysRoleList 分页查询角色列表
+func GetSysRoleList(PageNum, PageSize int, RoleName, status, BeginTime, EndTime string) (sysRole []*entity.SysRole, count int64) {
+	curDb := Db.Table("sys_role")
+	if RoleName != "" {
+		curDb = curDb.Where("role_name like ?", "%"+RoleName+"%")
+	}
+	if BeginTime != "" && EndTime != "" {
+		curDb = curDb.Where("create_time BETWEEN ? AND ?", BeginTime, EndTime)
+	}
+	if status != "" {
+		curDb = curDb.Where("status = ?", status)
+	}
+	curDb.Count(&count)
+	curDb.Limit(PageSize).Offset((PageNum - 1) * PageSize).Order("create_time desc").Find(&sysRole)
+	return sysRole, count
+}

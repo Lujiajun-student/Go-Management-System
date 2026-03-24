@@ -3773,3 +3773,79 @@ router.PUT("/api/role/updateStatus", controller.UpdateSysRole)
 
 ![image-20260324202115162](assets/image-20260324202115162.png)
 
+## 7.6 分页查询角色列表
+
+### 7.6.1 dao
+
+```go
+// GetSysRoleList 分页查询角色列表
+func GetSysRoleList(PageNum, PageSize int, RoleName, status, BeginTime, EndTime string) (sysRole []*entity.SysRole, count int64) {
+	curDb := Db.Table("sys_role")
+	if RoleName != "" {
+		curDb = curDb.Where("role_name like ?", "%"+RoleName+"%")
+	}
+	if BeginTime != "" && EndTime != "" {
+		curDb = curDb.Where("create_time BETWEEN ? AND ?", BeginTime, EndTime)
+	}
+	if status != "" {
+		curDb = curDb.Where("status = ?", status)
+	}
+	curDb.Count(&count)
+	curDb.Limit(PageSize).Offset((PageNum - 1) * PageSize).Order("create_time desc").Find(&sysRole)
+	return sysRole, count
+}
+```
+
+### 7.6.2 service
+
+```go
+// GetSysRoleList 分页查询角色
+func (s SysRoleServiceImpl) GetSysRoleList(c *gin.Context, PageNum, PageSize int, RoleName, Status, BeginTime, EndTime string) {
+    if PageSize < 1 {
+       PageSize = 10
+    }
+    if PageNum < 1 {
+       PageNum = 1
+    }
+    sysRole, count := dao.GetSysRoleList(PageNum, PageSize, RoleName, Status, BeginTime, EndTime)
+    result.Success(c, map[string]any{"total": count, "pageSize": PageSize, "pageNum": PageNum, "list": sysRole})
+}
+```
+
+### 7.6.3 controller
+
+```go
+// GetSysRoleList 分页查询角色列表
+// @Summary 分页查询角色列表
+// @Produce json
+// @Description 分页查询角色列表
+// @Param pageNum query int false "分页数"
+// @Param pageSize query int false "每页数"
+// @Param roleName query string false "角色名称"
+// @Param status query int false "状态：1->启用；2->禁用"
+// @Param beginTime query string false "开始时间"
+// @Param endTime query string false "结束时间"
+// @Success 200 {object} result.Result
+// @router /api/role/list [get]
+func GetSysRoleList(c *gin.Context) {
+	PageNum, _ := strconv.Atoi(c.Query("pageNum"))
+	PageSize, _ := strconv.Atoi(c.Query("pageSize"))
+	RoleName := c.Query("roleName")
+	Status := c.Query("status")
+	BeginTime := c.Query("beginTime")
+	EndTime := c.Query("endTime")
+	service.SysRoleService().GetSysRoleList(c, PageNum, PageSize, RoleName, Status, BeginTime, EndTime)
+}
+```
+
+### 7.6.4 router
+
+```go
+router.GET("/api/role/list", controller.GetSysRoleList)
+```
+
+### 7.6.5 swagger测试
+
+![image-20260324204622155](assets/image-20260324204622155.png)
+
+![image-20260324204629056](assets/image-20260324204629056.png)
