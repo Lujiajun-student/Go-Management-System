@@ -4570,3 +4570,112 @@ router.PUT("/api/admin/updatePassword", controller.ResetSysAdminPassword)
 ![image-20260325165752585](assets/image-20260325165752585.png)
 
 ![image-20260325165803486](assets/image-20260325165803486.png)
+
+## 8.7 分页查询用户列表
+
+### 8.7.1 entity
+
+首先创建用户展示到前端的VO对象。
+
+```go
+// SysAdminVO 用户列表VO对象
+type SysAdminVO struct {
+    ID uint `json:"id"`
+    Username string `json:"username"`
+    Nickname string `json:"nickname"`
+    Status   int    `json:"status"`
+    PostId   int    `json:"postId"`
+    DeptId   int    `json:"deptId"`
+    RoleId   int    `json:"roleId"`
+    PostName string `json:"postName"`
+    DeptName string `json:"deptName"`
+    RoleName string `json:"roleName"`
+    Icon     string `json:"icon"`
+    Email    string `json:"email"`
+    Phone    string `json:"phone"`
+    Note     string `json:"note"`
+    CreateTime util.HTime `json:"createTime"`
+}
+```
+
+### 8.7.2 dao
+
+```go
+// GetSysAdminList 查询用户列表
+func GetSysAdminList(PageSize, PageNum int, Username, Status, BeginTime, EndTime string) (SysAdmin []entity.SysAdminVO, count int64) {
+	curDb := Db.Table("sys_admin").
+		Select("sys_admin.*, sys_post.post_name, sys_role.role_name, sys_dept.dept_name").
+		Joins("LEFT JOIN sys_post ON sys_admin.post_id = sys_post.id").
+		Joins("LEFT JOIN sys_admin_role ON sys_admin.id = sys_admin_role.admin_id").
+		Joins("LEFT JOIN sys_dept ON sys_dept.id = sys_admin.dept_id").
+		Joins("LEFT JOIN sys_role ON sys_admin_role.role_id = sys_role.id")
+	if Username != "" {
+		curDb = curDb.Where("sys_admin.username = ?", Username)
+	}
+	if Status != "" {
+		curDb = curDb.Where("sys_admin.status = ?", Status)
+	}
+	if BeginTime != "" && EndTime != "" {
+		curDb = curDb.Where("sys_admin.create_time BETWEEN ? AND ?", BeginTime, EndTime)
+	}
+	curDb.Count(&count)
+	curDb.Offset((PageNum - 1) * PageSize).Limit(PageSize).Order("sys_admin.create_time asc").Find(&SysAdmin)
+	return SysAdmin, count
+}
+```
+
+### 8.7.3 service
+
+```go
+// GetSysAdminList 查询用户列表
+func (s SysAdminServiceImpl) GetSysAdminList(c *gin.Context, PageSize, PageNum int, Username, Status, BeginTime, EndTime string) {
+    if PageSize < 1 {
+       PageSize = 10
+    }
+    if PageNum < 1 {
+       PageNum = 1
+    }
+     SysAdmin, count := dao.GetSysAdminList(PageSize, PageNum, Username, Status, BeginTime, EndTime)
+      result.Success(c, map[string]any{"total": count, "pageSize": PageSize, "pageNum": PageNum, "list": SysAdmin})
+}
+```
+
+### 8.7.4 controller
+
+```go
+// GetSysAdminList 分页查询用户
+// @Summary 分页查询用户
+// @Produce json
+// @Description 分页查询用户
+// @param pageNum query int false "分页数"
+// @Param pageSize query int false "每页数"
+// @Param username query string false "用户名"
+// @Param Status query string false "账号启用状态：1->启用，2->禁用"
+// @Param beginTime query string false "开始时间"
+// @Param endTime query string false "结束时间"
+// @Success 200 {object} result.Result
+// @router /api/admin/list [get]
+func GetSysAdminList(c *gin.Context) {
+    pageNum, _ := strconv.Atoi(c.Query("pageNum"))
+    pageSize, _ := strconv.Atoi(c.Query("pageSize"))
+    Username := c.Query("username")
+    Status := c.Query("status")
+    BeginTime := c.Query("beginTime")
+    EndTime := c.Query("endTime")
+    service.SysAdminService().GetSysAdminList(c, pageSize, pageNum, Username, Status, BeginTime, EndTime)
+}
+```
+
+### 8.7.5 router
+
+```go
+router.GET("/api/admin/list", controller.GetSysAdminList)
+```
+
+### 8.7.6 swagger
+
+![image-20260325171825861](assets/image-20260325171825861.png)
+
+![image-20260325171832747](assets/image-20260325171832747.png)
+
+## 8.8 

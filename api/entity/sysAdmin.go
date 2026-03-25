@@ -99,3 +99,22 @@ type ResetSysAdminPasswordDto struct {
 	Id       uint
 	Password string
 }
+
+// SysAdminVO 用户列表VO对象
+type SysAdminVO struct {
+	ID         uint       `json:"id"`
+	Username   string     `json:"username"`
+	Nickname   string     `json:"nickname"`
+	Status     int        `json:"status"`
+	PostId     int        `json:"postId"`
+	DeptId     int        `json:"deptId"`
+	RoleId     int        `json:"roleId"`
+	PostName   string     `json:"postName"`
+	DeptName   string     `json:"deptName"`
+	RoleName   string     `json:"roleName"`
+	Icon       string     `json:"icon"`
+	Email      string     `json:"email"`
+	Phone      string     `json:"phone"`
+	Note       string     `json:"note"`
+	CreateTime util.HTime `json:"createTime"`
+}

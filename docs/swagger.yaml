@@ -255,6 +255,7 @@ info:
   contact: {}
   description: 后台管理系统API接口文档
   title: 通用后台管理系统
+  version: "1.0"
 paths:
   /api/admin/add:
     post:
@@ -309,6 +310,42 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 根据id查询用户
+  /api/admin/list:
+    get:
+      description: 分页查询用户
+      parameters:
+      - description: 分页数
+        in: query
+        name: pageNum
+        type: integer
+      - description: 每页数
+        in: query
+        name: pageSize
+        type: integer
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      - description: 账号启用状态：1->启用，2->禁用
+        in: query
+        name: Status
+        type: string
+      - description: 开始时间
+        in: query
+        name: beginTime
+        type: string
+      - description: 结束时间
+        in: query
+        name: endTime
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 分页查询用户
   /api/admin/update:
     put:
       description: 修改用户
