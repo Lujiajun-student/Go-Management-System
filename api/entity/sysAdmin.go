@@ -68,3 +68,17 @@ type SysAdminInfo struct {
 	Phone    string `json:"phone"`
 	Note     string `json:"note"`
 }
+
+// UpdateSysAdminDto 修改用户所需参数
+type UpdateSysAdminDto struct {
+	Id       uint
+	PostId   int
+	DeptId   int
+	RoleId   uint
+	Username string
+	Nickname string
+	Phone    string
+	Email    string
+	Note     string
+	Status   int
+}

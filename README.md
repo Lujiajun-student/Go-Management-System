@@ -4292,3 +4292,92 @@ router.GET("/api/admin/info", controller.GetSysAdminInfo)
 首先构建修改用户的结构体。
 
 ### 8.3.1 entity
+
+```go
+// UpdateSysAdminDto 修改用户所需参数
+type UpdateSysAdminDto struct {
+	Id       uint
+	PostId   int
+	DeptId   int
+	RoleId   uint
+	Username string
+	Nickname string
+	Phone    string
+	Email    string
+	Note      string
+	Status   int
+}
+```
+
+### 8.3.2 dao层
+
+```go
+// UpdateSysAdmin 修改用户
+func UpdateSysAdmin(dto entity.UpdateSysAdminDto) (sysAdmin entity.SysAdmin) {
+    Db.First(&sysAdmin, dto.Id)
+    if dto.Username != "" {
+       sysAdmin.Username = dto.Username
+    }
+    sysAdmin.PostId = dto.PostId
+    sysAdmin.DeptId = dto.DeptId
+    sysAdmin.Status = dto.Status
+    if dto.Nickname != "" {
+       sysAdmin.Nickname = dto.Nickname
+    }
+    if dto.Phone != "" {
+       sysAdmin.Phone = dto.Phone
+    }
+    if dto.Email != "" {
+       sysAdmin.Email = dto.Email
+    }
+    if dto.Note != "" {
+       sysAdmin.Note = dto.Note
+    }
+    Db.Save(&sysAdmin)
+    // 删除之前的角色，再分配新的角色
+    var sysAdminRole entity.SysAdminRole
+    Db.Where("admin_id = ?", dto.Id).Delete(&entity.SysAdminRole{})
+    sysAdminRole.AdminId = dto.Id
+    sysAdminRole.RoleId = dto.RoleId
+    Db.Create(&sysAdminRole)
+    return sysAdmin
+}
+```
+
+### 8.3.3 service层
+
+```go
+// UpdateSysAdmin 修改用户
+func (s SysAdminServiceImpl) UpdateSysAdmin(c *gin.Context, dto entity.UpdateSysAdminDto) {
+    result.Success(c, dao.UpdateSysAdmin(dto))
+}
+```
+
+### 8.3.4 controller
+
+```go
+// UpdateSysAdmin 修改用户
+// @Summary 修改用户
+// @Produce json
+// @Description 修改用户
+// @param data body entity.UpdateSysAdminDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/update [put]
+func UpdateSysAdmin(c *gin.Context) {
+	var dto entity.UpdateSysAdminDto
+	_ = c.BindJSON(&dto)
+	service.SysAdminService().UpdateSysAdmin(c, dto)
+}
+```
+
+### 8.3.5 router
+
+```go
+router.PUT("/api/admin/update", controller.UpdateSysAdmin)
+```
+
+### 8.3.6 swagger
+
+![image-20260325155439286](assets/image-20260325155439286.png)
+
+![image-20260325155446728](assets/image-20260325155446728.png)

@@ -60,3 +60,34 @@ func GetSysAdminInfo(Id int) (sysAdminInfo entity.SysAdminInfo) {
 		First(&sysAdminInfo, Id)
 	return sysAdminInfo
 }
+
+// UpdateSysAdmin 修改用户
+func UpdateSysAdmin(dto entity.UpdateSysAdminDto) (sysAdmin entity.SysAdmin) {
+	Db.First(&sysAdmin, dto.Id)
+	if dto.Username != "" {
+		sysAdmin.Username = dto.Username
+	}
+	sysAdmin.PostId = dto.PostId
+	sysAdmin.DeptId = dto.DeptId
+	sysAdmin.Status = dto.Status
+	if dto.Nickname != "" {
+		sysAdmin.Nickname = dto.Nickname
+	}
+	if dto.Phone != "" {
+		sysAdmin.Phone = dto.Phone
+	}
+	if dto.Email != "" {
+		sysAdmin.Email = dto.Email
+	}
+	if dto.Note != "" {
+		sysAdmin.Note = dto.Note
+	}
+	Db.Save(&sysAdmin)
+	// 删除之前的角色，再分配新的角色
+	var sysAdminRole entity.SysAdminRole
+	Db.Where("admin_id = ?", dto.Id).Delete(&entity.SysAdminRole{})
+	sysAdminRole.AdminId = dto.Id
+	sysAdminRole.RoleId = dto.RoleId
+	Db.Create(&sysAdminRole)
+	return sysAdmin
+}
