@@ -255,7 +255,6 @@ info:
   contact: {}
   description: 后台管理系统API接口文档
   title: 通用后台管理系统
-  version: "1.0"
 paths:
   /api/admin/add:
     post:
@@ -940,6 +939,25 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 查询角色下拉列表
+  /api/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 单图片上传接口
+      parameters:
+      - description: file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 单图片上传接口
 securityDefinitions:
   ApiKeyAuth:
     in: header

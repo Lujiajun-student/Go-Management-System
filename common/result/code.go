@@ -21,6 +21,7 @@ type Codes struct {
 	POSTALREADYEXISTS          uint
 	USERNAMEALREADYEXISTS      uint
 	MissingNewAdminParameter   uint
+	FileUploadError            uint
 }
 
 // ApiCode 状态码
@@ -43,6 +44,7 @@ var ApiCode = &Codes{
 	POSTALREADYEXISTS:          417,
 	USERNAMEALREADYEXISTS:      418,
 	MissingNewAdminParameter:   419,
+	FileUploadError:            427,
 }
 
 // init 初始化状态信息
@@ -66,6 +68,7 @@ func init() {
 		ApiCode.POSTALREADYEXISTS:          "岗位名称已存在",
 		ApiCode.USERNAMEALREADYEXISTS:      "用户名已存在",
 		ApiCode.MissingNewAdminParameter:   "缺少新增参数",
+		ApiCode.FileUploadError:            "文件上传错误",
 	}
 }
 

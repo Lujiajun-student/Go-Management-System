@@ -443,7 +443,8 @@ type Codes struct {
 	DEPTISDISTRIBUTE           uint
 	POSTALREADYEXISTS          uint
 	USERNAMEALREADYEXISTS      uint
-	MissingNewAdminParameter uint
+	MissingNewAdminParameter   uint
+	FileUploadError uint
 }
 
 // ApiCode 状态码
@@ -465,7 +466,8 @@ var ApiCode = &Codes{
 	DEPTISDISTRIBUTE:           416,
 	POSTALREADYEXISTS:          417,
 	USERNAMEALREADYEXISTS:      418,
-	MissingNewAdminParameter:  419,
+	MissingNewAdminParameter:   419,
+	FileUploadError: 427,
 }
 
 // init 初始化状态信息
@@ -488,7 +490,8 @@ func init() {
 		ApiCode.DEPTISDISTRIBUTE:           "部门已分配，不能删除",
 		ApiCode.POSTALREADYEXISTS:          "岗位名称已存在",
 		ApiCode.USERNAMEALREADYEXISTS:      "用户名已存在",
-		ApiCode.MissingNewAdminParameter: "缺少新增参数",
+		ApiCode.MissingNewAdminParameter:   "缺少新增参数",
+		ApiCode.FileUploadError: "文件上传错误",
 	}
 }
 
@@ -4678,4 +4681,93 @@ router.GET("/api/admin/list", controller.GetSysAdminList)
 
 ![image-20260325171832747](assets/image-20260325171832747.png)
 
-## 8.8 
+## 8.8 图片上传
+
+### 8.8.1 util
+
+新增用户时需要上传图片作为头像。这样需要新建工具类。在util下创建`uploadTool.go`。
+
+```go
+// Package util 图片上传工具
+package util
+
+import "os"
+
+// CreateDir 创建目录
+func CreateDir(filePath string) error {
+    if !IsExist(filePath) {
+       err := os.MkdirAll(filePath, os.ModePerm)
+       return err
+    }
+    return nil
+}
+
+// IsExist 判断是否存在
+func IsExist(path string) bool {
+    _, err := os.Stat(path)
+    if err != nil {
+       if os.IsExist(err) {
+          return true
+       }
+       return false
+    }
+    return true
+}
+```
+
+### 8.8.2 service
+
+```go
+// Upload 图片上传
+func (u *UploadServiceImpl) Upload(c *gin.Context) {
+    file, err := c.FormFile("file")
+    if err != nil {
+       result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
+    }
+    now := time.Now()
+    ext := path.Ext(file.Filename)
+    fileName := strconv.Itoa(now.Nanosecond()) + ext
+    filePath := fmt.Sprintf("%s%s%s%s", config.Config.ImageSettings.UploadDir,
+       fmt.Sprintf("%04d", now.Year()),
+       fmt.Sprintf("%02d", now.Month()),
+       fmt.Sprintf("%04d", now.Day()))
+    err = util.CreateDir(filePath)
+    if err != nil {
+       result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
+    }
+    fullPath := filePath + "/" + fileName
+    err = c.SaveUploadedFile(file, fullPath)
+    if err != nil {
+       result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
+    }
+    result.Success(c, fullPath)
+}
+```
+
+### 8.8.3 controller
+
+```go
+// Upload 单图片上传
+// @Summary 单图片上传接口
+// @Produce json
+// @Description 单图片上传接口
+// @Accept multipart/form-data
+// @Param file formData file true "file"
+// @Success 200 {object} result.Result
+// @Router /api/upload [post]
+func Upload(c *gin.Context) {
+    service.UploadService().Upload(c)
+}
+```
+
+### 8.8.4 router
+
+```go
+router.POST("/api/upload", controller.Upload)
+```
+
+### 8.8.5 swagger
+
+![image-20260325175335713](assets/image-20260325175335713.png)
+
+![image-20260325175350646](assets/image-20260325175350646.png)
