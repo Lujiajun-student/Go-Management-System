@@ -82,3 +82,8 @@ type UpdateSysAdminDto struct {
 	Note     string
 	Status   int
 }
+
+// SysAdminIdDto 删除用户所需参数
+type SysAdminIdDto struct {
+	Id uint `json:"id"`
+}

@@ -43,6 +43,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/delete": {
+            "delete": {
+                "description": "根据id删除用户",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "根据id删除用户",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysAdminIdDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/info": {
             "get": {
                 "description": "根据id查询用户",
@@ -1053,6 +1081,14 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                }
+            }
+        },
+        "entity.SysAdminIdDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
                 }
             }
         },

@@ -4381,3 +4381,63 @@ router.PUT("/api/admin/update", controller.UpdateSysAdmin)
 ![image-20260325155439286](assets/image-20260325155439286.png)
 
 ![image-20260325155446728](assets/image-20260325155446728.png)
+
+## 8.4 根据id删除用户
+
+### 8.3.1 entity
+
+```go
+// SysAdminIdDto 删除用户所需参数
+type SysAdminIdDto struct {
+    Id uint `json:"id"`
+}
+```
+
+### 8.3.2 dao
+
+```go
+// DeleteSysAdminById 根据id删除用户
+func DeleteSysAdminById(dto entity.SysAdminIdDto) {
+    Db.First(&entity.SysAdmin{}, dto.Id)
+    Db.Delete(&entity.SysAdmin{}, dto.Id)
+    Db.Where("admin_id = ?", dto.Id).Delete(&entity.SysAdminRole{})
+}
+```
+
+### 8.3.3 service
+
+```go
+// DeleteSysAdminById 根据id删除用户
+func (s SysAdminServiceImpl) DeleteSysAdminById(c *gin.Context, dto entity.SysAdminIdDto) {
+    dao.DeleteSysAdminById(dto)
+    result.Success(c, true)
+}
+```
+
+### 8.3.4 controller
+
+```go
+// DeleteSysAdminById 根据id删除用户
+// @Summary 根据id删除用户
+// @Produce json
+// @Description 根据id删除用户
+// @param data body entity.SysAdminIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/delete [delete]
+func DeleteSysAdminById(c *gin.Context) {
+	var dto entity.SysAdminIdDto
+	_ = c.BindJSON(&dto)
+	service.SysAdminService().DeleteSysAdminById(c, dto)
+}
+```
+
+### 8.3.5 router
+
+```go
+router.DELETE("/api/admin/delete", controller.DeleteSysAdminById)
+```
+
+### 8.3.6 swagger
+
+![image-20260325161945488](assets/image-20260325161945488.png)
+
