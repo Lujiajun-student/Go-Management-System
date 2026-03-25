@@ -87,3 +87,15 @@ type UpdateSysAdminDto struct {
 type SysAdminIdDto struct {
 	Id uint `json:"id"`
 }
+
+// UpdateSysAdminStatusDto 设置用户状态所需参数
+type UpdateSysAdminStatusDto struct {
+	Id     uint `json:"id"`
+	Status int  `json:"status"`
+}
+
+// ResetSysAdminPasswordDto 重置密码
+type ResetSysAdminPasswordDto struct {
+	Id       uint
+	Password string
+}

@@ -70,4 +70,6 @@ func register(router *gin.Engine) {
 	router.GET("/api/admin/info", controller.GetSysAdminInfo)
 	router.PUT("/api/admin/update", controller.UpdateSysAdmin)
 	router.DELETE("/api/admin/delete", controller.DeleteSysAdminById)
+	router.PUT("/api/admin/updateStatus", controller.UpdateSysAdminStatus)
+	router.PUT("/api/admin/updatePassword", controller.ResetSysAdminPassword)
 }

@@ -4441,3 +4441,132 @@ router.DELETE("/api/admin/delete", controller.DeleteSysAdminById)
 
 ![image-20260325161945488](assets/image-20260325161945488.png)
 
+### 8.5 修改用户状态
+
+用户存在启用和禁用的状态，需要提供功能。
+
+### 8.5.1 entity
+
+```go
+// UpdateSysAdminStatusDto 设置用户状态所需参数
+type UpdateSysAdminStatusDto struct {
+    Id uint `json:"id"`
+    Status int `json:"status"`
+}
+```
+
+### 8.5.2 dao
+
+```go
+// UpdateSysAdminStatus 修改用户状态
+func UpdateSysAdminStatus (dto entity.UpdateSysAdminStatusDto) {
+    var sysAdmin entity.SysAdmin
+    Db.First(&sysAdmin, dto.Id)
+    sysAdmin.Status = dto.Status
+    Db.Save(&sysAdmin)
+}
+```
+
+### 8.5.3 service
+
+```go
+// UpdateSysAdminStatus 修改用户状态
+func (s SysAdminServiceImpl) UpdateSysAdminStatus(c *gin.Context, dto entity.UpdateSysAdminStatusDto) {
+    dao.UpdateSysAdminStatus(dto)
+    result.Success(c, true)
+}
+```
+
+### 8.5.4 controller
+
+```go
+// UpdateSysAdminStatus 修改用户状态
+// @Summary 修改用户状态
+// @Produce json
+// @Description 修改用户状态
+// @param data body entity.UpdateSysAdminStatus true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/updateStatus [put]
+func UpdateSysAdminStatus(c *gin.Context) {
+    var dto entity.UpdateSysAdminStatusDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().UpdateSysAdminStatus(c, dto)
+}
+```
+
+### 8.5.5 router
+
+```go
+router.PUT("/api/admin/updateStatus", controller.UpdateSysAdminStatus)
+```
+
+### 8.5.6 swagger
+
+![image-20260325163155331](assets/image-20260325163155331.png)
+
+![image-20260325163201729](assets/image-20260325163201729.png)
+
+## 8.6 重置密码
+
+### 8.6.1 entity
+
+重置密码只需要id和密码，创建实体类。
+
+```go
+// ResetSysAdminPasswordDto 重置密码
+type ResetSysAdminPasswordDto struct {
+    Id uint
+    Password string
+}
+```
+
+### 8.6.2 dao
+
+```go
+// ResetSysAdminPassword 重置密码
+func ResetSysAdminPassword(dto entity.ResetSysAdminPasswordDto) {
+    var sysAdmin entity.SysAdmin
+    Db.First(&sysAdmin, dto.Id)
+    sysAdmin.Password = util.EncryptionMd5(dto.Password)
+    Db.Save(&sysAdmin)
+}
+```
+
+### 8.6.3 service
+
+```go
+// ResetSysAdminPassword 重置密码
+func (s SysAdminServiceImpl) ResetSysAdminPassword(c *gin.Context, dto entity.ResetSysAdminPasswordDto) {
+    dao.ResetSysAdminPassword(dto)
+    result.Success(c, true)
+}
+```
+
+### 8.6.4 controller
+
+```go
+// ResetSysAdminPassword 重置密码
+// @Summary 重置密码
+// @Produce json
+// @Description 重置密码
+// @param data body entity.ResetSysAdminPasswordDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/updatePassword [put]
+func ResetSysAdminPassword(c *gin.Context) {
+    var dto entity.ResetSysAdminPasswordDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().ResetSysAdminPassword(c, dto)
+}
+```
+
+### 8.6.5 router
+
+```go
+router.PUT("/api/admin/updatePassword", controller.ResetSysAdminPassword)
+```
+
+### 8.6.6 swagger
+
+![image-20260325165752585](assets/image-20260325165752585.png)
+
+![image-20260325165803486](assets/image-20260325165803486.png)

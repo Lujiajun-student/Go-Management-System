@@ -98,3 +98,19 @@ func DeleteSysAdminById(dto entity.SysAdminIdDto) {
 	Db.Delete(&entity.SysAdmin{}, dto.Id)
 	Db.Where("admin_id = ?", dto.Id).Delete(&entity.SysAdminRole{})
 }
+
+// UpdateSysAdminStatus 修改用户状态
+func UpdateSysAdminStatus(dto entity.UpdateSysAdminStatusDto) {
+	var sysAdmin entity.SysAdmin
+	Db.First(&sysAdmin, dto.Id)
+	sysAdmin.Status = dto.Status
+	Db.Save(&sysAdmin)
+}
+
+// ResetSysAdminPassword 重置密码
+func ResetSysAdminPassword(dto entity.ResetSysAdminPasswordDto) {
+	var sysAdmin entity.SysAdmin
+	Db.First(&sysAdmin, dto.Id)
+	sysAdmin.Password = util.EncryptionMd5(dto.Password)
+	Db.Save(&sysAdmin)
+}

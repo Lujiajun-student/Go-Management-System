@@ -125,6 +125,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/updatePassword": {
+            "put": {
+                "description": "重置密码",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "重置密码",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.ResetSysAdminPasswordDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/updateStatus": {
+            "put": {
+                "description": "修改用户状态",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "修改用户状态",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UpdateSysAdminStatusDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/captcha": {
             "get": {
                 "description": "验证码接口",
@@ -1066,6 +1122,17 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.ResetSysAdminPasswordDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.RoleMenu": {
             "type": "object",
             "required": [
@@ -1249,6 +1316,17 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.UpdateSysAdminStatusDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
                 }
             }
         },

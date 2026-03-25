@@ -73,6 +73,13 @@ definitions:
     - password
     - username
     type: object
+  entity.ResetSysAdminPasswordDto:
+    properties:
+      id:
+        type: integer
+      password:
+        type: string
+    type: object
   entity.RoleMenu:
     properties:
       id:
@@ -194,6 +201,13 @@ definitions:
       username:
         type: string
     type: object
+  entity.UpdateSysAdminStatusDto:
+    properties:
+      id:
+        type: integer
+      status:
+        type: integer
+    type: object
   entity.UpdateSysPostStatusDto:
     properties:
       id:
@@ -313,6 +327,42 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 修改用户
+  /api/admin/updatePassword:
+    put:
+      description: 重置密码
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ResetSysAdminPasswordDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 重置密码
+  /api/admin/updateStatus:
+    put:
+      description: 修改用户状态
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateSysAdminStatusDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 修改用户状态
   /api/captcha:
     get:
       description: 验证码接口
