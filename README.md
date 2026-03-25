@@ -425,76 +425,79 @@ package result
 
 // Codes 定义状态
 type Codes struct {
-	SUCCESS                    uint
-	FAILED                     uint
-	NOAUTH                     uint
-	AUTHFORMATERROR            uint
-	Message                    map[uint]string
-	INVALIDTOKEN               uint
-	MissingLoginParameter      uint
-	VerificationCodeHasExpired uint
-	CAPTCHANOTTRUE             uint
-	PASSWORDNOTTRUE            uint
-	STATUSISENABLE             uint
-	ROLENAMEALREADYEXISTS      uint
-	MENUISEXIST                uint
-	DELSYSMENUFAILED           uint
-	DEPTISEXIST                uint
-	DEPTISDISTRIBUTE           uint
-	POSTALREADYEXISTS          uint
-	USERNAMEALREADYEXISTS      uint
-	MissingNewAdminParameter   uint
-	FileUploadError            uint
+	SUCCESS                                 uint
+	FAILED                                  uint
+	NOAUTH                                  uint
+	AUTHFORMATERROR                         uint
+	Message                                 map[uint]string
+	INVALIDTOKEN                            uint
+	MissingLoginParameter                   uint
+	VerificationCodeHasExpired              uint
+	CAPTCHANOTTRUE                          uint
+	PASSWORDNOTTRUE                         uint
+	STATUSISENABLE                          uint
+	ROLENAMEALREADYEXISTS                   uint
+	MENUISEXIST                             uint
+	DELSYSMENUFAILED                        uint
+	DEPTISEXIST                             uint
+	DEPTISDISTRIBUTE                        uint
+	POSTALREADYEXISTS                       uint
+	USERNAMEALREADYEXISTS                   uint
+	MissingNewAdminParameter                uint
+	FileUploadError                         uint
 	MissingModificationOfPersonalParameters uint
+	MissingChangePasswordParameter uint
 }
 
 // ApiCode 状态码
 var ApiCode = &Codes{
-	SUCCESS:                    200,
-	FAILED:                     501,
-	NOAUTH:                     403,
-	AUTHFORMATERROR:            405,
-	INVALIDTOKEN:               406,
-	MissingLoginParameter:      407,
-	VerificationCodeHasExpired: 408,
-	CAPTCHANOTTRUE:             409,
-	PASSWORDNOTTRUE:            410,
-	STATUSISENABLE:             411,
-	ROLENAMEALREADYEXISTS:      412,
-	MENUISEXIST:                413,
-	DELSYSMENUFAILED:           414,
-	DEPTISEXIST:                415,
-	DEPTISDISTRIBUTE:           416,
-	POSTALREADYEXISTS:          417,
-	USERNAMEALREADYEXISTS:      418,
-	MissingNewAdminParameter:   419,
-	FileUploadError:            427,
+	SUCCESS:                                 200,
+	FAILED:                                  501,
+	NOAUTH:                                  403,
+	AUTHFORMATERROR:                         405,
+	INVALIDTOKEN:                            406,
+	MissingLoginParameter:                   407,
+	VerificationCodeHasExpired:              408,
+	CAPTCHANOTTRUE:                          409,
+	PASSWORDNOTTRUE:                         410,
+	STATUSISENABLE:                          411,
+	ROLENAMEALREADYEXISTS:                   412,
+	MENUISEXIST:                             413,
+	DELSYSMENUFAILED:                        414,
+	DEPTISEXIST:                             415,
+	DEPTISDISTRIBUTE:                        416,
+	POSTALREADYEXISTS:                       417,
+	USERNAMEALREADYEXISTS:                   418,
+	MissingNewAdminParameter:                419,
+	FileUploadError:                         427,
 	MissingModificationOfPersonalParameters: 428,
+	MissingChangePasswordParameter: 429,
 }
 
 // init 初始化状态信息
 func init() {
 	ApiCode.Message = map[uint]string{
-		ApiCode.SUCCESS:                    "成功",
-		ApiCode.FAILED:                     "失败",
-		ApiCode.NOAUTH:                     "未授权",
-		ApiCode.AUTHFORMATERROR:            "授权格式错误",
-		ApiCode.INVALIDTOKEN:               "无效的Token",
-		ApiCode.MissingLoginParameter:      "缺少登录参数",
-		ApiCode.VerificationCodeHasExpired: "验证码已失效",
-		ApiCode.CAPTCHANOTTRUE:             "验证码不正确",
-		ApiCode.PASSWORDNOTTRUE:            "密码不正确",
-		ApiCode.STATUSISENABLE:             "您的账号被停用",
-		ApiCode.ROLENAMEALREADYEXISTS:      "角色名称已存在，重新输入",
-		ApiCode.MENUISEXIST:                "菜单已存在，重新输入",
-		ApiCode.DELSYSMENUFAILED:           "菜单已分配",
-		ApiCode.DEPTISEXIST:                "部门名称已存在",
-		ApiCode.DEPTISDISTRIBUTE:           "部门已分配，不能删除",
-		ApiCode.POSTALREADYEXISTS:          "岗位名称已存在",
-		ApiCode.USERNAMEALREADYEXISTS:      "用户名已存在",
-		ApiCode.MissingNewAdminParameter:   "缺少新增参数",
-		ApiCode.FileUploadError:            "文件上传错误",
+		ApiCode.SUCCESS:                                 "成功",
+		ApiCode.FAILED:                                  "失败",
+		ApiCode.NOAUTH:                                  "未授权",
+		ApiCode.AUTHFORMATERROR:                         "授权格式错误",
+		ApiCode.INVALIDTOKEN:                            "无效的Token",
+		ApiCode.MissingLoginParameter:                   "缺少登录参数",
+		ApiCode.VerificationCodeHasExpired:              "验证码已失效",
+		ApiCode.CAPTCHANOTTRUE:                          "验证码不正确",
+		ApiCode.PASSWORDNOTTRUE:                         "密码不正确",
+		ApiCode.STATUSISENABLE:                          "您的账号被停用",
+		ApiCode.ROLENAMEALREADYEXISTS:                   "角色名称已存在，重新输入",
+		ApiCode.MENUISEXIST:                             "菜单已存在，重新输入",
+		ApiCode.DELSYSMENUFAILED:                        "菜单已分配",
+		ApiCode.DEPTISEXIST:                             "部门名称已存在",
+		ApiCode.DEPTISDISTRIBUTE:                        "部门已分配，不能删除",
+		ApiCode.POSTALREADYEXISTS:                       "岗位名称已存在",
+		ApiCode.USERNAMEALREADYEXISTS:                   "用户名已存在",
+		ApiCode.MissingNewAdminParameter:                "缺少新增参数",
+		ApiCode.FileUploadError:                         "文件上传错误",
 		ApiCode.MissingModificationOfPersonalParameters: "缺少必要信息",
+		ApiCode.MissingChangePasswordParameter: "缺少密码",
 	}
 }
 
@@ -506,7 +509,6 @@ func (c *Codes) GetMessage(code uint) string {
 	}
 	return message
 }
-
 ```
 
 这里就能实现从状态码到状态信息的映射。
@@ -4834,8 +4836,8 @@ func (s SysAdminServiceImpl) UpdatePersonal(c *gin.Context, dto entity.UpdatePer
 		result.Failed(c, int(result.ApiCode.MissingModificationOfPersonalParameters), result.ApiCode.GetMessage(result.ApiCode.MissingModificationOfPersonalParameters))
 		return
 	}
-	//id, _ := jwt.GetAdminId(c)
-	dto.Id = 98 // 暂时写死
+	id, _ := jwt.GetAdminId(c)
+	dto.Id = id
 	result.Success(c, dao.UpdatePersonal(dto))
 }
 ```
@@ -4869,4 +4871,93 @@ router.PUT("/api/admin/updatePersonal", controller.UpdatePersonal)
 
 ![image-20260325204155750](assets/image-20260325204155750.png)
 
-**这里暂时写死了修改的id，后面使用鉴权后需要修改。**
+## 8.10 修改个人密码
+
+### 8.10.1 entity
+
+首先创建结构体，需要包含旧密码、新密码和重复密码。
+
+```go
+//UpdatePersonalPasswordDto 修改密码
+type UpdatePersonalPasswordDto struct {
+    Id uint
+    Password string `validate:"required"`
+    NewPassword string  `validate:"required"`
+    ResetPassword string `validate:"required"`
+}
+```
+
+### 8.10.2 dao
+
+```go
+// UpdatePersonalPassword 修改密码
+func UpdatePersonalPassword(dto entity.UpdatePersonalPasswordDto) (sysAdmin entity.SysAdmin) {
+    Db.First(&sysAdmin, dto.Id)
+    sysAdmin.Password = dto.NewPassword
+    Db.Save(&sysAdmin)
+    return sysAdmin
+}
+```
+
+### 8.10.3 service
+
+```go
+// UpdatePersonalPassword 修改密码
+func (s SysAdminServiceImpl) UpdatePersonalPassword(c *gin.Context, dto entity.UpdatePersonalPasswordDto) {
+	err := validator.New().Struct(dto)
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.MissingChangePasswordParameter), result.ApiCode.GetMessage(result.ApiCode.MissingChangePasswordParameter))
+		return
+	}
+	sysAdmin, _ := jwt.GetAdmin(c)
+	dto.Id = sysAdmin.Id
+	//dto.Id = 98
+	//username := "string"
+	sysAdminExist := dao.GetSysAdminByUsername(sysAdmin.Username)
+	//sysAdminExist := dao.GetSysAdminByUsername(username)
+	if sysAdminExist.Password != util.EncryptionMd5(dto.Password) {
+		result.Failed(c, int(result.ApiCode.PASSWORDNOTTRUE), result.ApiCode.GetMessage(result.ApiCode.PASSWORDNOTTRUE))
+		return
+	}
+	if dto.NewPassword != dto.ResetPassword {
+		result.Failed(c, int(result.ApiCode.ResetPassword), result.ApiCode.GetMessage(result.ApiCode.ResetPassword))
+		return
+	}
+	dto.NewPassword = util.EncryptionMd5(dto.NewPassword)
+	sysAdminUpdatePwd := dao.UpdatePersonalPassword(dto)
+	tokenString, _ := jwt.GenerateTokenByAdmin(sysAdminUpdatePwd)
+	result.Success(c, map[string]any{"token": tokenString, "sysAdmin": sysAdminUpdatePwd})
+	return
+}
+```
+
+这里更换了密码后，需要注意更新token。
+
+### 8.10.3 controller
+
+```go
+// UpdatePersonalPassword 修改密码
+// @Summary 修改密码
+// @Produce json
+// @Description 修改密码
+// @param data body entity.UpdatePersonalPasswordDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/updatePersonalPassword [put]
+func UpdatePersonalPassword(c *gin.Context) {
+    var dto entity.UpdatePersonalPasswordDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().UpdatePersonalPassword(c, dto)
+}
+```
+
+### 8.10.4 router
+
+```go
+router.PUT("/api/admin/updatePersonalPassword", controller.UpdatePersonalPassword)
+```
+
+### 8.10.5 swagger
+
+![image-20260325212002750](assets/image-20260325212002750.png)
+
+![image-20260325212010634](assets/image-20260325212010634.png)

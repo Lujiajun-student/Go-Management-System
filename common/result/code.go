@@ -23,6 +23,8 @@ type Codes struct {
 	MissingNewAdminParameter                uint
 	FileUploadError                         uint
 	MissingModificationOfPersonalParameters uint
+	MissingChangePasswordParameter          uint
+	ResetPassword                           uint
 }
 
 // ApiCode 状态码
@@ -47,6 +49,8 @@ var ApiCode = &Codes{
 	MissingNewAdminParameter:                419,
 	FileUploadError:                         427,
 	MissingModificationOfPersonalParameters: 428,
+	MissingChangePasswordParameter:          429,
+	ResetPassword:                           430,
 }
 
 // init 初始化状态信息
@@ -72,6 +76,8 @@ func init() {
 		ApiCode.MissingNewAdminParameter:                "缺少新增参数",
 		ApiCode.FileUploadError:                         "文件上传错误",
 		ApiCode.MissingModificationOfPersonalParameters: "缺少必要信息",
+		ApiCode.MissingChangePasswordParameter:          "缺少密码",
+		ApiCode.ResetPassword:                           "两次密码不一致",
 	}
 }
 

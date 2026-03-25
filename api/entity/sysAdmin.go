@@ -129,3 +129,11 @@ type UpdatePersonalDto struct {
 	Email    string `validate:"required"`
 	Note     string `validate:"required"`
 }
+
+// UpdatePersonalPasswordDto 修改密码
+type UpdatePersonalPasswordDto struct {
+	Id            uint
+	Password      string `validate:"required"`
+	NewPassword   string `validate:"required"`
+	ResetPassword string `validate:"required"`
+}

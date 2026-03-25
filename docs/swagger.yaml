@@ -201,6 +201,21 @@ definitions:
     - phone
     - username
     type: object
+  entity.UpdatePersonalPasswordDto:
+    properties:
+      id:
+        type: integer
+      newPassword:
+        type: string
+      password:
+        type: string
+      resetPassword:
+        type: string
+    required:
+    - newPassword
+    - password
+    - resetPassword
+    type: object
   entity.UpdateSysAdminDto:
     properties:
       deptId:
@@ -422,6 +437,24 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 修改个人信息
+  /api/admin/updatePersonalPassword:
+    put:
+      description: 修改密码
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdatePersonalPasswordDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 修改密码
   /api/admin/updateStatus:
     put:
       description: 修改用户状态

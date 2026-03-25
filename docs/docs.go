@@ -236,6 +236,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/updatePersonalPassword": {
+            "put": {
+                "description": "修改密码",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "修改密码",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UpdatePersonalPasswordDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/updateStatus": {
             "put": {
                 "description": "修改用户状态",
@@ -1425,6 +1453,28 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.UpdatePersonalPasswordDto": {
+            "type": "object",
+            "required": [
+                "newPassword",
+                "password",
+                "resetPassword"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "newPassword": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "resetPassword": {
                     "type": "string"
                 }
             }

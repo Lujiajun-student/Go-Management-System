@@ -23,6 +23,7 @@ type ISysAdminService interface {
 	ResetSysAdminPassword(c *gin.Context, dto entity.ResetSysAdminPasswordDto)
 	GetSysAdminList(c *gin.Context, PageSize, PageNum int, Username, Status, BeginTime, EndTime string)
 	UpdatePersonal(c *gin.Context, dto entity.UpdatePersonalDto)
+	UpdatePersonalPassword(c *gin.Context, dto entity.UpdatePersonalPasswordDto)
 }
 
 type SysAdminServiceImpl struct {
@@ -132,7 +133,35 @@ func (s SysAdminServiceImpl) UpdatePersonal(c *gin.Context, dto entity.UpdatePer
 		result.Failed(c, int(result.ApiCode.MissingModificationOfPersonalParameters), result.ApiCode.GetMessage(result.ApiCode.MissingModificationOfPersonalParameters))
 		return
 	}
-	//id, _ := jwt.GetAdminId(c)
-	dto.Id = 98 // 暂时写死
+	id, _ := jwt.GetAdminId(c)
+	dto.Id = id
 	result.Success(c, dao.UpdatePersonal(dto))
+}
+
+// UpdatePersonalPassword 修改密码
+func (s SysAdminServiceImpl) UpdatePersonalPassword(c *gin.Context, dto entity.UpdatePersonalPasswordDto) {
+	err := validator.New().Struct(dto)
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.MissingChangePasswordParameter), result.ApiCode.GetMessage(result.ApiCode.MissingChangePasswordParameter))
+		return
+	}
+	sysAdmin, _ := jwt.GetAdmin(c)
+	dto.Id = sysAdmin.Id
+	//dto.Id = 98
+	//username := "string"
+	sysAdminExist := dao.GetSysAdminByUsername(sysAdmin.Username)
+	//sysAdminExist := dao.GetSysAdminByUsername(username)
+	if sysAdminExist.Password != util.EncryptionMd5(dto.Password) {
+		result.Failed(c, int(result.ApiCode.PASSWORDNOTTRUE), result.ApiCode.GetMessage(result.ApiCode.PASSWORDNOTTRUE))
+		return
+	}
+	if dto.NewPassword != dto.ResetPassword {
+		result.Failed(c, int(result.ApiCode.ResetPassword), result.ApiCode.GetMessage(result.ApiCode.ResetPassword))
+		return
+	}
+	dto.NewPassword = util.EncryptionMd5(dto.NewPassword)
+	sysAdminUpdatePwd := dao.UpdatePersonalPassword(dto)
+	tokenString, _ := jwt.GenerateTokenByAdmin(sysAdminUpdatePwd)
+	result.Success(c, map[string]any{"token": tokenString, "sysAdmin": sysAdminUpdatePwd})
+	return
 }
