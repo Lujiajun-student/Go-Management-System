@@ -436,6 +436,14 @@ type Codes struct {
 	CAPTCHANOTTRUE             uint
 	PASSWORDNOTTRUE            uint
 	STATUSISENABLE             uint
+	ROLENAMEALREADYEXISTS      uint
+	MENUISEXIST                uint
+	DELSYSMENUFAILED           uint
+	DEPTISEXIST                uint
+	DEPTISDISTRIBUTE           uint
+	POSTALREADYEXISTS          uint
+	USERNAMEALREADYEXISTS      uint
+	MissingNewAdminParameter uint
 }
 
 // ApiCode 状态码
@@ -450,21 +458,37 @@ var ApiCode = &Codes{
 	CAPTCHANOTTRUE:             409,
 	PASSWORDNOTTRUE:            410,
 	STATUSISENABLE:             411,
+	ROLENAMEALREADYEXISTS:      412,
+	MENUISEXIST:                413,
+	DELSYSMENUFAILED:           414,
+	DEPTISEXIST:                415,
+	DEPTISDISTRIBUTE:           416,
+	POSTALREADYEXISTS:          417,
+	USERNAMEALREADYEXISTS:      418,
+	MissingNewAdminParameter:  419,
 }
 
 // init 初始化状态信息
 func init() {
 	ApiCode.Message = map[uint]string{
-		ApiCode.SUCCESS:         "成功",
-		ApiCode.FAILED:          "失败",
-		ApiCode.NOAUTH:          "未授权",
-		ApiCode.AUTHFORMATERROR: "授权格式错误",
-		ApiCode.INVALIDTOKEN: "无效的Token",
-		ApiCode.MissingLoginParameter: "缺少登录参数",
+		ApiCode.SUCCESS:                    "成功",
+		ApiCode.FAILED:                     "失败",
+		ApiCode.NOAUTH:                     "未授权",
+		ApiCode.AUTHFORMATERROR:            "授权格式错误",
+		ApiCode.INVALIDTOKEN:               "无效的Token",
+		ApiCode.MissingLoginParameter:      "缺少登录参数",
 		ApiCode.VerificationCodeHasExpired: "验证码已失效",
-		ApiCode.CAPTCHANOTTRUE: "验证码不正确",
-		ApiCode.PASSWORDNOTTRUE: "密码不正确",
-		ApiCode.STATUSISENABLE: "您的账号被停用",
+		ApiCode.CAPTCHANOTTRUE:             "验证码不正确",
+		ApiCode.PASSWORDNOTTRUE:            "密码不正确",
+		ApiCode.STATUSISENABLE:             "您的账号被停用",
+		ApiCode.ROLENAMEALREADYEXISTS:      "角色名称已存在，重新输入",
+		ApiCode.MENUISEXIST:                "菜单已存在，重新输入",
+		ApiCode.DELSYSMENUFAILED:           "菜单已分配",
+		ApiCode.DEPTISEXIST:                "部门名称已存在",
+		ApiCode.DEPTISDISTRIBUTE:           "部门已分配，不能删除",
+		ApiCode.POSTALREADYEXISTS:          "岗位名称已存在",
+		ApiCode.USERNAMEALREADYEXISTS:      "用户名已存在",
+		ApiCode.MissingNewAdminParameter: "缺少新增参数",
 	}
 }
 
@@ -4046,3 +4070,148 @@ router.PUT("/api/role/assignPermissions", controller.AssignPermissions)
 
 ![image-20260324213122351](assets/image-20260324213122351.png)
 
+# 8. 用户相关接口
+
+接下来要实现用户的功能。
+
+## 8.1 新增用户
+
+### 8.1.1 entity
+
+新增用户时，需要所有的参数。先封装实体类`sysAdmin.go`。
+
+```go
+// AddSysAdminDto 新增用户所需参数
+type AddSysAdminDto struct {
+    PostId int `validate:"required"`
+    RoleId int `validate:"required"`
+    DeptId int `validate:"required"`
+    Username string `validate:"required"`
+    Password string `validate:"required"`
+    Nickname string `validate:"required"`
+    Phone    string `validate:"required"`
+    Email    string `validate:"required"`
+    Note     string `validate:"required"`
+    Status   int    `validate:"required"`
+}
+```
+
+同时，需要用一张表来记录用户与角色之间的关系。创建实体类`sysAdminRole.go`。
+
+```go
+// Package entity 用户与角色关系模型
+package entity
+
+type SysAdminRole struct {
+	AdminId uint `gorm:"column:admin_id;comment:'用户ID';NOT NULL" json:"adminId"`
+	RoleId  uint `gorm:"column:role_id;comment:'角色ID';NOT NULL" json:"roleId"`
+}
+
+func (SysAdminRole) TableName() string {
+	return "sys_admin_role"
+}
+```
+
+### 8.1.2 dao
+
+新增用户时，需要注意用户名不能相同。同时还要对密码进行加密。
+
+```go
+// Package dao 用户数据层
+package dao
+
+import (
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/util"
+	. "Go-Management-System/pkg/db"
+	"time"
+)
+
+// SysAdminDetail 用户详情
+func SysAdminDetail(dto entity.LoginDto) (sysAdmin entity.SysAdmin) {
+	username := dto.Username
+	Db.Where("username = ?", username).First(&sysAdmin)
+	return sysAdmin
+}
+
+// GetSysAdminByUsername 根据用户名查询用户
+func GetSysAdminByUsername(username string) (sysAdmin entity.SysAdmin) {
+	Db.Where("username = ?", username).First(&sysAdmin)
+	return sysAdmin
+}
+
+// CreateSysAdmin 新增用户
+func CreateSysAdmin(dto entity.AddSysAdminDto) bool {
+	sysAdminByUsername := GetSysAdminByUsername(dto.Username)
+	if sysAdminByUsername.ID > 0 {
+		return false
+	}
+	sysAdmin := entity.SysAdmin{
+		PostId:     dto.PostId,
+		DeptId:     dto.DeptId,
+		Username:   dto.Username,
+		Nickname:   dto.Nickname,
+		Password:   util.EncryptionMd5(dto.Password),
+		Phone:      dto.Phone,
+		Email:      dto.Email,
+		Note:       dto.Note,
+		Status:     dto.Status,
+		CreateTime: util.HTime{Time: time.Now()},
+	}
+	tx := Db.Create(&sysAdmin)
+	sysAdminExist := GetSysAdminByUsername(dto.Username)
+	var e entity.SysAdminRole
+	e.AdminId = sysAdminExist.ID
+	e.RoleId = sysAdminExist.ID
+	Db.Create(&e)
+	if tx.RowsAffected > 0 {
+		return true
+	}
+	return false
+}
+```
+
+### 8.1.3 service层
+
+```go
+// CreateSysAdmin 新增用户
+func (s SysAdminServiceImpl) CreateSysAdmin(c *gin.Context, dto entity.AddSysAdminDto) {
+    ok := dao.CreateSysAdmin(dto)
+    if !ok {
+       result.Failed(c, int(result.ApiCode.USERNAMEALREADYEXISTS), result.ApiCode.GetMessage(result.ApiCode.USERNAMEALREADYEXISTS))
+       return
+    }
+    result.Success(c, true)
+}
+```
+
+### 8.1.4 controller层
+
+```go
+// CreateSysAdmin 创建用户
+// @Summary 创建用户接口
+// @Produce json
+// @Description 创建用户接口
+// @param data body entity.AddSysAdminDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/add [post]
+func CreateSysAdmin(c *gin.Context) {
+	var addSysAdminDto entity.AddSysAdminDto
+	_ = c.BindJSON(&addSysAdminDto)
+	service.SysAdminService().CreateSysAdmin(c, addSysAdminDto)
+}
+```
+
+### 8.1.5 router
+
+```go
+router.POST("/api/admin/add", controller.CreateSysAdmin)
+```
+
+### 8.1.6 swagger配置
+
+![image-20260325103659552](assets/image-20260325103659552.png)
+
+![image-20260325103713001](assets/image-20260325103713001.png)
+
+## 8.2

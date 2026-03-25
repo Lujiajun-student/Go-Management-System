@@ -19,6 +19,8 @@ type Codes struct {
 	DEPTISEXIST                uint
 	DEPTISDISTRIBUTE           uint
 	POSTALREADYEXISTS          uint
+	USERNAMEALREADYEXISTS      uint
+	MissingNewAdminParameter   uint
 }
 
 // ApiCode 状态码
@@ -39,6 +41,8 @@ var ApiCode = &Codes{
 	DEPTISEXIST:                415,
 	DEPTISDISTRIBUTE:           416,
 	POSTALREADYEXISTS:          417,
+	USERNAMEALREADYEXISTS:      418,
+	MissingNewAdminParameter:   419,
 }
 
 // init 初始化状态信息
@@ -60,6 +64,8 @@ func init() {
 		ApiCode.DEPTISEXIST:                "部门名称已存在",
 		ApiCode.DEPTISDISTRIBUTE:           "部门已分配，不能删除",
 		ApiCode.POSTALREADYEXISTS:          "岗位名称已存在",
+		ApiCode.USERNAMEALREADYEXISTS:      "用户名已存在",
+		ApiCode.MissingNewAdminParameter:   "缺少新增参数",
 	}
 }
 

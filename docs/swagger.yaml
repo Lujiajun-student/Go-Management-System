@@ -1,4 +1,38 @@
 definitions:
+  entity.AddSysAdminDto:
+    properties:
+      deptId:
+        type: integer
+      email:
+        type: string
+      nickname:
+        type: string
+      note:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      postId:
+        type: integer
+      roleId:
+        type: integer
+      status:
+        type: integer
+      username:
+        type: string
+    required:
+    - deptId
+    - email
+    - nickname
+    - note
+    - password
+    - phone
+    - postId
+    - roleId
+    - status
+    - username
+    type: object
   entity.AddSysRoleDto:
     properties:
       description:
@@ -180,6 +214,24 @@ info:
   description: 后台管理系统API接口文档
   title: 通用后台管理系统
 paths:
+  /api/admin/add:
+    post:
+      description: 创建用户接口
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.AddSysAdminDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 创建用户接口
   /api/captcha:
     get:
       description: 验证码接口

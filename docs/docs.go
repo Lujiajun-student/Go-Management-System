@@ -15,6 +15,34 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/admin/add": {
+            "post": {
+                "description": "创建用户接口",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "创建用户接口",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.AddSysAdminDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/captcha": {
             "get": {
                 "description": "验证码接口",
@@ -852,6 +880,53 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "entity.AddSysAdminDto": {
+            "type": "object",
+            "required": [
+                "deptId",
+                "email",
+                "nickname",
+                "note",
+                "password",
+                "phone",
+                "postId",
+                "roleId",
+                "status",
+                "username"
+            ],
+            "properties": {
+                "deptId": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "postId": {
+                    "type": "integer"
+                },
+                "roleId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.AddSysRoleDto": {
             "type": "object",
             "properties": {

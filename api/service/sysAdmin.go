@@ -15,6 +15,7 @@ import (
 // ISysAdminService 定义接口
 type ISysAdminService interface {
 	Login(c *gin.Context, dto entity.LoginDto)
+	CreateSysAdmin(c *gin.Context, dto entity.AddSysAdminDto)
 }
 
 type SysAdminServiceImpl struct {
@@ -65,4 +66,14 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto entity.LoginDto) {
 		"sysAdmin": sysAdmin,
 	})
 
+}
+
+// CreateSysAdmin 新增用户
+func (s SysAdminServiceImpl) CreateSysAdmin(c *gin.Context, dto entity.AddSysAdminDto) {
+	ok := dao.CreateSysAdmin(dto)
+	if !ok {
+		result.Failed(c, int(result.ApiCode.USERNAMEALREADYEXISTS), result.ApiCode.GetMessage(result.ApiCode.USERNAMEALREADYEXISTS))
+		return
+	}
+	result.Success(c, true)
 }
