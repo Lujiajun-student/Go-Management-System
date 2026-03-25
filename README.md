@@ -193,7 +193,7 @@ type redis struct {
 # 图片上传配置
 imageSettings:
   # 本地磁盘地址
-  uploadDir: ./uploads/
+  uploadDir: /admin-go-api/upload/
   # 图片访问地址
   imageHost: http://localhost:2002
 ```
@@ -4768,6 +4768,6 @@ router.POST("/api/upload", controller.Upload)
 
 ### 8.8.5 swagger
 
-![image-20260325175335713](assets/image-20260325175335713.png)
+![image-20260325175902499](assets/image-20260325175902499.png)
 
-![image-20260325175350646](assets/image-20260325175350646.png)
+访问这里的`localhost:8080[data]`即可读取到图片。
