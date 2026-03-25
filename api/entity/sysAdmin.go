@@ -54,3 +54,17 @@ type AddSysAdminDto struct {
 	Note     string `validate:"required"`
 	Status   int    `validate:"required"`
 }
+
+// SysAdminInfo 查询用户所需参数
+type SysAdminInfo struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	Status   int    `json:"status"`
+	PostId   int    `json:"postId"`
+	DeptId   int    `json:"deptId"`
+	RoleId   int    `json:"roleId"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Note     string `json:"note"`
+}

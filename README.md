@@ -4214,4 +4214,81 @@ router.POST("/api/admin/add", controller.CreateSysAdmin)
 
 ![image-20260325103713001](assets/image-20260325103713001.png)
 
-## 8.2
+## 8.2 根据id查询用户
+
+### 8.2.1 entity
+
+查询用户时，只需要获取部分数据即可。
+
+```go
+// SysAdminInfo 查询用户所需参数
+type SysAdminInfo struct {
+    ID uint `json:"id"`
+    Username string `json:"username"`
+    Nickname string `json:"nickname"`
+    Status int `json:"status"`
+    PostId int `json:"postId"`
+    DeptId int `json:"deptId"`
+    RoleId int `json:"roleId"`
+    Email string `json:"email"`
+    Phone string `json:"phone"`
+    Note string `json:"note"`
+}
+```
+
+### 8.2.2 dao
+
+查询时，需要实现从`PostId`, `RoleId`等转为名称的信息，需要实现多表查询。
+
+```go
+// GetSysAdminInfo 查询用户详情
+func GetSysAdminInfo(Id int) (sysAdminInfo entity.SysAdminInfo) {
+	Db.Table("sys_admin").
+		Select("sys_admin.*, sys_admin_role.role_id").
+		Joins("LEFT JOIN sys_admin_role ON sys_admin.id = sys_admin_role.role_id").
+		Joins("LEFT JOIN sys_role ON sys_admin_role.role_id = sys_role.id").
+		First(&sysAdminInfo, Id)
+	return sysAdminInfo
+}
+```
+
+### 8.2.3 service
+
+```go
+// GetSysAdminInfo 根据id查询用户
+func (s SysAdminServiceImpl) GetSysAdminInfo(c *gin.Context, Id int) {
+    result.Success(c, dao.GetSysAdminInfo(Id))
+}
+```
+
+### 8.2.4 controller
+
+```go
+// GetSysAdminInfo 根据id查询用户
+// @Summary 根据id查询用户
+// @Produce json
+// @Description 根据id查询用户
+// @param id query int true "id"
+// @Success 200 {object} result.Result
+// @router /api/admin/info [get]
+func GetSysAdminInfo (c *gin.Context) {
+    Id, _ := strconv.Atoi(c.Query("id"))
+    service.SysAdminService().GetSysAdminInfo(c, Id)
+}
+```
+
+### 8.2.5 router
+
+```go
+router.GET("/api/admin/info", controller.GetSysAdminInfo)
+```
+
+### 8.2.6 swagger
+
+![image-20260325105342566](assets/image-20260325105342566.png)
+
+## 8.3 修改用户
+
+首先构建修改用户的结构体。
+
+### 8.3.1 entity

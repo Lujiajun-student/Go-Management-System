@@ -50,3 +50,13 @@ func CreateSysAdmin(dto entity.AddSysAdminDto) bool {
 	}
 	return false
 }
+
+// GetSysAdminInfo 查询用户详情
+func GetSysAdminInfo(Id int) (sysAdminInfo entity.SysAdminInfo) {
+	Db.Table("sys_admin").
+		Select("sys_admin.*, sys_admin_role.role_id").
+		Joins("LEFT JOIN sys_admin_role ON sys_admin.id = sys_admin_role.role_id").
+		Joins("LEFT JOIN sys_role ON sys_admin_role.role_id = sys_role.id").
+		First(&sysAdminInfo, Id)
+	return sysAdminInfo
+}

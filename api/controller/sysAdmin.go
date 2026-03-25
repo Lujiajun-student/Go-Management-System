@@ -4,6 +4,7 @@ package controller
 import (
 	"Go-Management-System/api/entity"
 	"Go-Management-System/api/service"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,4 +33,16 @@ func CreateSysAdmin(c *gin.Context) {
 	var addSysAdminDto entity.AddSysAdminDto
 	_ = c.BindJSON(&addSysAdminDto)
 	service.SysAdminService().CreateSysAdmin(c, addSysAdminDto)
+}
+
+// GetSysAdminInfo 根据id查询用户
+// @Summary 根据id查询用户
+// @Produce json
+// @Description 根据id查询用户
+// @param id query int true "id"
+// @Success 200 {object} result.Result
+// @router /api/admin/info [get]
+func GetSysAdminInfo(c *gin.Context) {
+	Id, _ := strconv.Atoi(c.Query("id"))
+	service.SysAdminService().GetSysAdminInfo(c, Id)
 }

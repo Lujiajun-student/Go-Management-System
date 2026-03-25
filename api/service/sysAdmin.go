@@ -16,6 +16,7 @@ import (
 type ISysAdminService interface {
 	Login(c *gin.Context, dto entity.LoginDto)
 	CreateSysAdmin(c *gin.Context, dto entity.AddSysAdminDto)
+	GetSysAdminInfo(c *gin.Context, Id int)
 }
 
 type SysAdminServiceImpl struct {
@@ -76,4 +77,9 @@ func (s SysAdminServiceImpl) CreateSysAdmin(c *gin.Context, dto entity.AddSysAdm
 		return
 	}
 	result.Success(c, true)
+}
+
+// GetSysAdminInfo 根据id查询用户
+func (s SysAdminServiceImpl) GetSysAdminInfo(c *gin.Context, Id int) {
+	result.Success(c, dao.GetSysAdminInfo(Id))
 }

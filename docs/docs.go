@@ -43,6 +43,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/info": {
+            "get": {
+                "description": "根据id查询用户",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "根据id查询用户",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/captcha": {
             "get": {
                 "description": "验证码接口",
