@@ -208,6 +208,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/updatePersonal": {
+            "put": {
+                "description": "修改个人信息",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "修改个人信息",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UpdatePersonalDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/updateStatus": {
             "put": {
                 "description": "修改用户状态",
@@ -1365,6 +1393,39 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "entity.UpdatePersonalDto": {
+            "type": "object",
+            "required": [
+                "email",
+                "nickname",
+                "note",
+                "phone",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },

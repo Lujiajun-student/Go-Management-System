@@ -22,6 +22,7 @@ type ISysAdminService interface {
 	UpdateSysAdminStatus(c *gin.Context, dto entity.UpdateSysAdminStatusDto)
 	ResetSysAdminPassword(c *gin.Context, dto entity.ResetSysAdminPasswordDto)
 	GetSysAdminList(c *gin.Context, PageSize, PageNum int, Username, Status, BeginTime, EndTime string)
+	UpdatePersonal(c *gin.Context, dto entity.UpdatePersonalDto)
 }
 
 type SysAdminServiceImpl struct {
@@ -122,4 +123,16 @@ func (s SysAdminServiceImpl) GetSysAdminList(c *gin.Context, PageSize, PageNum i
 	}
 	SysAdmin, count := dao.GetSysAdminList(PageSize, PageNum, Username, Status, BeginTime, EndTime)
 	result.Success(c, map[string]any{"total": count, "pageSize": PageSize, "pageNum": PageNum, "list": SysAdmin})
+}
+
+// UpdatePersonal 修改个人信息
+func (s SysAdminServiceImpl) UpdatePersonal(c *gin.Context, dto entity.UpdatePersonalDto) {
+	err := validator.New().Struct(dto)
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.MissingModificationOfPersonalParameters), result.ApiCode.GetMessage(result.ApiCode.MissingModificationOfPersonalParameters))
+		return
+	}
+	//id, _ := jwt.GetAdminId(c)
+	dto.Id = 98 // 暂时写死
+	result.Success(c, dao.UpdatePersonal(dto))
 }

@@ -31,6 +31,7 @@ func (u *UploadServiceImpl) Upload(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
+		return
 	}
 	now := time.Now()
 	ext := path.Ext(file.Filename)
@@ -42,11 +43,13 @@ func (u *UploadServiceImpl) Upload(c *gin.Context) {
 	err = util.CreateDir(filePath)
 	if err != nil {
 		result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
+		return
 	}
 	fullPath := filePath + "/" + fileName
 	err = c.SaveUploadedFile(file, fullPath)
 	if err != nil {
 		result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
+		return
 	}
-	result.Success(c, fullPath)
+	result.Success(c, config.Config.ImageSettings.ImageHost+fullPath)
 }

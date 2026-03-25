@@ -178,6 +178,29 @@ definitions:
       id:
         type: integer
     type: object
+  entity.UpdatePersonalDto:
+    properties:
+      email:
+        type: string
+      icon:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+      note:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - nickname
+    - note
+    - phone
+    - username
+    type: object
   entity.UpdateSysAdminDto:
     properties:
       deptId:
@@ -381,6 +404,24 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 重置密码
+  /api/admin/updatePersonal:
+    put:
+      description: 修改个人信息
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdatePersonalDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      summary: 修改个人信息
   /api/admin/updateStatus:
     put:
       description: 修改用户状态

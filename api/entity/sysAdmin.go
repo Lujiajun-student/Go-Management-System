@@ -118,3 +118,14 @@ type SysAdminVO struct {
 	Note       string     `json:"note"`
 	CreateTime util.HTime `json:"createTime"`
 }
+
+// UpdatePersonalDto 修改个人信息所需参数
+type UpdatePersonalDto struct {
+	Id       uint
+	Icon     string
+	Username string `validate:"required"`
+	Nickname string `validate:"required"`
+	Phone    string `validate:"required"`
+	Email    string `validate:"required"`
+	Note     string `validate:"required"`
+}

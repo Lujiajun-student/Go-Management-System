@@ -444,7 +444,8 @@ type Codes struct {
 	POSTALREADYEXISTS          uint
 	USERNAMEALREADYEXISTS      uint
 	MissingNewAdminParameter   uint
-	FileUploadError uint
+	FileUploadError            uint
+	MissingModificationOfPersonalParameters uint
 }
 
 // ApiCode 状态码
@@ -467,7 +468,8 @@ var ApiCode = &Codes{
 	POSTALREADYEXISTS:          417,
 	USERNAMEALREADYEXISTS:      418,
 	MissingNewAdminParameter:   419,
-	FileUploadError: 427,
+	FileUploadError:            427,
+	MissingModificationOfPersonalParameters: 428,
 }
 
 // init 初始化状态信息
@@ -491,7 +493,8 @@ func init() {
 		ApiCode.POSTALREADYEXISTS:          "岗位名称已存在",
 		ApiCode.USERNAMEALREADYEXISTS:      "用户名已存在",
 		ApiCode.MissingNewAdminParameter:   "缺少新增参数",
-		ApiCode.FileUploadError: "文件上传错误",
+		ApiCode.FileUploadError:            "文件上传错误",
+		ApiCode.MissingModificationOfPersonalParameters: "缺少必要信息",
 	}
 }
 
@@ -503,6 +506,7 @@ func (c *Codes) GetMessage(code uint) string {
 	}
 	return message
 }
+
 ```
 
 这里就能实现从状态码到状态信息的映射。
@@ -4720,27 +4724,30 @@ func IsExist(path string) bool {
 ```go
 // Upload 图片上传
 func (u *UploadServiceImpl) Upload(c *gin.Context) {
-    file, err := c.FormFile("file")
-    if err != nil {
-       result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
-    }
-    now := time.Now()
-    ext := path.Ext(file.Filename)
-    fileName := strconv.Itoa(now.Nanosecond()) + ext
-    filePath := fmt.Sprintf("%s%s%s%s", config.Config.ImageSettings.UploadDir,
-       fmt.Sprintf("%04d", now.Year()),
-       fmt.Sprintf("%02d", now.Month()),
-       fmt.Sprintf("%04d", now.Day()))
-    err = util.CreateDir(filePath)
-    if err != nil {
-       result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
-    }
-    fullPath := filePath + "/" + fileName
-    err = c.SaveUploadedFile(file, fullPath)
-    if err != nil {
-       result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
-    }
-    result.Success(c, fullPath)
+	file, err := c.FormFile("file")
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
+		return
+	}
+	now := time.Now()
+	ext := path.Ext(file.Filename)
+	fileName := strconv.Itoa(now.Nanosecond()) + ext
+	filePath := fmt.Sprintf("%s%s%s%s", config.Config.ImageSettings.UploadDir,
+		fmt.Sprintf("%04d", now.Year()),
+		fmt.Sprintf("%02d", now.Month()),
+		fmt.Sprintf("%04d", now.Day()))
+	err = util.CreateDir(filePath)
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
+		return
+	}
+	fullPath := filePath + "/" + fileName
+	err = c.SaveUploadedFile(file, fullPath)
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.FileUploadError), result.ApiCode.GetMessage(result.ApiCode.FileUploadError))
+		return
+	}
+	result.Success(c, config.Config.ImageSettings.ImageHost+fullPath)
 }
 ```
 
@@ -4768,6 +4775,98 @@ router.POST("/api/upload", controller.Upload)
 
 ### 8.8.5 swagger
 
-![image-20260325175902499](assets/image-20260325175902499.png)
+![image-20260325180054741](assets/image-20260325180054741.png)
 
-访问这里的`localhost:8080[data]`即可读取到图片。
+访问这里的地址即可读取到图片。
+
+## 8.9 修改个人信息
+
+### 8.9.1 entity
+
+首先是需要获取修改个人信息参数的结构体。
+
+```go
+// UpdatePersonalDto 修改个人信息所需参数
+type UpdatePersonalDto struct {
+	Id       uint
+	Icon     string
+	Username string `validate:"required"`
+	Nickname string `validate:"required"`
+	Phone    string `validate:"required"`
+	Email    string `validate:"required"`
+	Note     string `validate:"required"`
+}
+```
+
+### 8.9.2 dao
+
+```go
+// UpdatePersonal 修改个人信息
+func UpdatePersonal(dto entity.UpdatePersonalDto) (sysAdmin entity.SysAdmin) {
+    Db.First(&sysAdmin, dto.Id)
+    if dto.Icon != "" {
+       sysAdmin.Icon = dto.Icon
+    }
+    if dto.Username != "" {
+       sysAdmin.Username = dto.Username
+    }
+    if dto.Nickname != "" {
+       sysAdmin.Nickname = dto.Nickname
+    }
+    if dto.Phone != "" {
+       sysAdmin.Phone = dto.Phone
+    }
+    if dto.Email != "" {
+       sysAdmin.Email = dto.Email
+    }
+    Db.Save(&sysAdmin)
+    return sysAdmin
+}
+```
+
+### 8.9.3 service
+
+```go
+// UpdatePersonal 修改个人信息
+func (s SysAdminServiceImpl) UpdatePersonal(c *gin.Context, dto entity.UpdatePersonalDto) {
+	err := validator.New().Struct(dto)
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.MissingModificationOfPersonalParameters), result.ApiCode.GetMessage(result.ApiCode.MissingModificationOfPersonalParameters))
+		return
+	}
+	//id, _ := jwt.GetAdminId(c)
+	dto.Id = 98 // 暂时写死
+	result.Success(c, dao.UpdatePersonal(dto))
+}
+```
+
+### 8.9.4 controller
+
+```go
+// UpdatePersonal 修改个人信息
+// @Summary 修改个人信息
+// @Produce json
+// @Description 修改个人信息
+// @param data body entity.UpdatePersonalDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/updatePersonal [put]
+func UpdatePersonal (c *gin.Context) {
+    var dto entity.UpdatePersonalDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().UpdatePersonal(c, dto)
+}
+```
+
+### 8.9.5 router
+
+```go
+router.PUT("/api/admin/updatePersonal", controller.UpdatePersonal)
+```
+
+### 8.9.6 swagger
+
+![image-20260325204145959](assets/image-20260325204145959.png)
+
+![image-20260325204155750](assets/image-20260325204155750.png)
+
+**这里暂时写死了修改的id，后面使用鉴权后需要修改。**
