@@ -1163,6 +1163,60 @@
                 }
             }
         },
+        "/api/sysLoginInfo/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "分页获取登录日志接口",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "分页获取登录日志接口",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "分页数",
+                        "name": "pageNum",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "登录状态：1 -\u003e成功 2 -\u003e失败",
+                        "name": "loginStatus",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "开始时间",
+                        "name": "beginTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间",
+                        "name": "endTime",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/upload": {
             "post": {
                 "description": "单图片上传接口",

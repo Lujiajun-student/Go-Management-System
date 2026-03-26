@@ -1031,6 +1031,40 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 查询角色下拉列表
+  /api/sysLoginInfo/list:
+    get:
+      description: 分页获取登录日志接口
+      parameters:
+      - description: 分页数
+        in: query
+        name: pageNum
+        type: integer
+      - description: 每页数
+        in: query
+        name: pageSize
+        type: integer
+      - description: 登录状态：1 ->成功 2 ->失败
+        in: query
+        name: loginStatus
+        type: string
+      - description: 开始时间
+        in: query
+        name: beginTime
+        type: string
+      - description: 结束时间
+        in: query
+        name: endTime
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: 分页获取登录日志接口
   /api/upload:
     post:
       consumes:

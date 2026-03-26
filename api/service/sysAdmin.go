@@ -43,32 +43,39 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto entity.LoginDto) {
 		result.Failed(c, int(result.ApiCode.MissingLoginParameter), result.ApiCode.GetMessage(result.ApiCode.MissingLoginParameter))
 		return
 	}
+	// 获取ip地址
+	ip := c.ClientIP()
 	// 验证码是否过期
 	code := util.RedisStore{}.Get(dto.IdKey, true)
 	if len(code) == 0 {
+		dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "验证码已过期", 2)
 		result.Failed(c, int(result.ApiCode.VerificationCodeHasExpired), result.ApiCode.GetMessage(result.ApiCode.VerificationCodeHasExpired))
 		return
 	}
 	// 校验验证码
 	verifyRes := CaptVerify(dto.IdKey, dto.Image)
 	if !verifyRes {
+		dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "验证码不正确", 2)
 		result.Failed(c, int(result.ApiCode.CAPTCHANOTTRUE), result.ApiCode.GetMessage(result.ApiCode.CAPTCHANOTTRUE))
 		return
 	}
 	//校验密码
 	sysAdmin := dao.SysAdminDetail(dto)
 	if sysAdmin.Password != util.EncryptionMd5(dto.Password) {
+		dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "密码错误", 2)
 		result.Failed(c, int(result.ApiCode.PASSWORDNOTTRUE), result.ApiCode.GetMessage(result.ApiCode.PASSWORDNOTTRUE))
 		return
 	}
 	// 判断用户是否被禁用
 	const status int = 2
 	if sysAdmin.Status == status {
+		dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "账号已停用", 2)
 		result.Failed(c, int(result.ApiCode.STATUSISENABLE), result.ApiCode.GetMessage(result.ApiCode.STATUSISENABLE))
 		return
 	}
 	// 生成token
 	tokenString, _ := jwt.GenerateTokenByAdmin(sysAdmin)
+	dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "登录成功", 1)
 	// 左侧菜单列表
 	var leftMenuVo []entity.LeftMenuVo
 	leftMenuList := dao.QueryLeftMenuList(sysAdmin.ID)

@@ -79,6 +79,7 @@ func register(router *gin.Engine) {
 		jwt.POST("/upload", controller.Upload)
 		jwt.PUT("/admin/updatePersonal", controller.UpdatePersonal)
 		jwt.PUT("/admin/updatePersonalPassword", controller.UpdatePersonalPassword)
+		jwt.GET("/sysLoginInfo/list", controller.GetSysLoginInfo)
 	}
 
 }

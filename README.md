@@ -5505,3 +5505,348 @@ func UpdatePersonalPassword(c *gin.Context) {
 但是如果进行登录，然后将`Bearer [token]`写入到Authorization中，就可以使用接口。
 
 ![image-20260326130542429](assets/image-20260326130542429.png)
+
+# 9. 日志相关接口
+
+用户每次登录，都需要记录登录的账号、时间、地点、ip地址等。
+
+## 9.1 util
+
+首先要创建工具类`osAndBrowser.go`，用来获取浏览器和os。
+
+```go
+package util
+
+import (
+    "github.com/gin-gonic/gin"
+    useragent "github.com/wenlng/go-user-agent"
+)
+
+func GetOs(c *gin.Context) string{
+    userAgent := c.Request.Header.Get("User-Agent")
+    return useragent.GetOsName(userAgent)
+}
+
+func GetBrowser(c *gin.Context) string{
+    userAgent := c.Request.Header.Get("User-Agent")
+    return useragent.GetBrowserName(userAgent)
+}
+```
+
+然后创建工具类`ipUtil.go`，用来获取ip地址。
+
+```go
+package util
+
+import (
+    "fmt"
+    "net"
+    "strings"
+
+    "github.com/gogf/gf/encoding/gcharset"
+    "github.com/gogf/gf/encoding/gjson"
+    "github.com/gogf/gf/net/ghttp"
+    "github.com/gogf/gf/util/gconv"
+)
+
+func GetRealAddressById(ip string) string {
+    toByteIp := ipToByte(ip)
+    if isLocalIp(toByteIp) {
+       return "服务器登录"
+    }
+    if isLANIp(toByteIp) {
+       return "局域网"
+    }
+    return getLocation(ip)
+}
+
+func ipToByte(ipStr string) []byte {
+    ips := strings.Split(ipStr, ".")
+    ip := make([]byte, 0, len(ips))
+    for _, s := range ips {
+       u := gconv.Uint8(s)
+       ip = append(ip, u)
+    }
+    return ip
+}
+
+func isLANIp(IP net.IP) bool {
+    fmt.Println(IP.To4())
+    if ip4 := IP.To4(); ip4 != nil {
+       switch true {
+       case ip4[0] == 10:
+          return true
+       case ip4[0] == 172 && ip4[1] >= 16 && ip4[1] <= 31:
+          return true
+       case ip4[0] == 192 && ip4[1] == 168:
+          return true
+       default:
+          return false
+       }
+    }
+    return false
+}
+func isLocalIp(IP net.IP) bool {
+    if IP.IsLoopback() || IP.IsLinkLocalMulticast() || IP.IsLinkLocalUnicast() {
+       return true
+    }
+    return false
+}
+
+func getLocation(ip string) string {
+    url := "https://whois.pconline.com.cn/ipJson.jsp?json=true&ip=" + ip
+    bytes := ghttp.GetBytes(url)
+    src := string(bytes)
+    srcCharset := "GBK"
+    tmp, _ := gcharset.ToUTF8(srcCharset, src)
+    json, err := gjson.DecodeToJson(tmp)
+    if err != nil {
+       fmt.Println(err)
+    }
+    if json.GetInt("code") == 0 {
+       addr := json.GetString("addr")
+       return addr
+    }
+    return "未知地址"
+}
+
+func GetLocalIP() (ip string, err error) {
+    addrList, err := net.InterfaceAddrs()
+    if err != nil {
+       return
+    }
+    for _, addr := range addrList {
+       ipAddr, ok := addr.(*net.IPNet)
+       if !ok {
+          continue
+       }
+       if ipAddr.IP.IsLoopback() {
+          continue
+       }
+       if !ipAddr.IP.IsGlobalUnicast() {
+          continue
+       }
+       return ipAddr.IP.String(), nil
+    }
+    return
+}
+```
+
+## 9.2 新增日志
+
+### 9.2.1 entity
+
+```go
+// Package entity 登陆日志模型
+package entity
+
+import "Go-Management-System/common/util"
+
+// SysLoginInfo 登录日志
+type SysLoginInfo struct {
+	ID            uint       `gorm:"column:id;comment:'主键';primaryKey;NOT NULL" json:"id"`                   // ID
+	Username      string     `gorm:"column:username;varchar(50);comment:'用户账号'" json:"username"`             // 用户账号
+	IpAddress     string     `gorm:"column:ip_address;varchar(128);comment:'登录IP地址'" json:"ipAddress"`       // 登录IP地址
+	LoginLocation string     `gorm:"column:login_location;varchar(255);comment:'登录地点'" json:"loginLocation"` // 登录地点
+	Browser       string     `gorm:"column:browser;varchar(50);comment:'浏览器类型'" json:"browser"`              // 浏览器类型
+	Os            string     `gorm:"column:os;varchar(50);comment:'操作系统'" json:"os"`                         // 操作系统
+	LoginStatus   int        `gorm:"column:login_status;comment:'登录状态（1-成功 2-失败）'" json:"loginStatus"`        // 登录状态（1-成功 2-失败）
+	Message       string     `gorm:"column:message;varchar(255);comment:'提示消息'" json:"message"`              // 提示消息
+	LoginTime     util.HTime `gorm:"column:login_time;comment:'访问时间'" json:"loginTime"`                      // 访问时间
+}
+
+func (SysLoginInfo) TableName() string {
+	return "sys_login_info"
+}
+```
+
+### 9.2.2 dao
+
+```go
+// Package dao 登陆日志dao层
+package dao
+
+import (
+    "Go-Management-System/api/entity"
+    "Go-Management-System/common/util"
+    . "Go-Management-System/pkg/db"
+    "time"
+)
+
+// CreateSysLoginInfo 新增登录日志
+func CreateSysLoginInfo(username, ipAddress, loginLocation, browser, os, message string, loginStatus int) {
+    sysLoginInfo := entity.SysLoginInfo{
+       Username:      username,
+       IpAddress:     ipAddress,
+       LoginLocation: loginLocation,
+       Browser:       browser,
+       Os:            os,
+       Message:       message,
+       LoginStatus:   loginStatus,
+       LoginTime:     util.HTime{Time: time.Now()},
+    }
+    Db.Save(&sysLoginInfo)
+}
+```
+
+### 9.2.3 service
+
+日志记录在用户登录时实现，因此需要在用户登录逻辑上添加日志。验证码失败、登录失败、登录成功等都需要进行记录。
+
+```go
+// Login 用户登录
+func (s SysAdminServiceImpl) Login(c *gin.Context, dto entity.LoginDto) {
+    // 登录参数校验，根据结构体的validate标签校验属性值是否合法
+    err := validator.New().Struct(dto)
+    if err != nil {
+       result.Failed(c, int(result.ApiCode.MissingLoginParameter), result.ApiCode.GetMessage(result.ApiCode.MissingLoginParameter))
+       return
+    }
+    // 获取ip地址
+    ip := c.ClientIP()
+    // 验证码是否过期
+    code := util.RedisStore{}.Get(dto.IdKey, true)
+    if len(code) == 0 {
+       dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "验证码已过期", 2)
+       result.Failed(c, int(result.ApiCode.VerificationCodeHasExpired), result.ApiCode.GetMessage(result.ApiCode.VerificationCodeHasExpired))
+       return
+    }
+    // 校验验证码
+    verifyRes := CaptVerify(dto.IdKey, dto.Image)
+    if !verifyRes {
+       dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "验证码不正确", 2)
+       result.Failed(c, int(result.ApiCode.CAPTCHANOTTRUE), result.ApiCode.GetMessage(result.ApiCode.CAPTCHANOTTRUE))
+       return
+    }
+    //校验密码
+    sysAdmin := dao.SysAdminDetail(dto)
+    if sysAdmin.Password != util.EncryptionMd5(dto.Password) {
+       dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "密码错误", 2)
+       result.Failed(c, int(result.ApiCode.PASSWORDNOTTRUE), result.ApiCode.GetMessage(result.ApiCode.PASSWORDNOTTRUE))
+       return
+    }
+    // 判断用户是否被禁用
+    const status int = 2
+    if sysAdmin.Status == status {
+       dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "账号已停用", 2)
+       result.Failed(c, int(result.ApiCode.STATUSISENABLE), result.ApiCode.GetMessage(result.ApiCode.STATUSISENABLE))
+       return
+    }
+    // 生成token
+    tokenString, _ := jwt.GenerateTokenByAdmin(sysAdmin)
+    dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressById(ip), util.GetBrowser(c), util.GetOs(c), "登录成功", 1)
+    // 左侧菜单列表
+    var leftMenuVo []entity.LeftMenuVo
+    leftMenuList := dao.QueryLeftMenuList(sysAdmin.ID)
+    for _, value := range leftMenuList {
+       menuSVoList := dao.QueryMenuVoList(sysAdmin.ID, value.Id)
+       item := entity.LeftMenuVo{}
+       item.MenuSVoList = menuSVoList
+       item.Id = value.Id
+       item.MenuName = value.MenuName
+       item.Icon = value.Icon
+       item.Url = value.Url
+       leftMenuVo = append(leftMenuVo, item)
+    }
+    // 权限列表
+    permissionList := dao.QueryPermissionList(sysAdmin.ID)
+    var stringList = make([]string, 0)
+    for _, value := range permissionList {
+       stringList = append(stringList, value.Value)
+    }
+    result.Success(c, map[string]any{
+       "token":          tokenString,
+       "sysAdmin":       sysAdmin,
+       "leftMenuList":   leftMenuVo,
+       "permissionList": stringList,
+    })
+}
+```
+
+### 9.2.4 swagger
+
+只要登录成功，就会在`sys_login_info`表中添加日志信息。
+
+![image-20260326134430142](assets/image-20260326134430142.png)
+
+密码错误也会被记录。
+
+![image-20260326134506834](assets/image-20260326134506834.png)
+
+## 9.3 分页查询登录日志
+
+### 9.3.1 dao
+
+```go
+// GetSysLoginInfoList 分页获取登陆日志列表
+func GetSysLoginInfoList(Username, LoginStatus, BeginTime, EndTime string, PageSize, PageNum int) (sysLoginInfo []entity.SysLoginInfo, count int64) {
+    curDb := Db.Table("sys_login_info")
+    if Username != "" {
+       curDb = curDb.Where("username = ?", Username)
+    }
+    if LoginStatus != "" {
+       curDb = curDb.Where("login_status = ?", LoginStatus)
+    }
+    if BeginTime != "" && EndTime != "" {
+       curDb = curDb.Where("`login_time` BETWEEN ? AND ?", BeginTime, EndTime)
+    }
+    curDb.Count(&count)
+    curDb.Limit(PageSize).Offset((PageNum - 1) * PageSize).Order("`login_time` desc").Find(&sysLoginInfo)
+    return sysLoginInfo, count
+}
+```
+
+### 9.3.2 service
+
+```go
+// GetSysLoginInfoList 分页获取登录日志
+func (s SysLoginInfoServiceImpl)GetSysLoginInfoList (c *gin.Context, Username, LoginStatus, BeginTime, EndTime string, PageSize, PageNum int) {
+    if PageSize < 1 {
+       PageSize = 10
+    }
+    if PageNum < 1 {
+       PageNum = 1
+    }
+    sysLoginInfo, count := dao.GetSysLoginInfoList(Username, LoginStatus, BeginTime, EndTime, PageSize, PageNum)
+    result.Success(c, map[string]any{"total": count, "pageSize": PageSize, "pageNum": PageNum, "list": sysLoginInfo})
+}
+```
+
+### 9.3.3 controller
+
+```go
+// GetSysLoginInfo 分页获取登录日志
+// @Summary 分页获取登录日志接口
+// @Produce json
+// @Description 分页获取登录日志接口
+// @Param pageNum query int false "分页数"
+// @Param pageSize query int false "每页数"
+// @Param loginStatus query string false "登录状态：1 ->成功 2 ->失败"
+// @Param beginTime query string false "开始时间"
+// @Param endTime query string false "结束时间"
+// @Success 200 {object} result.Result
+// @router /api/sysLoginInfo/list [get]
+// @Security ApiKeyAuth
+func GetSysLoginInfo(c *gin.Context) {
+	PageSize, _ := strconv.Atoi(c.Query("pageSize"))
+	PageNum, _ := strconv.Atoi(c.Query("pageNum"))
+	Username := c.Query("username")
+	LoginStatus := c.Query("loginStatus")
+	BeginTime := c.Query("beginTime")
+	EndTime := c.Query("endTime")
+	service.SysLoginInfoService().GetSysLoginInfoList(c, Username, LoginStatus, BeginTime, EndTime, PageSize, PageNum)
+}
+```
+
+### 9.3.4 router
+
+```go
+jwt.GET("/sysLoginInfo/list", controller.GetSysLoginInfo)
+```
+
+### 9.3.5 swagger
+
+这里登录并通过`Bearer [token]`授权后，就能分页查询登录日志。
+
+![image-20260326140434787](assets/image-20260326140434787.png)
+
