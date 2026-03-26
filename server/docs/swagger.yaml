@@ -44,6 +44,13 @@ definitions:
       status:
         type: integer
     type: object
+  entity.BatchDeleteSysOperationLogDto:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
   entity.DelSysLoginInfoDto:
     properties:
       id:
@@ -161,6 +168,11 @@ definitions:
         type: string
     type: object
   entity.SysMenuIdDto:
+    properties:
+      id:
+        type: integer
+    type: object
+  entity.SysOperationLogIdDto:
     properties:
       id:
         type: integer
@@ -1130,6 +1142,89 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 分页获取登录日志接口
+  /api/sysOperationLog/batch/delete:
+    delete:
+      description: 批量删除操作日志
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.BatchDeleteSysOperationLogDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: 批量删除操作日志
+  /api/sysOperationLog/clean:
+    delete:
+      description: 清空操作日志
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: 清空操作日志
+  /api/sysOperationLog/delete:
+    delete:
+      description: 根据id删除操作日志
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.SysOperationLogIdDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: 根据id删除操作日志
+  /api/sysOperationLog/list:
+    get:
+      description: 分页查询操作日志
+      parameters:
+      - description: 每页数
+        in: query
+        name: PageSize
+        type: integer
+      - description: 分页数
+        in: query
+        name: PageNum
+        type: integer
+      - description: 开始时间
+        in: query
+        name: BeginTime
+        type: string
+      - description: 结束时间
+        in: query
+        name: EndTime
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: 分页查询操作日志
   /api/upload:
     post:
       consumes:

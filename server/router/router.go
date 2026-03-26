@@ -38,7 +38,7 @@ func register(router *gin.Engine) {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.POST("/api/login", controller.Login)
 	// jwt鉴权
-	jwt := router.Group("/api", middleware.AuthMiddleware())
+	jwt := router.Group("/api", middleware.AuthMiddleware(), middleware.LogMiddleware())
 	{
 		jwt.POST("/post/add", controller.CreateSysPost)
 		jwt.GET("/post/list", controller.GetSysPostList)
@@ -83,6 +83,10 @@ func register(router *gin.Engine) {
 		jwt.DELETE("/sysLoginInfo/delete", controller.DeleteSysLoginInfoById)
 		jwt.DELETE("/sysLoginInfo/batch/delete", controller.BatchDeleteSysLoginInfo)
 		jwt.DELETE("/sysLoginInfo/clean", controller.CleanSysLoginInfo)
+		jwt.GET("/sysOperationLog/list", controller.GetSysOperationLogList)
+		jwt.DELETE("/sysOperationLog/delete", controller.DeleteSysOperationLogById)
+		jwt.DELETE("/sysOperationLog/batch/delete", controller.BatchDeleteSysOperationLog)
+		jwt.DELETE("/sysOperationLog/clean", controller.CleanSysOperationLog)
 	}
 
 }

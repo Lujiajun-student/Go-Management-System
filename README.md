@@ -5973,3 +5973,299 @@ jwt.DELETE("/sysLoginInfo/clean", controller.CleanSysLoginInfo)
 ![image-20260326164316752](assets/image-20260326164316752.png)
 
 能够成功删除日志。
+
+# 10. 操作日志相关接口
+
+用户每进行的一次操作，都需要进行日志记录。
+
+首先创建实体类`sysOperationLog.go`。
+
+```go
+// Package entity 操作日志模型
+package entity
+
+import "Go-Management-System/common/util"
+
+// SysOperationLog 操作日志
+type SysOperationLog struct {
+    ID         uint       `gorm:"column:id;comment:'主键';primaryKey;NOT NULL" json:"id"`                 // ID
+    AdminId    uint       `gorm:"column:admin_id;comment:'管理员id';NOT NULL" json:"adminId"`              // 管理员id
+    Username   string     `gorm:"column:username;varchar(64);comment:'管理员账号';NOT NULL" json:"username"` // 管理员账号
+    Method     string     `gorm:"column:method;varchar(64);comment:'请求方式';NOT NULL" json:"method"`      // 请求方式
+    Ip         string     `gorm:"column:ip;varchar(64);comment:'IP'; json:"ip"`                         // IP
+    Url        string     `gorm:"column:url;varchar(500);comment:'URL'; json:"url"`                     // URL
+    CreateTime util.HTime `gorm:"column:create_time;comment:'创建时间';NOT NULL" json:"createTime"`         // 创建时间
+}
+
+func (SysOperationLog) TableName() string {
+    return "sys_operation_log"
+}
+
+// SysOperationLogIdDto 根据id删除日志所需参数
+type SysOperationLogIdDto struct {
+	Id uint `json:"id"`
+}
+
+// BatchDeleteSysOperationLogDto 批量删除日志所需参数
+type BatchDeleteSysOperationLogDto struct {
+	Ids []uint `json:"ids"`
+}
+```
+
+这样的话，需要添加新的中间件`LogMiddleware.go`来监控行为。
+
+```go
+// Package middleware 操作日志中间件
+package middleware
+
+import (
+	"Go-Management-System/api/dao"
+	"Go-Management-System/api/entity"
+	"Go-Management-System/common/util"
+	"Go-Management-System/pkg/jwt"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+)
+
+func LogMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		method := strings.ToLower(c.Request.Method)
+		sysAdmin, _ := jwt.GetAdmin(c)
+		if method != "get" {
+			log := entity.SysOperationLog{
+				AdminId:    sysAdmin.Id,
+				Username:   sysAdmin.Username,
+				Method:     method,
+				Ip:         c.ClientIP(),
+				Url:        c.Request.URL.Path,
+				CreateTime: util.HTime{Time: time.Now()},
+			}
+			dao.CreateSysOperationLog(log)
+		}
+	}
+}
+```
+
+## 10.1 新增日志
+
+### 10.1.1 dao
+
+```go
+// Package dao 操作日志dao
+package dao
+
+import (
+    "Go-Management-System/api/entity"
+    ."Go-Management-System/pkg/db"
+)
+
+// CreateSysOperationLog 新增操作日志
+func CreateSysOperationLog(log entity.SysOperationLog) {
+    Db.Create(&log)
+}
+```
+
+### 10.1.1 router
+
+在jwt鉴权的router后添加这个日志即可。
+
+```go
+jwt := router.Group("/api", middleware.AuthMiddleware(), middleware.LogMiddleware())
+```
+
+### 10.1.2 swagger
+
+![image-20260326170603147](assets/image-20260326170603147.png)
+
+![image-20260326170611968](assets/image-20260326170611968.png)
+
+这里只要进行了非get请求，就都会记录。
+
+## 10.2 分页查询操作日志、按id删除日志、批量删除日志、清空日志
+
+### 10.2.1 dao
+
+```go
+// GetSysOperationLogList 分页查询操作日志
+func GetSysOperationLogList(Username, BeginTime, EndTime string, PageSize, PageNum int) (sysOperationLog []entity.SysOperationLog, count int64) {
+    curDb := Db.Table("sys_operation_log")
+    if Username != "" {
+       curDb = curDb.Where("username LIKE ?", "%"+Username+"%")
+    }
+    if BeginTime != "" && EndTime != "" {
+       curDb = curDb.Where("create_time between ? and ?", BeginTime, EndTime)
+    }
+    curDb.Count(&count)
+    curDb.Limit(PageSize).Offset((PageNum - 1) * PageSize).Order("create_time desc").Find(&sysOperationLog)
+    return sysOperationLog, count
+}
+
+
+
+// DeleteSysOperationLogById 根据id删除操作日志
+func DeleteSysOperationLogById(dto entity.SysOperationLogIdDto) {
+	Db.Delete(&entity.SysOperationLog{}, dto.Id)
+}
+
+// BatchDeleteSysOperationLog 批量删除操作日志
+func BatchDeleteSysOperationLog(dto entity.BatchDeleteSysOperationLogDto) {
+	Db.Where("id in (?)", dto.Ids).Delete(&entity.SysOperationLog{})
+}
+
+// CleanSysOperationLog 清空操作日志
+func CleanSysOperationLog() {
+	Db.Exec("TRUNCATE TABLE sys_operation_log")
+}
+```
+
+### 10.2.2 service
+
+```go
+// Package service 操作日志service
+package service
+
+import (
+	"Go-Management-System/api/dao"
+	"Go-Management-System/common/result"
+
+	"github.com/gin-gonic/gin"
+)
+
+type ISysOperationLogService interface {
+	GetSysOperationLogList (c *gin.Context, Username, BeginTime, EndTime string, PageSize, PageNum int)
+}
+type SysOperationLogServiceImpl struct{}
+
+var sysOperationLogService = SysOperationLogServiceImpl{}
+
+func SysOperationLogService() ISysOperationLogService {
+	return &sysOperationLogService
+}
+
+// GetSysOperationLogList 分页查询操作日志
+func (s SysOperationLogServiceImpl)GetSysOperationLogList (c *gin.Context, Username, BeginTime, EndTime string, PageSize, PageNum int) {
+	if PageSize < 1 {
+		PageSize = 10
+	}
+	if PageNum < 1 {
+		PageNum = 1
+	}
+	sysOperationLogList, count := dao.GetSysOperationLogList(Username, BeginTime, EndTime, PageSize, PageNum)
+	result.Success(c, map[string]any{"total": count, "pageSize": PageSize, "pageNum": PageNum, "list": sysOperationLogList})
+}
+
+// DeleteSysOperationLogById 根据id删除操作日志
+func (s SysOperationLogServiceImpl) DeleteSysOperationLogById(c *gin.Context, dto entity.SysOperationLogIdDto) {
+	dao.DeleteSysOperationLogById(dto)
+	result.Success(c, true)
+}
+
+// BatchDeleteSysOperationLog 批量删除操作日志
+func (s SysOperationLogServiceImpl) BatchDeleteSysOperationLog(c *gin.Context, dto entity.BatchDeleteSysOperationLogDto) {
+	dao.BatchDeleteSysOperationLog(dto)
+	result.Success(c, true)
+}
+
+// CleanSysOperationLog 清空操作日志
+func (s SysOperationLogServiceImpl) CleanSysOperationLog(c *gin.Context) {
+	dao.CleanSysOperationLog()
+	result.Success(c, true)
+}
+```
+
+### 10.2.3 controller
+
+```go
+// GetSysOperationLogList 分页查询操作日志
+// @Summary 分页查询操作日志
+// @Produce json
+// @Description 分页查询操作日志
+// @Param PageSize query int false "每页数"
+// @Param PageNum query int false "分页数"
+// @Param BeginTime query string false "开始时间"
+// @Param EndTime query string false "结束时间"
+// @Success 200 {object} result.Result
+// @router /api/sysOperationLog/list [get]
+// @Security ApiKeyAuth
+func GetSysOperationLogList(c *gin.Context) {
+    Username := c.Query("username")
+    BeginTime := c.Query("beginTime")
+    EndTime := c.Query("endTime")
+    PageSize, _ := strconv.Atoi(c.Query("pageSize"))
+    PageNum, _ := strconv.Atoi(c.Query("pageNum"))
+    service.SysOperationLogService().GetSysOperationLogList(c, Username, BeginTime, EndTime, PageSize, PageNum)
+}
+
+// DeleteSysOperationLogById 根据id删除操作日志
+// @Summary 根据id删除操作日志
+// @Produce json
+// @Description 根据id删除操作日志
+// @Param data body entity.SysOperationLogIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/sysOperationLog/delete [delete]
+// @Security ApiKeyAuth
+func DeleteSysOperationLogById(c *gin.Context) {
+	var dto entity.SysOperationLogIdDto
+	_ = c.ShouldBindJSON(&dto)
+	service.SysOperationLogService().DeleteSysOperationLogById(c, dto)
+}
+
+// BatchDeleteSysOperationLog 批量删除操作日志
+// @Summary 批量删除操作日志
+// @Produce json
+// @Description 批量删除操作日志
+// @Param data body entity.BatchDeleteSysOperationLogDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/sysOperationLog/batch/delete [delete]
+// @Security ApiKeyAuth
+func BatchDeleteSysOperationLog(c *gin.Context) {
+	var dto entity.BatchDeleteSysOperationLogDto
+	_ = c.ShouldBindJSON(&dto)
+	service.SysOperationLogService().BatchDeleteSysOperationLog(c, dto)
+}
+
+// CleanSysOperationLog 清空操作日志
+// @Summary 清空操作日志
+// @Produce json
+// @Description 清空操作日志
+// @Success 200 {object} result.Result
+// @router /api/sysOperationLog/clean [delete]
+// @Security ApiKeyAuth
+func CleanSysOperationLog(c *gin.Context) {
+	service.SysOperationLogService().CleanSysOperationLog(c)
+} 
+```
+
+### 10.2.4 router
+
+```go
+jwt.GET("/sysOperationLog/list", controller.GetSysOperationLogList)
+jwt.DELETE("/sysOperationLog/batch/delete", controller.BatchDeleteSysOperationLog)
+jwt.DELETE("/sysOperationLog/clean", controller.CleanSysOperationLog)
+```
+
+### 10.2.5 swagger
+
+![image-20260326174604581](assets/image-20260326174604581.png)
+
+![image-20260326174609913](assets/image-20260326174609913.png)
+
+![image-20260326174858058](assets/image-20260326174858058.png)
+
+![image-20260326174903475](assets/image-20260326174903475.png)
+
+![image-20260326174917389](assets/image-20260326174917389.png)
+
+![image-20260326174922455](assets/image-20260326174922455.png)
+
+![image-20260326174939012](assets/image-20260326174939012.png)
+
+# 11. 前端初始化
+
+前端为vue项目，使用的技术为vue2 + axios + element-ui + echarts + vue-router + vuex + vue-treeselect。
+
+由于现在项目根目录就是后端，因此在当前目录下通过`vue create admin-vue`来创建前端。
+
+**为了实现前后端分离，这里将项目根目录下的文件搬到`server`目录中作为后端，然后在当前根目录创建`admin-vue`来作为前端。唯一需要更改的是配置文件`config.go`中设置的路径需要改为`./server/config.yaml`。**

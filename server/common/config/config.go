@@ -59,7 +59,7 @@ var Config config
 // InitConfig 配置初始化，读取初始配置
 func InitConfig() {
 
-	yamlFile, err := os.ReadFile("./config.yaml")
+	yamlFile, err := os.ReadFile("./server/config.yaml")
 	if err != nil {
 		panic(err)
 	}
