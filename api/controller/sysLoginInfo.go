@@ -2,6 +2,7 @@
 package controller
 
 import (
+	"Go-Management-System/api/entity"
 	"Go-Management-System/api/service"
 	"strconv"
 
@@ -28,4 +29,43 @@ func GetSysLoginInfo(c *gin.Context) {
 	BeginTime := c.Query("beginTime")
 	EndTime := c.Query("endTime")
 	service.SysLoginInfoService().GetSysLoginInfoList(c, Username, LoginStatus, BeginTime, EndTime, PageSize, PageNum)
+}
+
+// DeleteSysLoginInfoById 根据id删除登录日志
+// @Summary 根据id删除登录日志
+// @Produce json
+// @Description 根据id删除登录日志
+// @Param data body entity.SysLoginInfoIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/sysLoginInfo/delete [delete]
+// @Security ApiKeyAuth
+func DeleteSysLoginInfoById(c *gin.Context) {
+	var sysLoginInfoIdDto entity.SysLoginInfoIdDto
+	_ = c.ShouldBindJSON(&sysLoginInfoIdDto)
+	service.SysLoginInfoService().DeleteSysLoginInfo(c, sysLoginInfoIdDto)
+}
+
+// BatchDeleteSysLoginInfo 批量删除登录日志
+// @Summary 批量删除登录日志
+// @Produce json
+// @Description 批量删除登录日志
+// @Param data body entity.DelSysLoginInfoDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/sysLoginInfo/batch/delete [delete]
+// @Security ApiKeyAuth
+func BatchDeleteSysLoginInfo(c *gin.Context) {
+	var delSysLoginInfoDto entity.DelSysLoginInfoDto
+	_ = c.ShouldBindJSON(&delSysLoginInfoDto)
+	service.SysLoginInfoService().BatchDeleteSysLoginInfo(c, delSysLoginInfoDto)
+}
+
+// CleanSysLoginInfo 清空操作日志
+// @Summary 清空操作日志
+// @Produce json
+// @Description 清空操作日志
+// @Success 200 {object} result.Result
+// @router /api/sysLoginInfo/clean [delete]
+// @Security ApiKeyAuth
+func CleanSysLoginInfo(c *gin.Context) {
+	service.SysLoginInfoService().CleanSysLoginInfo(c)
 }

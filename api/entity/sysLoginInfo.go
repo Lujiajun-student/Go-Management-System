@@ -19,3 +19,13 @@ type SysLoginInfo struct {
 func (SysLoginInfo) TableName() string {
 	return "sys_login_info"
 }
+
+// SysLoginInfoIdDto 删除日志所需参数
+type SysLoginInfoIdDto struct {
+	Id uint `json:"id"`
+}
+
+// DelSysLoginInfoDto 批量删除日志所需参数
+type DelSysLoginInfoDto struct {
+	Ids []uint `json:"id"`
+}

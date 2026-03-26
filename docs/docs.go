@@ -1172,6 +1172,94 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/sysLoginInfo/batch/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "批量删除登录日志",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "批量删除登录日志",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.DelSysLoginInfoDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/sysLoginInfo/clean": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "清空操作日志",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "清空操作日志",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/sysLoginInfo/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "根据id删除登录日志",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "根据id删除登录日志",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.SysLoginInfoIdDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            }
+        },
         "/api/sysLoginInfo/list": {
             "get": {
                 "security": [
@@ -1321,6 +1409,17 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.DelSysLoginInfoDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "entity.DelSysPostDto": {
             "type": "object",
             "properties": {
@@ -1428,6 +1527,14 @@ const docTemplate = `{
             }
         },
         "entity.SysDeptIdDto": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entity.SysLoginInfoIdDto": {
             "type": "object",
             "properties": {
                 "id": {

@@ -44,6 +44,13 @@ definitions:
       status:
         type: integer
     type: object
+  entity.DelSysLoginInfoDto:
+    properties:
+      id:
+        items:
+          type: integer
+        type: array
+    type: object
   entity.DelSysPostDto:
     properties:
       ids:
@@ -117,6 +124,11 @@ definitions:
         type: integer
     type: object
   entity.SysDeptIdDto:
+    properties:
+      id:
+        type: integer
+    type: object
+  entity.SysLoginInfoIdDto:
     properties:
       id:
         type: integer
@@ -1031,6 +1043,59 @@ paths:
           schema:
             $ref: '#/definitions/result.Result'
       summary: 查询角色下拉列表
+  /api/sysLoginInfo/batch/delete:
+    delete:
+      description: 批量删除登录日志
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.DelSysLoginInfoDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: 批量删除登录日志
+  /api/sysLoginInfo/clean:
+    delete:
+      description: 清空操作日志
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: 清空操作日志
+  /api/sysLoginInfo/delete:
+    delete:
+      description: 根据id删除登录日志
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/entity.SysLoginInfoIdDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
+      summary: 根据id删除登录日志
   /api/sysLoginInfo/list:
     get:
       description: 分页获取登录日志接口

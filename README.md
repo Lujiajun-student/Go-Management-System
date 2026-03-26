@@ -5506,7 +5506,7 @@ func UpdatePersonalPassword(c *gin.Context) {
 
 ![image-20260326130542429](assets/image-20260326130542429.png)
 
-# 9. 日志相关接口
+# 9. 登录日志相关接口
 
 用户每次登录，都需要记录登录的账号、时间、地点、ip地址等。
 
@@ -5850,3 +5850,126 @@ jwt.GET("/sysLoginInfo/list", controller.GetSysLoginInfo)
 
 ![image-20260326140434787](assets/image-20260326140434787.png)
 
+## 9.4 删除日志信息
+
+### 9.4.1 entity
+
+```go
+// SysLoginInfoIdDto 删除日志所需参数
+type SysLoginInfoIdDto struct {
+	Id uint `json:"id"`
+}
+
+// DelSysLoginInfoDto 批量删除日志所需参数
+type DelSysLoginInfoDto struct {
+	Ids []uint `json:"id"`
+}
+
+// CleanSysLoginInfo 清空登录日志
+func CleanSysLoginInfo() {
+	Db.Exec("TRUNCATE TABLE sys_login_info")
+}
+```
+
+### 9.4.2 dao
+
+```go
+// DeleteSysLoginInfoById 根据id删除日志
+func DeleteSysLoginInfoById(dto entity.SysLoginInfoIdDto) {
+    Db.Delete(&entity.SysLoginInfo{}, dto.Id)
+}
+
+// BatchDeleteSysLoginInfo 批量删除日志
+func BatchDeleteSysLoginInfo(dto entity.DelSysLoginInfoDto) {
+    Db.Where("id in (?)", dto.Ids).Delete(&entity.SysLoginInfo{})
+}
+
+// CleanSysLoginInfo 清空登录日志
+func (s SysLoginInfoServiceImpl) CleanSysLoginInfo(c *gin.Context) {
+	dao.CleanSysLoginInfo()
+	result.Success(c, true)
+}
+```
+
+### 9.4.3 service
+
+```go
+// DeleteSysLoginInfo 根据id删除日志
+func (s SysLoginInfoServiceImpl) DeleteSysLoginInfo(c *gin.Context, dto entity.SysLoginInfoIdDto) {
+    dao.DeleteSysLoginInfoById(dto)
+    result.Success(c, true)
+}
+
+// BatchDeleteSysLoginInfo 批量删除日志
+func (s SysLoginInfoServiceImpl) BatchDeleteSysLoginInfo(c *gin.Context, dto entity.DelSysLoginInfoDto) {
+    dao.BatchDeleteSysLoginInfo(dto)
+    result.Success(c, true)
+}
+
+// CleanSysLoginInfo 清空登录日志
+func (s SysLoginInfoServiceImpl) CleanSysLoginInfo(c *gin.Context) {
+	dao.CleanSysLoginInfo()
+	result.Success(c, true)
+}
+```
+
+### 9.4.4 controller
+
+```go
+// DeleteSysLoginInfoById 根据id删除登录日志
+// @Summary 根据id删除登录日志
+// @Produce json
+// @Description 根据id删除登录日志
+// @Param data body entity.SysLoginInfoIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/sysLoginInfo/delete [delete]
+// @Security ApiKeyAuth
+func DeleteSysLoginInfoById(c *gin.Context) {
+    var sysLoginInfoIdDto entity.SysLoginInfoIdDto
+    _ = c.ShouldBindJSON(&sysLoginInfoIdDto)
+    service.SysLoginInfoService().DeleteSysLoginInfo(c, sysLoginInfoIdDto)
+}
+
+// BatchDeleteSysLoginInfo 批量删除登录日志
+// @Summary 批量删除登录日志
+// @Produce json
+// @Description 批量删除登录日志
+// @Param data body entity.DelSysLoginInfoDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/sysLoginInfo/batch/delete [delete]
+// @Security ApiKeyAuth
+func BatchDeleteSysLoginInfo(c *gin.Context) {
+    var delSysLoginInfoDto entity.DelSysLoginInfoDto
+    _ = c.ShouldBindJSON(&delSysLoginInfoDto)
+    service.SysLoginInfoService().BatchDeleteSysLoginInfo(c, delSysLoginInfoDto)
+}
+
+// CleanSysLoginInfo 清空操作日志
+// @Summary 清空操作日志
+// @Produce json
+// @Description 清空操作日志
+// @Success 200 {object} result.Result
+// @router /api/sysLoginInfo/clean [delete]
+// @Security ApiKeyAuth
+func CleanSysLoginInfo(c *gin.Context) {
+	service.SysLoginInfoService().CleanSysLoginInfo(c)
+}
+```
+
+### 9.4.5 router
+
+```go
+jwt.DELETE("/sysLoginInfo/delete", controller.DeleteSysLoginInfoById)
+jwt.DELETE("/sysLoginInfo/batch/delete", controller.BatchDeleteSysLoginInfo)
+jwt.DELETE("/sysLoginInfo/clean", controller.CleanSysLoginInfo)
+```
+
+### 9.4.6 swagger
+
+![image-20260326163634620](assets/image-20260326163634620.png)
+
+![image-20260326163643870](assets/image-20260326163643870.png)
+
+![image-20260326164316752](assets/image-20260326164316752.png)
+
+能够成功删除日志。
