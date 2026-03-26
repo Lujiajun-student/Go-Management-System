@@ -69,11 +69,31 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto entity.LoginDto) {
 	}
 	// 生成token
 	tokenString, _ := jwt.GenerateTokenByAdmin(sysAdmin)
+	// 左侧菜单列表
+	var leftMenuVo []entity.LeftMenuVo
+	leftMenuList := dao.QueryLeftMenuList(sysAdmin.ID)
+	for _, value := range leftMenuList {
+		menuSVoList := dao.QueryMenuVoList(sysAdmin.ID, value.Id)
+		item := entity.LeftMenuVo{}
+		item.MenuSVoList = menuSVoList
+		item.Id = value.Id
+		item.MenuName = value.MenuName
+		item.Icon = value.Icon
+		item.Url = value.Url
+		leftMenuVo = append(leftMenuVo, item)
+	}
+	// 权限列表
+	permissionList := dao.QueryPermissionList(sysAdmin.ID)
+	var stringList = make([]string, 0)
+	for _, value := range permissionList {
+		stringList = append(stringList, value.Value)
+	}
 	result.Success(c, map[string]any{
-		"token":    tokenString,
-		"sysAdmin": sysAdmin,
+		"token":          tokenString,
+		"sysAdmin":       sysAdmin,
+		"leftMenuList":   leftMenuVo,
+		"permissionList": stringList,
 	})
-
 }
 
 // CreateSysAdmin 新增用户
@@ -162,6 +182,7 @@ func (s SysAdminServiceImpl) UpdatePersonalPassword(c *gin.Context, dto entity.U
 	dto.NewPassword = util.EncryptionMd5(dto.NewPassword)
 	sysAdminUpdatePwd := dao.UpdatePersonalPassword(dto)
 	tokenString, _ := jwt.GenerateTokenByAdmin(sysAdminUpdatePwd)
+
 	result.Success(c, map[string]any{"token": tokenString, "sysAdmin": sysAdminUpdatePwd})
 	return
 }

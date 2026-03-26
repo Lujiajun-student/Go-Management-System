@@ -311,6 +311,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
       summary: 创建用户接口
   /api/admin/delete:
     delete:
@@ -329,6 +331,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
       summary: 根据id删除用户
   /api/admin/info:
     get:
@@ -346,6 +350,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
       summary: 根据id查询用户
   /api/admin/list:
     get:
@@ -382,6 +388,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
       summary: 分页查询用户
   /api/admin/update:
     put:
@@ -400,6 +408,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
       summary: 修改用户
   /api/admin/updatePassword:
     put:
@@ -418,6 +428,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
       summary: 重置密码
   /api/admin/updatePersonal:
     put:
@@ -436,6 +448,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
       summary: 修改个人信息
   /api/admin/updatePersonalPassword:
     put:
@@ -454,6 +468,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
       summary: 修改密码
   /api/admin/updateStatus:
     put:
@@ -472,6 +488,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/result.Result'
+      security:
+      - ApiKeyAuth: []
       summary: 修改用户状态
   /api/captcha:
     get:

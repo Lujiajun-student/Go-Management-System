@@ -3,6 +3,7 @@ package middleware
 import (
 	"Go-Management-System/common/constant"
 	"Go-Management-System/common/result"
+	"Go-Management-System/pkg/jwt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -24,9 +25,15 @@ func AuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		// todo 校验token
-		var token = "token"
-		c.Set(constant.ContextKeyUserObj, token)
+		// 验证token
+		mc, err := jwt.ValidateToken(parts[1])
+		if err != nil {
+			result.Failed(c, int(result.ApiCode.INVALIDTOKEN), result.ApiCode.GetMessage(result.ApiCode.INVALIDTOKEN))
+			c.Abort()
+			return
+		}
+
+		c.Set(constant.ContextKeyUserObj, mc)
 		c.Next()
 	}
 }

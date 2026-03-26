@@ -29,6 +29,7 @@ func Login(c *gin.Context) {
 // @param data body entity.AddSysAdminDto true "data"
 // @Success 200 {object} result.Result
 // @router /api/admin/add [post]
+// @Security ApiKeyAuth
 func CreateSysAdmin(c *gin.Context) {
 	var addSysAdminDto entity.AddSysAdminDto
 	_ = c.BindJSON(&addSysAdminDto)
@@ -42,6 +43,7 @@ func CreateSysAdmin(c *gin.Context) {
 // @param id query int true "id"
 // @Success 200 {object} result.Result
 // @router /api/admin/info [get]
+// @Security ApiKeyAuth
 func GetSysAdminInfo(c *gin.Context) {
 	Id, _ := strconv.Atoi(c.Query("id"))
 	service.SysAdminService().GetSysAdminInfo(c, Id)
@@ -54,6 +56,7 @@ func GetSysAdminInfo(c *gin.Context) {
 // @param data body entity.UpdateSysAdminDto true "data"
 // @Success 200 {object} result.Result
 // @router /api/admin/update [put]
+// @Security ApiKeyAuth
 func UpdateSysAdmin(c *gin.Context) {
 	var dto entity.UpdateSysAdminDto
 	_ = c.BindJSON(&dto)
@@ -67,6 +70,7 @@ func UpdateSysAdmin(c *gin.Context) {
 // @param data body entity.SysAdminIdDto true "data"
 // @Success 200 {object} result.Result
 // @router /api/admin/delete [delete]
+// @Security ApiKeyAuth
 func DeleteSysAdminById(c *gin.Context) {
 	var dto entity.SysAdminIdDto
 	_ = c.BindJSON(&dto)
@@ -80,6 +84,7 @@ func DeleteSysAdminById(c *gin.Context) {
 // @param data body entity.UpdateSysAdminStatusDto true "data"
 // @Success 200 {object} result.Result
 // @router /api/admin/updateStatus [put]
+// @Security ApiKeyAuth
 func UpdateSysAdminStatus(c *gin.Context) {
 	var dto entity.UpdateSysAdminStatusDto
 	_ = c.BindJSON(&dto)
@@ -93,6 +98,7 @@ func UpdateSysAdminStatus(c *gin.Context) {
 // @param data body entity.ResetSysAdminPasswordDto true "data"
 // @Success 200 {object} result.Result
 // @router /api/admin/updatePassword [put]
+// @Security ApiKeyAuth
 func ResetSysAdminPassword(c *gin.Context) {
 	var dto entity.ResetSysAdminPasswordDto
 	_ = c.BindJSON(&dto)
@@ -111,6 +117,7 @@ func ResetSysAdminPassword(c *gin.Context) {
 // @Param endTime query string false "结束时间"
 // @Success 200 {object} result.Result
 // @router /api/admin/list [get]
+// @Security ApiKeyAuth
 func GetSysAdminList(c *gin.Context) {
 	pageNum, _ := strconv.Atoi(c.Query("pageNum"))
 	pageSize, _ := strconv.Atoi(c.Query("pageSize"))
@@ -128,6 +135,7 @@ func GetSysAdminList(c *gin.Context) {
 // @param data body entity.UpdatePersonalDto true "data"
 // @Success 200 {object} result.Result
 // @router /api/admin/updatePersonal [put]
+// @Security ApiKeyAuth
 func UpdatePersonal(c *gin.Context) {
 	var dto entity.UpdatePersonalDto
 	_ = c.BindJSON(&dto)
@@ -141,6 +149,7 @@ func UpdatePersonal(c *gin.Context) {
 // @param data body entity.UpdatePersonalPasswordDto true "data"
 // @Success 200 {object} result.Result
 // @router /api/admin/updatePersonalPassword [put]
+// @Security ApiKeyAuth
 func UpdatePersonalPassword(c *gin.Context) {
 	var dto entity.UpdatePersonalPasswordDto
 	_ = c.BindJSON(&dto)

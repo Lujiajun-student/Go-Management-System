@@ -41,3 +41,24 @@ type SysMenuIdDto struct {
 func (SysMenuIdDto) TableName() string {
 	return "sys_menu"
 }
+
+// MenuSVo 菜单Vo
+type MenuSVo struct {
+	MenuName string `json:"menuName"`
+	Icon     string `json:"icon"`
+	Url      string `json:"url"`
+}
+
+// LeftMenuVo 左侧菜单Vo
+type LeftMenuVo struct {
+	Id          uint      `json:"id"`
+	MenuName    string    `json:"menuName"`
+	Icon        string    `json:"icon"`
+	Url         string    `json:"url"`
+	MenuSVoList []MenuSVo `gorm:"-" json:"menuSVoList"`
+}
+
+// ValueVo 权限Vo
+type ValueVo struct {
+	Value string `json:"value"`
+}

@@ -4961,3 +4961,547 @@ router.PUT("/api/admin/updatePersonalPassword", controller.UpdatePersonalPasswor
 ![image-20260325212002750](assets/image-20260325212002750.png)
 
 ![image-20260325212010634](assets/image-20260325212010634.png)
+
+## 8.11 获取菜单信息
+
+在登录成功后，需要获取对应的菜单栏信息。在`sysMenu`中实现。
+
+### 8.11.1 entity
+
+```go
+// MenuSVo 菜单Vo
+type MenuSVo struct {
+	MenuName string `json:"menuName"`
+	Icon     string `json:"icon"`
+	Url      string `json:"url"`
+}
+
+// LeftMenuVo 左侧菜单Vo
+type LeftMenuVo struct {
+	Id          uint      `json:"id"`
+	MenuName    string    `json:"menuName"`
+	Icon        string    `json:"icon"`
+	Url         string    `json:"url"`
+	MenuSVoList []MenuSVo `gorm:"-" json:"menuSVoList"`
+}
+
+// ValueVo 权限Vo
+type ValueVo struct {
+	Value string `json:"value"`
+}
+```
+
+### 8.11.2 dao
+
+```go
+// QueryMenuVoList 当前登录用户左侧菜单
+func QueryMenuVoList(AdminId, MenuId uint) (menuSVo []entity.MenuSVo) {
+	const status, menuStatus, menuType = 1, 2, 2
+	Db.Table("sys_menu sm").
+		Select("sm.menu_name, sm.icon, sm.url").
+		Joins("LEFT JOIN sys_role_menu srm ON sm.id = srm.menu_id").
+		Joins("LEFT JOIN sys_role sr ON sr.id = srm.role_id").
+		Joins("LEFT JOIN sys_admin_role sar ON sar.role_id = sr.id").
+		Joins("LEFT JOIN sys_admin sa ON sa.id = sar.admin_id").
+		Where("sr.status = ?", status).
+		Where("sm.menu_status = ?", menuStatus).
+		Where("sm.menu_type = ?", menuType).
+		Where("sm.parent_id = ?", MenuId).
+		Where("sa.id = ?", AdminId).
+		Order("sm.sort").
+		Scan(&menuSVo)
+	return menuSVo
+}
+
+// QueryLeftMenuList 当前登录用户左侧菜单列表
+func QueryLeftMenuList(Id uint) (leftMenuVo []entity.LeftMenuVo) {
+	const status, menuStatus, menuType uint = 1, 2, 1
+	Db.Table("sys_menu sm").
+		Select("sm.id, sm.menu_name, sm.url, sm.icon").
+		Joins("LEFT JOIN sys_role_menu srm ON srm.menu_id = sm.id").
+		Joins("LEFT JOIN sys_role sr ON sr.id = srm.role_id").
+		Joins("LEFT JOIN sys_admin_role sar ON sar.role_id = sr.id").
+		Joins("LEFT JOIN sys_admin sa ON sa.id = sar.admin_id").
+		Where("sr.status = ?", status).
+		Where("sm.menu_status = ?", menuStatus).
+		Where("sm.menu_type = ?", menuType).
+		Where("sa.id = ?", Id).
+		Order("sm.sort").
+		Scan(&leftMenuVo)
+	return leftMenuVo
+}
+```
+
+### 8.11.3 service
+
+在`sysAdmin.go`中的用户登录添加部分逻辑。
+
+```go
+// Login 用户登录
+func (s SysAdminServiceImpl) Login(c *gin.Context, dto entity.LoginDto) {
+	// 登录参数校验，根据结构体的validate标签校验属性值是否合法
+	err := validator.New().Struct(dto)
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.MissingLoginParameter), result.ApiCode.GetMessage(result.ApiCode.MissingLoginParameter))
+		return
+	}
+	// 验证码是否过期
+	code := util.RedisStore{}.Get(dto.IdKey, true)
+	if len(code) == 0 {
+		result.Failed(c, int(result.ApiCode.VerificationCodeHasExpired), result.ApiCode.GetMessage(result.ApiCode.VerificationCodeHasExpired))
+		return
+	}
+	// 校验验证码
+	verifyRes := CaptVerify(dto.IdKey, dto.Image)
+	if !verifyRes {
+		result.Failed(c, int(result.ApiCode.CAPTCHANOTTRUE), result.ApiCode.GetMessage(result.ApiCode.CAPTCHANOTTRUE))
+		return
+	}
+	//校验密码
+	sysAdmin := dao.SysAdminDetail(dto)
+	if sysAdmin.Password != util.EncryptionMd5(dto.Password) {
+		result.Failed(c, int(result.ApiCode.PASSWORDNOTTRUE), result.ApiCode.GetMessage(result.ApiCode.PASSWORDNOTTRUE))
+		return
+	}
+	// 判断用户是否被禁用
+	const status int = 2
+	if sysAdmin.Status == status {
+		result.Failed(c, int(result.ApiCode.STATUSISENABLE), result.ApiCode.GetMessage(result.ApiCode.STATUSISENABLE))
+		return
+	}
+	// 生成token
+	tokenString, _ := jwt.GenerateTokenByAdmin(sysAdmin)
+	// 左侧菜单列表
+	var leftMenuVo []entity.LeftMenuVo
+	leftMenuList := dao.QueryLeftMenuList(sysAdmin.ID)
+	for _, value := range leftMenuList {
+		menuSVoList := dao.QueryMenuVoList(sysAdmin.ID, value.Id)
+		item := entity.LeftMenuVo{}
+		item.MenuSVoList = menuSVoList
+		item.Id = value.Id
+		item.MenuName = value.MenuName
+		item.Icon = value.Icon
+		item.Url = value.Url
+		leftMenuVo = append(leftMenuVo, item)
+	}
+	result.Success(c, map[string]any{
+		"token":    tokenString,
+		"sysAdmin": sysAdmin,
+		"leftMenu": leftMenuVo,
+	})
+}
+```
+
+### swagger
+
+![image-20260326122012006](assets/image-20260326122012006.png)
+
+![image-20260326122019319](assets/image-20260326122019319.png)
+
+## 8.12 左侧菜单权限设置
+
+### 8.12.1 dao
+
+```go
+// QueryPermissionList 当前登录用户权限列表
+func QueryPermissionList(Id uint) (valueVo []entity.ValueVo) {
+	const status, menuStatus, menuType uint = 1, 2, 1
+	Db.Table("sys_menu sm").
+		Select("sm.value").
+		Joins("LEFT JOIN sys_role_menu srm ON sm.id = srm.menu_id").
+		Joins("LEFT JOIN sys_role sr ON sr.id = srm.role_id").
+		Joins("LEFT JOIN sys_admin_role sar ON sar.role_id = sr.id").
+		Joins("LEFT JOIN sys_admin sa ON sa.id = sar.admin_id").
+		Where("sr.status = ?", status).
+		Where("sm.menu_status = ?", menuStatus).
+		Not("sm.menu_type = ?", menuType).
+		Where("sa.id = ?", Id).
+		Scan(&valueVo)
+	return valueVo
+}
+```
+
+### 8.12.2 service
+
+同样的，在`sysAdmin.go`的登录功能上添加查询权限功能。
+
+```go
+// Login 用户登录
+func (s SysAdminServiceImpl) Login(c *gin.Context, dto entity.LoginDto) {
+    // 登录参数校验，根据结构体的validate标签校验属性值是否合法
+    err := validator.New().Struct(dto)
+    if err != nil {
+       result.Failed(c, int(result.ApiCode.MissingLoginParameter), result.ApiCode.GetMessage(result.ApiCode.MissingLoginParameter))
+       return
+    }
+    // 验证码是否过期
+    code := util.RedisStore{}.Get(dto.IdKey, true)
+    if len(code) == 0 {
+       result.Failed(c, int(result.ApiCode.VerificationCodeHasExpired), result.ApiCode.GetMessage(result.ApiCode.VerificationCodeHasExpired))
+       return
+    }
+    // 校验验证码
+    verifyRes := CaptVerify(dto.IdKey, dto.Image)
+    if !verifyRes {
+       result.Failed(c, int(result.ApiCode.CAPTCHANOTTRUE), result.ApiCode.GetMessage(result.ApiCode.CAPTCHANOTTRUE))
+       return
+    }
+    //校验密码
+    sysAdmin := dao.SysAdminDetail(dto)
+    if sysAdmin.Password != util.EncryptionMd5(dto.Password) {
+       result.Failed(c, int(result.ApiCode.PASSWORDNOTTRUE), result.ApiCode.GetMessage(result.ApiCode.PASSWORDNOTTRUE))
+       return
+    }
+    // 判断用户是否被禁用
+    const status int = 2
+    if sysAdmin.Status == status {
+       result.Failed(c, int(result.ApiCode.STATUSISENABLE), result.ApiCode.GetMessage(result.ApiCode.STATUSISENABLE))
+       return
+    }
+    // 生成token
+    tokenString, _ := jwt.GenerateTokenByAdmin(sysAdmin)
+    // 左侧菜单列表
+    var leftMenuVo []entity.LeftMenuVo
+    leftMenuList := dao.QueryLeftMenuList(sysAdmin.ID)
+    for _, value := range leftMenuList {
+       menuSVoList := dao.QueryMenuVoList(sysAdmin.ID, value.Id)
+       item := entity.LeftMenuVo{}
+       item.MenuSVoList = menuSVoList
+       item.Id = value.Id
+       item.MenuName = value.MenuName
+       item.Icon = value.Icon
+       item.Url = value.Url
+       leftMenuVo = append(leftMenuVo, item)
+    }
+    // 权限列表
+    permissionList := dao.QueryPermissionList(sysAdmin.ID)
+    var stringList = make([]string, 0)
+    for _, value := range permissionList {
+       stringList = append(stringList, value.Value)
+    }
+    result.Success(c, map[string]any{
+       "token":        tokenString,
+       "sysAdmin":     sysAdmin,
+       "leftMenuList": leftMenuVo,
+       "permissionList": stringList,
+    })
+}
+```
+
+### 8.12.3 swagger
+
+![image-20260326124125214](assets/image-20260326124125214.png)
+
+![image-20260326124132193](assets/image-20260326124132193.png)
+
+## 8.13 JWT鉴权
+
+### 8.13.1 router
+
+鉴权需要在进入路由之前添加中间件。
+
+```go
+package router
+
+import (
+	"Go-Management-System/api/controller"
+	"Go-Management-System/common/config"
+	"Go-Management-System/middleware"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+)
+
+// InitRouter 初始化路由
+func InitRouter() *gin.Engine {
+	// 创建初始的Engine
+	router := gin.New()
+	// 配置中间件
+	// 1. 配置Recovery
+	router.Use(gin.Recovery())
+	// 2. 配置跨域请求
+	router.Use(middleware.Cors())
+	// 3. 配置文件上传服务
+	router.StaticFS(config.Config.ImageSettings.UploadDir, http.Dir(config.Config.ImageSettings.UploadDir))
+	// 4. 配置日志中间件
+	router.Use(middleware.Logger())
+
+	// 5. 注册路由
+	register(router)
+
+	return router
+}
+
+// register 路由注册
+func register(router *gin.Engine) {
+	// todo 添加接口url
+	router.GET("/api/captcha", controller.Captcha)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.POST("/api/login", controller.Login)
+	// jwt鉴权
+	jwt := router.Group("/api", middleware.AuthMiddleware())
+	{
+		jwt.POST("/post/add", controller.CreateSysPost)
+		jwt.GET("/post/list", controller.GetSysPostList)
+		jwt.GET("/post/info", controller.GetSysPostById)
+		jwt.PUT("/post/update", controller.UpdateSysPost)
+		jwt.DELETE("/post/delete", controller.DeleteSysPostById)
+		jwt.DELETE("/post/batch/delete", controller.BatchDeleteSysPost)
+		jwt.PUT("/post/updateStatus", controller.UpdateSysPostStatus)
+		jwt.GET("/post/vo/list", controller.QuerySysPostVOList)
+		jwt.GET("/dept/list", controller.GetSysDeptList)
+		jwt.POST("/dept/add", controller.CreateSysDept)
+		jwt.GET("/dept/info", controller.GetSysDeptById)
+		jwt.PUT("/dept/update", controller.UpdateSysDept)
+		jwt.DELETE("/dept/delete", controller.DeleteSysDeptById)
+		jwt.GET("/dept/vo/list", controller.QuerySysDeptVOList)
+		jwt.POST("/menu/add", controller.CreateSysMenu)
+		jwt.GET("/menu/vo/list", controller.QuerySysMenuVOList)
+		jwt.GET("/menu/info", controller.GetSysMenuById)
+		jwt.PUT("/menu/update", controller.UpdateSysMenu)
+		jwt.DELETE("/menu/delete", controller.DeleteSysMenuById)
+		jwt.GET("/menu/list", controller.GetSysMenuList)
+		jwt.POST("/role/add", controller.CreateSysRole)
+		jwt.GET("/role/info", controller.GetSysRoleById)
+		jwt.PUT("/role/update", controller.UpdateSysRole)
+		jwt.DELETE("/role/delete", controller.DeleteSysRoleById)
+		jwt.PUT("/role/updateStatus", controller.UpdateSysRoleStatus)
+		jwt.GET("/role/list", controller.GetSysRoleList)
+		jwt.GET("/role/vo/list", controller.QuerySysRoleVOList)
+		jwt.GET("/role/vo/idList", controller.QueryRoleMenuIdList)
+		jwt.PUT("/role/assignPermissions", controller.AssignPermissions)
+		jwt.POST("/admin/add", controller.CreateSysAdmin)
+		jwt.GET("/admin/info", controller.GetSysAdminInfo)
+		jwt.PUT("/admin/update", controller.UpdateSysAdmin)
+		jwt.DELETE("/admin/delete", controller.DeleteSysAdminById)
+		jwt.PUT("/admin/updateStatus", controller.UpdateSysAdminStatus)
+		jwt.PUT("/admin/updatePassword", controller.ResetSysAdminPassword)
+		jwt.GET("/admin/list", controller.GetSysAdminList)
+		jwt.POST("/upload", controller.Upload)
+		jwt.PUT("/admin/updatePersonal", controller.UpdatePersonal)
+		jwt.PUT("/admin/updatePersonalPassword", controller.UpdatePersonalPassword)
+	}
+}
+```
+
+### 8.13.2 auth
+
+接下来在middleware的`auth.go`实现校验token。
+
+```go
+package middleware
+
+import (
+    "Go-Management-System/common/constant"
+    "Go-Management-System/common/result"
+    "Go-Management-System/pkg/jwt"
+    "strings"
+
+    "github.com/gin-gonic/gin"
+)
+
+func AuthMiddleware() func(c *gin.Context) {
+    return func(c *gin.Context) {
+       authHeader := c.Request.Header.Get("Authorization")
+       if authHeader == "" {
+          // 未授权
+          result.Failed(c, int(result.ApiCode.NOAUTH), result.ApiCode.GetMessage(result.ApiCode.NOAUTH))
+          c.Abort()
+          return
+       }
+       // 长度不等于2，格式错误
+       parts := strings.SplitN(authHeader, " ", 2)
+       if !(len(parts) == 2 && parts[0] == "Bearer") {
+          result.Failed(c, int(result.ApiCode.AUTHFORMATERROR), result.ApiCode.GetMessage(result.ApiCode.AUTHFORMATERROR))
+          c.Abort()
+          return
+       }
+       // 验证token
+       mc, err := jwt.ValidateToken(parts[1])
+       if err != nil {
+          result.Failed(c, int(result.ApiCode.INVALIDTOKEN), result.ApiCode.GetMessage(result.ApiCode.INVALIDTOKEN))
+          c.Abort()
+          return
+       }
+
+       c.Set(constant.ContextKeyUserObj, mc)
+       c.Next()
+    }
+}
+```
+
+### 8.13.3 controller
+
+接下来将除了登录接口的其他接口都添加安全校验。
+
+```go
+// Package controller 用户控制层
+package controller
+
+import (
+    "Go-Management-System/api/entity"
+    "Go-Management-System/api/service"
+    "strconv"
+
+    "github.com/gin-gonic/gin"
+)
+
+// Login 登录
+// @Summary 用户登录接口
+// @Produce json
+// @Description 用户登录接口
+// @param data body entity.LoginDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/login [post]
+func Login(c *gin.Context) {
+    var dto entity.LoginDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().Login(c, dto)
+}
+
+// CreateSysAdmin 创建用户
+// @Summary 创建用户接口
+// @Produce json
+// @Description 创建用户接口
+// @param data body entity.AddSysAdminDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/add [post]
+// @Security ApiKeyAuth
+func CreateSysAdmin(c *gin.Context) {
+    var addSysAdminDto entity.AddSysAdminDto
+    _ = c.BindJSON(&addSysAdminDto)
+    service.SysAdminService().CreateSysAdmin(c, addSysAdminDto)
+}
+
+// GetSysAdminInfo 根据id查询用户
+// @Summary 根据id查询用户
+// @Produce json
+// @Description 根据id查询用户
+// @param id query int true "id"
+// @Success 200 {object} result.Result
+// @router /api/admin/info [get]
+// @Security ApiKeyAuth
+func GetSysAdminInfo(c *gin.Context) {
+    Id, _ := strconv.Atoi(c.Query("id"))
+    service.SysAdminService().GetSysAdminInfo(c, Id)
+}
+
+// UpdateSysAdmin 修改用户
+// @Summary 修改用户
+// @Produce json
+// @Description 修改用户
+// @param data body entity.UpdateSysAdminDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/update [put]
+// @Security ApiKeyAuth
+func UpdateSysAdmin(c *gin.Context) {
+    var dto entity.UpdateSysAdminDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().UpdateSysAdmin(c, dto)
+}
+
+// DeleteSysAdminById 根据id删除用户
+// @Summary 根据id删除用户
+// @Produce json
+// @Description 根据id删除用户
+// @param data body entity.SysAdminIdDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/delete [delete]
+// @Security ApiKeyAuth
+func DeleteSysAdminById(c *gin.Context) {
+    var dto entity.SysAdminIdDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().DeleteSysAdminById(c, dto)
+}
+
+// UpdateSysAdminStatus 修改用户状态
+// @Summary 修改用户状态
+// @Produce json
+// @Description 修改用户状态
+// @param data body entity.UpdateSysAdminStatusDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/updateStatus [put]
+// @Security ApiKeyAuth
+func UpdateSysAdminStatus(c *gin.Context) {
+    var dto entity.UpdateSysAdminStatusDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().UpdateSysAdminStatus(c, dto)
+}
+
+// ResetSysAdminPassword 重置密码
+// @Summary 重置密码
+// @Produce json
+// @Description 重置密码
+// @param data body entity.ResetSysAdminPasswordDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/updatePassword [put]
+// @Security ApiKeyAuth
+func ResetSysAdminPassword(c *gin.Context) {
+    var dto entity.ResetSysAdminPasswordDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().ResetSysAdminPassword(c, dto)
+}
+
+// GetSysAdminList 分页查询用户
+// @Summary 分页查询用户
+// @Produce json
+// @Description 分页查询用户
+// @param pageNum query int false "分页数"
+// @Param pageSize query int false "每页数"
+// @Param username query string false "用户名"
+// @Param Status query string false "账号启用状态：1->启用，2->禁用"
+// @Param beginTime query string false "开始时间"
+// @Param endTime query string false "结束时间"
+// @Success 200 {object} result.Result
+// @router /api/admin/list [get]
+// @Security ApiKeyAuth
+func GetSysAdminList(c *gin.Context) {
+    pageNum, _ := strconv.Atoi(c.Query("pageNum"))
+    pageSize, _ := strconv.Atoi(c.Query("pageSize"))
+    Username := c.Query("username")
+    Status := c.Query("status")
+    BeginTime := c.Query("beginTime")
+    EndTime := c.Query("endTime")
+    service.SysAdminService().GetSysAdminList(c, pageSize, pageNum, Username, Status, BeginTime, EndTime)
+}
+
+// UpdatePersonal 修改个人信息
+// @Summary 修改个人信息
+// @Produce json
+// @Description 修改个人信息
+// @param data body entity.UpdatePersonalDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/updatePersonal [put]
+// @Security ApiKeyAuth
+func UpdatePersonal(c *gin.Context) {
+    var dto entity.UpdatePersonalDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().UpdatePersonal(c, dto)
+}
+
+// UpdatePersonalPassword 修改密码
+// @Summary 修改密码
+// @Produce json
+// @Description 修改密码
+// @param data body entity.UpdatePersonalPasswordDto true "data"
+// @Success 200 {object} result.Result
+// @router /api/admin/updatePersonalPassword [put]
+// @Security ApiKeyAuth
+func UpdatePersonalPassword(c *gin.Context) {
+    var dto entity.UpdatePersonalPasswordDto
+    _ = c.BindJSON(&dto)
+    service.SysAdminService().UpdatePersonalPassword(c, dto)
+}
+```
+
+### 8.13.4 swagger
+
+现在，只要没有登录获取token，就无法使用接口。
+
+![image-20260326125924168](assets/image-20260326125924168.png)
+
+但是如果进行登录，然后将`Bearer [token]`写入到Authorization中，就可以使用接口。
+
+![image-20260326130542429](assets/image-20260326130542429.png)

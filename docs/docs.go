@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/api/admin/add": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "创建用户接口",
                 "produces": [
                     "application/json"
@@ -45,6 +50,11 @@ const docTemplate = `{
         },
         "/api/admin/delete": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "根据id删除用户",
                 "produces": [
                     "application/json"
@@ -73,6 +83,11 @@ const docTemplate = `{
         },
         "/api/admin/info": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "根据id查询用户",
                 "produces": [
                     "application/json"
@@ -99,6 +114,11 @@ const docTemplate = `{
         },
         "/api/admin/list": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "分页查询用户",
                 "produces": [
                     "application/json"
@@ -154,6 +174,11 @@ const docTemplate = `{
         },
         "/api/admin/update": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "修改用户",
                 "produces": [
                     "application/json"
@@ -182,6 +207,11 @@ const docTemplate = `{
         },
         "/api/admin/updatePassword": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "重置密码",
                 "produces": [
                     "application/json"
@@ -210,6 +240,11 @@ const docTemplate = `{
         },
         "/api/admin/updatePersonal": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "修改个人信息",
                 "produces": [
                     "application/json"
@@ -238,6 +273,11 @@ const docTemplate = `{
         },
         "/api/admin/updatePersonalPassword": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "修改密码",
                 "produces": [
                     "application/json"
@@ -266,6 +306,11 @@ const docTemplate = `{
         },
         "/api/admin/updateStatus": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "修改用户状态",
                 "produces": [
                     "application/json"
