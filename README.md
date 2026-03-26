@@ -6269,3 +6269,13 @@ jwt.DELETE("/sysOperationLog/clean", controller.CleanSysOperationLog)
 由于现在项目根目录就是后端，因此在当前目录下通过`vue create admin-vue`来创建前端。
 
 **为了实现前后端分离，这里将项目根目录下的文件搬到`server`目录中作为后端，然后在当前根目录创建`admin-vue`来作为前端。唯一需要更改的是配置文件`config.go`中设置的路径需要改为`./server/config.yaml`。**
+
+然后在`admin-vue`目录下运行`npm install`，`npm run serve`后，就能在`http://localhost:8081/`访问到主页。
+
+![image-20260326191028126](assets/image-20260326191028126.png)
+
+## 11.1 创建基础目录结构
+
+![image-20260326191256898](assets/image-20260326191256898.png)
+
+这里api存放的是后端调用的接口，assets存放静态文件，components放置组件，permission放置权限，touer控制vue跳转，store存储数据，utils工具类，views存放页面。
