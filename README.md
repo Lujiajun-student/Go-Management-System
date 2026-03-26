@@ -6279,3 +6279,82 @@ jwt.DELETE("/sysOperationLog/clean", controller.CleanSysOperationLog)
 ![image-20260326191256898](assets/image-20260326191256898.png)
 
 这里api存放的是后端调用的接口，assets存放静态文件，components放置组件，permission放置权限，touer控制vue跳转，store存储数据，utils工具类，views存放页面。
+
+## 11.2 依赖并配置config文件
+
+![image-20260326193823763](assets/image-20260326193823763.png)
+
+接下来需要在`vue.config.js`中配置文件信息。
+
+```js
+const { defineConfig } = require('@vue/cli-service')
+module.exports = defineConfig({
+  lintOnSave: false, // 关闭校验
+  productionSourceMap: false, // 选择是否生成source map
+  publicPath: '/', // 部署应用时的基本url
+  outputDir: 'dist', // build输出的文件目录
+  assetsDir: 'assets', // 放置静态文件夹目录
+  devServer: {
+    port: 8081,
+    host: '0.0.0.0', // 运行域名
+    https: false, // 不需要https
+    open: false, // 是否直接打开浏览器
+    proxy: {
+      "/api": {
+        target:"http://localhost:8080", // 配置后端服务地址
+        changeOrigin: true,
+      }
+    },
+    client: {
+      overlay: false // 关闭全屏报错
+    }
+  },
+})
+```
+
+## 11.3 路由封装
+
+在router下创建`router.js`。
+
+为了指定路由地址，先创建三个简单页面，只需要在template中写好对应页面内容即可。
+
+![image-20260326194423985](assets/image-20260326194423985.png)
+
+接下来配置基础的路由`router.js`。
+
+```js
+// 封装路由
+
+import Vue from 'vue'
+import Router from 'vue-router'
+import Login from '@/views/Login.vue'
+import Home from '@/views/Home.vue'
+import Welcome from '@/views/Welcome.vue'
+
+const router = new Router({
+    routes: [
+        {path: '/', redirect: 'login'},
+        {path: '/login', component: Login },
+        {
+            path: 'home',
+            component: Home,
+            redirect: '/welcome',
+            children: [
+                {
+                path: '/welcome',
+                component: Welcome
+                }
+            ]
+        }
+    ]
+})
+export default router
+```
+
+在`App.vue`中添加`router-view`来给定路由转发后的渲染位置。
+
+这样就成功初始化了一个前端项目。
+
+![image-20260326200015259](assets/image-20260326200015259.png)
+
+![image-20260326200030176](assets/image-20260326200030176.png)
