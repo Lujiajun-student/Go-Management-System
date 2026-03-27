@@ -1,6 +1,18 @@
 import Vue from 'vue'
 import App from './App.vue'
-import router from "@/router/router";
+import router from "@/router/router"
+import store from "@/store"
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+import request from '@/utils/request'
+import storage from '@/utils/storage'
+import './assets/css/global.css'
+
+Vue.prototype.$storage = storage
+Vue.prototype.$request = request
+Vue.prototype.$store = store
+
+Vue.use(ElementUI)
 
 Vue.config.productionTip = false
 

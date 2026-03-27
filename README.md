@@ -6518,5 +6518,147 @@ const state = new Vuex.Store({
 export default state
 ```
 
+然后在`main.js`中进行全局配置。
+
+```js
+import Vue from 'vue'
+import App from './App.vue'
+import router from "@/router/router"
+import store from "@/store"
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+import request from '@/utils/request'
+import storage from '@/utils/storage'
+
+Vue.prototype.$storage = storage
+Vue.prototype.$request = request
+Vue.prototype.$store = store
+
+Vue.use(ElementUI)
+
+Vue.config.productionTip = false
+
+console.log("环境变量 -> ", process.env["VUE_APP_BASE_API"])
+
+new Vue({
+  router,
+  render: h => h(App),
+}).$mount('#app')
+```
+
 # 12. 登录页面开发
 
+![image-20260327103219944](assets/image-20260327103219944.png)
+
+首先设置全局样式，在`assets/css/global.css`中实现。
+
+```css
+/*全局样式*/
+html, body, #app {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+```
+
+这样，能够保证页面组件不会跑出屏幕。
+
+在`main.js`中引入即可。
+
+```js
+import './assets/css/global.css'
+```
+
+## 12.1 页面开发
+
+登录页面使用Element-UI来进行开发。需要找两张图片放到`assets/image`文件夹下，用来作为logo`logo.png`和登录页面背景`login-background.jpg`。
+
+```vue
+
+<template>
+  <div class="login_container">
+    <div class="login_box">
+      <el-form class="login_form">
+        <div class="title">
+          通用后台管理系统
+        </div>
+        <el-form-item prop="username">
+          <el-input placeholder="账号" prefix-icon="el-icon-user-solid"></el-input>
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input placeholder="密码" prefix-icon="el-icon-key"></el-input>
+        </el-form-item>
+        <el-form-item prop="验证码">
+          <el-input placeholder="验证码" prefix-icon="el-icon-view" style="width: 200px; float: left; " maxlength="6"/>
+          <el-image class="captchaImg" style="width: 150px; float: left;"/>
+        </el-form-item>
+        <el-form-item>
+          <el-row :gutter="20">
+            <el-col :span="12" :offset="0">
+              <el-button type="primary" style="width: 100%; font-size: large;">登录</el-button>
+            </el-col>
+            <el-col :span="12" :offset="0">
+              <el-button type="info" style="width: 100%; font-size: large;">重置</el-button>
+            </el-col>
+          </el-row>
+        </el-form-item>
+      </el-form>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "Login"
+}
+
+</script>
+
+<style lang="less" scoped>
+  .login_container {
+    background-image: url("../assets/image/login-background.jpg");
+    // 拉伸背景图片
+    background-size: cover;
+    height: 100%;
+    .login_box {
+      width: 400px;
+      height: 330px;
+      background: #fff;
+      border-radius: 1px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      .login_form {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        padding: 0 20px;
+        box-sizing: border-box;
+        .title {
+            font-size: 23px;
+            line-height: 1.5;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-style: italic;
+        }
+        .captchaImg {
+          height: 38px;
+          width: 100%;
+          border: 1px solid #e6e6e6;
+          margin-left: 8px;
+        }
+      }
+    }
+  }
+</style>
+```
+
+这里创建了一个静态页面。
+
+![image-20260327112810388](assets/image-20260327112810388.png)
+
+# 13. 验证码前后端对接
+
+现在需要实现从后端获取验证码图片放到登录页面上。

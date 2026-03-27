@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 import mutations from './mutations'
 
 Vue.use(Vuex)
+
 const state = new Vuex.Store({
     // todo
     mutations
