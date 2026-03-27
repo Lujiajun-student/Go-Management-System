@@ -4,7 +4,7 @@
 
 export default {
     getStorage(){
-        return JSON.parse(window.localStorage.getItem(process.env["VUE_APP_BASE_API"]) || "{}")
+        return JSON.parse(window.localStorage.getItem(process.env["VUE_APP_NAME_SPACE"]) || "{}")
     },
     setItem(key, val) {
         let storage = this.getStorage()

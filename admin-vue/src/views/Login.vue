@@ -89,6 +89,10 @@ export default {
             this.$message.error(res.message)
           } else {
             this.$message.success("登录成功")
+            this.$store.commit('saveSysAdmin', res.data.sysAdmin)
+            this.$store.commit('saveToken', res.data.token)
+            this.$store.commit('saveLeftMenuList', res.data.leftMenuList)
+            this.$store.commit('savePermissionList', res.data.permissionList)
             this.$router.push("/home")
           }
         } else {

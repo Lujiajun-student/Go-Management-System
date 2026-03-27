@@ -6462,7 +6462,7 @@ export default request
 
 export default {
     getStorage(){
-        return JSON.parse(window.localStorage.getItem(process.env["VUE_APP_BASE_API"]) || "{}")
+        return JSON.parse(window.localStorage.getItem(process.env["VUE_APP_NAME_SPACE"]) || "{}")
     },
     setItem(key, val) {
         let storage = this.getStorage()
@@ -7026,3 +7026,85 @@ this.loginForm.id_key = res.data.idKey
 ![image-20260327123959316](assets/image-20260327123959316.png)
 
 ## 12.4 数据存储
+
+登录后，需要将用户的信息存储在localStorage中。可以在前端的登录方法中实现。
+
+```js
+// 登录
+loginBtn() {
+  this.$refs.loginFormRef.validate(async valid => {
+    // console.log("传输参数：", this.loginForm)
+    if (valid) {
+      const {data: res} = await this.$api.login(this.loginForm)
+      // console.log("获取登录的res数据：", res)
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      } else {
+        this.$message.success("登录成功")
+        this.$store.commit('saveSysAdmin', res.data.sysAdmin)
+        this.$store.commit('saveToken', res.data.token)
+        this.$store.commit('saveLeftMenuList', res.data.leftMenuList)
+        this.$store.commit('savePermissionList', res.data.permissionList)
+        this.$router.push("/home")
+      }
+    } else {
+      return false
+    }
+  })
+}
+```
+
+然后在store的`mutations.js`中写好对应的方法。
+
+```js
+// 处理业务数据提交
+
+import storage from "@/utils/storage";
+
+export default {
+    // todo
+    saveSysAdmin(state, sysAdmin) {
+        state.sysAdmin = sysAdmin
+        storage.setItem('sysAdmin', sysAdmin)
+    },
+    saveToken(state, token) {
+        state.token = token
+        storage.setItem('token', token)
+    },
+    saveLeftMenuList(state, leftMenuList) {
+        state.leftMenuList = leftMenuList
+        storage.setItem('leftMenuList', leftMenuList)
+    },
+    savePermissionList(state, permissionList) {
+        state.permissionList = permissionList
+        storage.setItem('permissionList', permissionList)
+    }
+}
+```
+
+然后在同级的`index.js`中初始化变量，如果storage存在则使用里面的数据进行初始化，否则初始为空。
+
+```js
+// vuex状态管理
+import Vue from 'vue'
+import Vuex from 'vuex'
+import mutations from './mutations'
+import storage from "@/utils/storage";
+
+Vue.use(Vuex)
+
+const state = new Vuex.Store({
+    sysAdmin: "" || storage.getItem("sysAdmin"),
+    token: "" || storage.getItem("token"),
+    leftMenuList: "" || storage.getItem("leftMenuList"),
+    permissionList: "" || storage.getItem("permissionList"),
+    mutations
+})
+
+export default state
+```
+
+这样，登录后，就能在localStorage中保存用户信息。
+
+![image-20260327200514263](assets/image-20260327200514263.png)
+
