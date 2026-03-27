@@ -6365,7 +6365,7 @@ export default router
 
 ```
 NODE_ENV = dev
-VUE_APP_BASE_API = '/dev-api'
+VUE_APP_BASE_API = '/api'
 ```
 
 ```
@@ -6487,7 +6487,7 @@ export default {
 
 ```js
 NODE_ENV = dev
-VUE_APP_BASE_API = '/dev-api'
+VUE_APP_BASE_API = '/api'
 VUE_APP_NAME_SPACE = 'admin-go-vue'
 ```
 
@@ -6546,7 +6546,7 @@ new Vue({
 }).$mount('#app')
 ```
 
-# 12. 登录页面开发
+# 12. 登录交互开发
 
 ![image-20260327103219944](assets/image-20260327103219944.png)
 
@@ -6659,6 +6659,167 @@ export default {
 
 ![image-20260327112810388](assets/image-20260327112810388.png)
 
-# 13. 验证码前后端对接
+## 12.2 验证码前后端对接
 
 现在需要实现从后端获取验证码图片放到登录页面上。
+
+在api下创建`index.js`，创建获取验证码的请求。
+
+```js
+/*
+后端api接口管理
+ */
+
+import request from '@/utils/request'
+
+export default {
+    captcha() {
+        return request ({
+            url: '/captcha',
+            method: 'get'
+        })
+    }
+}
+```
+
+然后在`main.js`中引用这个api文件。
+
+```js
+import api from './api'
+
+Vue.prototype.$api = api
+```
+
+这样就能通过`this`指针来使用api。
+
+然后在`Login.vue`中的script部分创建`getCaptcha`函数，并在`created`勾子函数中使用，在页面初始化时就发送请求，就能获取到验证码数据。
+
+```vue
+<script>
+export default {
+  name: "Login",
+  data() {
+    return {
+
+    }
+  },
+  methods: {
+    // 获取验证码
+    async getCaptcha() {
+      const {data: res} = await this.$api.captcha()
+      console.log("获取验证码成功：", res)
+    }
+  },
+  created() {
+    this.getCaptcha()
+  }
+}
+
+</script>
+```
+
+然后创建image字符串接收`getCaptcha`返回的`image`地址，在验证码image标签中设置src为该image即可展示图片。
+
+```vue
+
+<template>
+  <div class="login_container">
+    <div class="login_box">
+      <el-form class="login_form">
+        <div class="title">
+          通用后台管理系统
+        </div>
+        <el-form-item prop="username">
+          <el-input placeholder="账号" prefix-icon="el-icon-user-solid"></el-input>
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input placeholder="密码" prefix-icon="el-icon-key"></el-input>
+        </el-form-item>
+        <el-form-item prop="验证码">
+          <el-input placeholder="验证码" prefix-icon="el-icon-view" style="width: 200px; float: left; " maxlength="6"/>
+          <el-image class="captchaImg" style="width: 150px; float: left;" :src="image" @click="getCaptcha()"/>
+        </el-form-item>
+        <el-form-item>
+          <el-row :gutter="20">
+            <el-col :span="12" :offset="0">
+              <el-button type="primary" style="width: 100%; font-size: large;">登录</el-button>
+            </el-col>
+            <el-col :span="12" :offset="0">
+              <el-button type="info" style="width: 100%; font-size: large;">重置</el-button>
+            </el-col>
+          </el-row>
+        </el-form-item>
+      </el-form>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "Login",
+  data() {
+    return {
+      image: '',
+    }
+  },
+  methods: {
+    // 获取验证码
+    async getCaptcha() {
+      const {data: res} = await this.$api.captcha()
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      }else {
+        this.image = res.data.image
+      }
+    }
+  },
+  created() {
+    this.getCaptcha()
+  }
+}
+
+</script>
+
+<style lang="less" scoped>
+  .login_container {
+    background-image: url("../assets/image/login-background.jpg");
+    // 拉伸背景图片
+    background-size: cover;
+    height: 100%;
+    .login_box {
+      width: 400px;
+      height: 330px;
+      background: #fff;
+      border-radius: 1px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      .login_form {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        padding: 0 20px;
+        box-sizing: border-box;
+        .title {
+            font-size: 23px;
+            line-height: 1.5;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-style: italic;
+        }
+        .captchaImg {
+          height: 38px;
+          width: 100%;
+          border: 1px solid #e6e6e6;
+          margin-left: 8px;
+        }
+      }
+    }
+  }
+
+</style>
+```
+
+![image-20260327115841419](assets/image-20260327115841419.png)
