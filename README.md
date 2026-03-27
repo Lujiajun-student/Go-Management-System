@@ -6358,3 +6358,165 @@ export default router
 ![image-20260326200015259](assets/image-20260326200015259.png)
 
 ![image-20260326200030176](assets/image-20260326200030176.png)
+
+## 11.4 环境配置
+
+环境需要配置为开发环境、测试环境和生产环境，分别为`.env.dev`, `.env.test`, `.env.pro`三个文件。
+
+```
+NODE_ENV = dev
+VUE_APP_BASE_API = '/dev-api'
+```
+
+```
+NODE_ENV = test
+VUE_APP_BASE_API = '/test-api'
+```
+
+```
+NODE_ENV = pro
+VUE_APP_BASE_API = '/pro-api'
+```
+
+然后在`package.json`中将serve的启动代码添加上`--mode dev`，这样就改为在开发环境下使用。
+
+![image-20260326200900902](assets/image-20260326200900902.png)
+
+在`main.js`中能够通过`process.env["VUE_APP_BASE_API"]`来获取环境。
+
+![image-20260326201113660](assets/image-20260326201113660.png)
+
+## 11.5 axios统一封装
+
+由于后面需要多次调用网络请求，因此需要将axios进行封装，让其他地方能够调用结构化方法。在utils下创建`request.js`。
+
+```js
+/*
+封装axios
+ */
+import {Message} from "element-ui"
+import axios from 'axios'
+import router from "@/router/router";
+
+// 创建axios对象
+const service = axios.create({
+    baseURL: process.env["VUE_APP_BASE_API"],
+    timeout: 8000
+})
+
+// 请求拦截，加上token
+service.interceptors.request.use((req) => {
+    const headers = req.headers
+    // todo token
+    if (!headers.Authorization) {
+        headers.Authorization = 'Bearer + Lu'
+    }
+    return req
+})
+
+// 响应拦截
+service.interceptors.response.use((res) => {
+    // 与后端的result结构体对应
+    const {code, data, message} = res.data
+    // 403 无权限
+    if (code === 403) {
+        Message.error(message)
+        setTimeout(() => {
+            // todo 清除存储信息
+            router.push("/login")
+        }, 1500)
+    }else if (code === 406) {
+        // token过期
+        Message.error(message)
+        setTimeout(() => {
+            router.push("/login")
+        }, 1500)
+    }else {
+        return res
+    }
+})
+
+// 请求核心函数
+function request(options) {
+    options.method = options.method || 'get'
+    if (options.method.toLowerCase() === 'get') {
+        options.params = options.data
+    }
+    service.defaults.baseURL = process.env["VUE_APP_BASE_API"]
+    return service(options)
+}
+
+export default request
+```
+
+使用service初始化了一个axios对象，同时设置了请求拦截和相应拦截方法，在通过request方法将service封装并进行返回，这样就能使用request，输入options参数来创建一个axios实例了。
+
+## 11.6 storage封装
+
+后端向前端返回数据后，前端需要有容器能够保存数据。在utils下的`storage.js`中实现。
+
+```js
+/*
+ * storage 封装
+ */
+
+export default {
+    getStorage(){
+        return JSON.parse(window.localStorage.getItem(process.env["VUE_APP_BASE_API"]) || "{}")
+    },
+    setItem(key, val) {
+        let storage = this.getStorage()
+        storage[key] = val
+        window.localStorage.setItem(process.env["VUE_APP_NAME_SPACE"], JSON.stringify(storage))
+    },
+    getItem(key) {
+        return this.getStorage()[key]
+    },
+    clearItem(key) {
+        let storage = this.getStorage()
+        delete storage[key]
+        window.localStorage.setItem(process.env["VUE_APP_NAME_SPACE"], JSON.stringify(storage))
+    },
+    clearAll() {
+        window.localStorage.clear()
+    }
+}
+```
+
+同时需要在`.env.dev`中添加`VUE_APP_NAME_SPACE`。
+
+```js
+NODE_ENV = dev
+VUE_APP_BASE_API = '/dev-api'
+VUE_APP_NAME_SPACE = 'admin-go-vue'
+```
+
+这样，就能在`VUE_APP_BASE_API`环境的localStorage下使用setItem和getItem来读写数据。
+
+然后在store中构建`mutations.js`和`index.js`，供后面的数据管理使用。
+
+```js
+// 处理业务数据提交
+
+export default {
+    // todo
+}
+```
+
+```js
+// vuex状态管理
+import Vue from 'vue'
+import Vuex from 'vuex'
+import mutations from './mutations'
+
+Vue.use(Vuex)
+const state = new Vuex.Store({
+    // todo
+    mutations
+})
+
+export default state
+```
+
+# 12. 登录页面开发
+
