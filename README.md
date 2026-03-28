@@ -7108,3 +7108,232 @@ export default state
 
 ![image-20260327200514263](assets/image-20260327200514263.png)
 
+## 12.5 路由导航
+
+部分页面可能不会向未登录用户开放，因此需要在访问页面前，先进行路由导航。如果在localStorage中存在token，就能访问，否则跳转到login页面进行登录。在router的`router.js`中实现。
+
+```js
+// 封装路由
+
+import Vue from 'vue'
+import Router from 'vue-router'
+import Login from '@/views/Login.vue'
+import Home from '@/views/Home.vue'
+import Welcome from '@/views/Welcome.vue'
+import storage from "@/utils/storage";
+
+Vue.use(Router)
+
+const router = new Router({
+    // 去掉路径的#
+    mode: 'history',
+    routes: [
+        {path: '/', redirect: '/login'},
+        {path: '/login', component: Login },
+        {
+            path: '/home',
+            component: Home,
+            redirect: '/welcome',
+            children: [
+                {
+                path: '/welcome',
+                component: Welcome
+                }
+            ]
+        }
+    ]
+})
+
+// 挂载路由导航数据
+router.beforeEach((to, from, next) => {
+    if (to.path === '/login') {
+        return next
+    }
+    const tokenStr = storage.getItem("token")
+    if (!tokenStr) {
+        return next('/login')
+    }
+    next()
+})
+
+export default router
+```
+
+现在如果不登录，就无法访问`/welcome`和`/home`页面，会强制跳转到login页面。
+
+接下来完善utils的`request.js`，实现获取token、过期时清空localStorage等功能。
+
+```js
+/*
+封装axios
+ */
+import {Message} from "element-ui"
+import axios from 'axios'
+import router from "@/router/router";
+import storage from "@/utils/storage";
+
+// 创建axios对象
+const service = axios.create({
+    baseURL: process.env["VUE_APP_BASE_API"],
+    timeout: 8000
+})
+
+// 请求拦截，加上token
+service.interceptors.request.use((req) => {
+    const headers = req.headers
+    // 从localStorage中获取token
+    const token = storage.getItem("token") || {}
+
+    if (!headers.Authorization) {
+        headers.Authorization = 'Bearer ' + token
+    }
+    return req
+})
+
+// 响应拦截
+service.interceptors.response.use((res) => {
+    // 与后端的result结构体对应
+    const {code, data, message} = res.data
+    // 403 无权限
+    if (code === 403) {
+        Message.error(message)
+        setTimeout(() => {
+            // 清除localStorage
+            storage.clearAll()
+            router.push("/login")
+        }, 1500)
+    }else if (code === 406) {
+        // token过期
+        Message.error(message)
+        setTimeout(() => {
+            // 清空localStorage
+            storage.clearAll()
+            router.push("/login")
+        }, 1500)
+    }else {
+        return res
+    }
+})
+
+// 请求核心函数
+function request(options) {
+    options.method = options.method || 'get'
+    if (options.method.toLowerCase() === 'get') {
+        options.params = options.data
+    }
+    service.defaults.baseURL = process.env["VUE_APP_BASE_API"]
+    return service(options)
+}
+
+export default request
+```
+
+# 13. 首页开发
+
+首页分为左侧菜单栏、顶部导航栏和中间的内容。现在首先开发左侧的菜单栏。
+
+## 13.1 左侧菜单栏
+
+使用`element-UI`来构建布局，先实现初始布局。
+
+```vue
+<script>
+import storage from "@/utils/storage";
+
+export default {
+  name: "Home",
+  data() {
+    return {
+      leftMenuList: storage.getItem("leftMenuList")
+    }
+},
+  computed: {
+    // 无子集
+    noChildren() {
+      return this.leftMenuList.filter(item => !item.menuSVoList)
+    },
+    // 有子集
+    hasChildren() {
+      return this.leftMenuList.filter(item => item.menuSVoList)
+    }
+  }
+}
+</script>
+run
+<template>
+  <el-container class="home-container">
+    <el-aside class="el-aside">
+      <div class="logo">
+        <img src="../assets/image/logo.png" class="sidebar-logo"/>
+        <h3>通用后台管理系统</h3>
+      </div>
+      <el-menu class="el-menu" background-color="#304156" text-color="#fff" unique-opened>
+<!--        无子集菜单-->
+        <el-menu-item :index="'/' + item.url" v-for="item in noChildren" :key="item.menuName">
+          <i :class="item.icon"></i>
+          <template slot="title">
+            <span>{{item.menuName}}</span>
+          </template>
+        </el-menu-item>
+<!--        有子集菜单-->
+        <el-submenu :index="item.id + ''" v-for="item in hasChildren" :key="item.id">
+          <template slot="title">
+            <i :class="item.icon"></i>
+            <span>{{ item.menuName }}</span>
+          </template>
+          <el-menu-item :index="'/' + subItem.url" v-for="subItem in item.menuSVoList" :key="subItem.id">
+            <template slot="title">
+              <i :class="subItem.icon"></i>
+              <span>{{subItem.menuName}}</span>
+            </template>
+          </el-menu-item>
+
+        </el-submenu>
+      </el-menu>
+    </el-aside>
+    <el-container>
+      <el-header class="el-header">Header</el-header>
+      <el-main class="el-main">Main</el-main>
+    </el-container>
+  </el-container>
+</template>
+
+<style lang = "less" scoped>
+  .home-container {
+    height: 100%;
+    .el-aside {
+      background-color: #304156;
+      .logo {
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        height: 50px;
+        color: #fff;
+        font-style: italic;
+        .sidebar-logo {
+          width: 32px;
+          height: 32px;
+          margin: 0 16px;
+        }
+      }
+      .el-menu {
+        border-right: none;
+      }
+    }
+    .el-header {
+      background-color: #f9fafc;
+    }
+    .el-main {
+      background-color: #eaedf1;
+    }
+  }
+</style>
+```
+
+这样，就能够在localStorage中获取到后端传过来的`menuSVoList`数据，在这里作为左侧列表展示。
+
+
+
+![image-20260328135814394](assets/image-20260328135814394.png)
+

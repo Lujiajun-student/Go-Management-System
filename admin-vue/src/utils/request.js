@@ -4,6 +4,7 @@
 import {Message} from "element-ui"
 import axios from 'axios'
 import router from "@/router/router";
+import storage from "@/utils/storage";
 
 // 创建axios对象
 const service = axios.create({
@@ -14,9 +15,11 @@ const service = axios.create({
 // 请求拦截，加上token
 service.interceptors.request.use((req) => {
     const headers = req.headers
-    // todo token
+    // 从localStorage中获取token
+    const token = storage.getItem("token") || {}
+
     if (!headers.Authorization) {
-        headers.Authorization = 'Bearer + Lu'
+        headers.Authorization = 'Bearer ' + token
     }
     return req
 })
@@ -29,13 +32,16 @@ service.interceptors.response.use((res) => {
     if (code === 403) {
         Message.error(message)
         setTimeout(() => {
-            // todo 清除存储信息
+            // 清除localStorage
+            storage.clearAll()
             router.push("/login")
         }, 1500)
     }else if (code === 406) {
         // token过期
         Message.error(message)
         setTimeout(() => {
+            // 清空localStorage
+            storage.clearAll()
             router.push("/login")
         }, 1500)
     }else {
