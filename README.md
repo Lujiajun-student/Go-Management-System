@@ -7677,3 +7677,523 @@ run
   }
 </style>
 ```
+
+## 13.4 顶部栏的展开折叠图标
+
+使用`element-UI`库能够实现这个图标。在原本的Header的标签内实现。
+
+```vue
+<script>
+import storage from "@/utils/storage";
+
+export default {
+  name: "Home",
+  data() {
+    return {
+      leftMenuList: storage.getItem("leftMenuList"),
+      activePath: '',
+      collapseBtnClass: "el-icon-s-fold"
+    }
+},
+  computed: {
+    // 无子集
+    noChildren() {
+      return this.leftMenuList.filter(item => !item.menuSVoList)
+    },
+    // 有子集
+    hasChildren() {
+      return this.leftMenuList.filter(item => item.menuSVoList)
+    }
+  },
+  methods: {
+    saveNavState(activePath) {
+      storage.setItem('activePath', activePath)
+      this.activePath = activePath
+    }
+  }
+}
+</script>
+run
+<template>
+  <el-container class="home-container">
+    <el-aside class="el-aside">
+      <div class="logo">
+        <img src="../assets/image/logo.png" class="sidebar-logo"/>
+        <h3>通用后台管理系统</h3>
+      </div>
+      <el-menu class="el-menu" background-color="#304156" text-color="#fff" unique-opened router :default-active="$route.path">
+<!--        无子集菜单-->
+        <el-menu-item :index="'/' + item.url" v-for="item in noChildren" :key="item.menuName"
+        @click="saveNavState('/' + item.url)">
+          <i :class="item.icon"></i>
+          <template slot="title">
+            <span>{{item.menuName}}</span>
+          </template>
+        </el-menu-item>
+<!--        有子集菜单-->
+        <el-submenu :index="item.id + ''" v-for="item in hasChildren" :key="item.id"
+                    @click="saveNavState('/' + item.url)">
+          <template slot="title">
+            <i :class="item.icon"></i>
+            <span>{{ item.menuName }}</span>
+          </template>
+          <el-menu-item :index="'/' + subItem.url" v-for="subItem in item.menuSVoList" :key="subItem.id">
+            <template slot="title">
+              <i :class="subItem.icon"></i>
+              <span>{{subItem.menuName}}</span>
+            </template>
+          </el-menu-item>
+        </el-submenu>
+      </el-menu>
+    </el-aside>
+    <el-container>
+      <el-header class="el-header">
+<!--        顶部栏设置-->
+        <div class="fold-btn">
+          <i :class="collapseBtnClass"></i>
+        </div>
+      </el-header>
+      <el-main class="el-main">
+        <router-view/>
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+
+<style lang = "less" scoped>
+  .home-container {
+    height: 100%;
+    .el-aside {
+      background-color: #304156;
+      .logo {
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        height: 50px;
+        color: #fff;
+        font-style: italic;
+        .sidebar-logo {
+          width: 32px;
+          height: 32px;
+          margin: 0 16px;
+        }
+      }
+      .el-menu {
+        border-right: none;
+      }
+    }
+    .el-header {
+      background-color: #f9fafc;
+      align-items: center;
+      justify-content: space-between;
+      display: flex;
+      .fold-btn {
+        padding-top: 2px;
+        font-size: 23px;
+        cursor: pointer;
+      }
+    }
+    .el-main {
+      background-color: #eaedf1;
+    }
+  }
+</style>
+```
+
+## 13.5 实现侧边栏的展开与折叠
+
+侧边栏展开的class为`el-icon-s-unfold`，折叠的class为`el-icon-s-fold`。
+
+在顶部的展开折叠标签上设置点击事件，让menu标签的`:collapse`更新为true或false即可实现折叠或展开的功能。
+
+```vue
+<script>
+import storage from "@/utils/storage";
+
+export default {
+  name: "Home",
+  data() {
+    return {
+      leftMenuList: storage.getItem("leftMenuList"),
+      activePath: '',
+      collapseBtnClass: "el-icon-s-fold",
+      isCollapse: false,
+    }
+},
+  computed: {
+    // 无子集
+    noChildren() {
+      return this.leftMenuList.filter(item => !item.menuSVoList)
+    },
+    // 有子集
+    hasChildren() {
+      return this.leftMenuList.filter(item => item.menuSVoList)
+    }
+  },
+  methods: {
+    // 保持路由激活
+    saveNavState(activePath) {
+      storage.setItem('activePath', activePath)
+      this.activePath = activePath
+    },
+    // 顶部栏展开和折叠
+    toggleCollapse() {
+      this.isCollapse = !this.isCollapse
+      if (this.isCollapse) {
+        this.collapseBtnClass = 'el-icon-s-unfold'
+      } else {
+        this.collapseBtnClass = 'el-icon-s-fold'
+      }
+    }
+  }
+}
+</script>
+run
+<template>
+  <el-container class="home-container">
+    <el-aside class="el-aside" :width="isCollapse? '64px' : '200px' ">
+      <div class="logo">
+        <img src="../assets/image/logo.png" class="sidebar-logo"/>
+        <h3 v-show="!isCollapse">通用后台管理系统</h3>
+      </div>
+      <el-menu class="el-menu" background-color="#304156" text-color="#fff" unique-opened router :default-active="$route.path"
+               :collapse="isCollapse" :collapse-transition="false">
+<!--        无子集菜单-->
+        <el-menu-item :index="'/' + item.url" v-for="item in noChildren" :key="item.menuName"
+        @click="saveNavState('/' + item.url)">
+          <i :class="item.icon"></i>
+          <template slot="title">
+            <span>{{item.menuName}}</span>
+          </template>
+        </el-menu-item>
+<!--        有子集菜单-->
+        <el-submenu :index="item.id + ''" v-for="item in hasChildren" :key="item.id"
+                    @click="saveNavState('/' + item.url)">
+          <template slot="title">
+            <i :class="item.icon"></i>
+            <span>{{ item.menuName }}</span>
+          </template>
+          <el-menu-item :index="'/' + subItem.url" v-for="subItem in item.menuSVoList" :key="subItem.id">
+            <template slot="title">
+              <i :class="subItem.icon"></i>
+              <span>{{subItem.menuName}}</span>
+            </template>
+          </el-menu-item>
+        </el-submenu>
+      </el-menu>
+    </el-aside>
+    <el-container>
+      <el-header class="el-header">
+<!--        顶部栏设置-->
+        <div class="fold-btn">
+          <i :class="collapseBtnClass" @click="toggleCollapse"></i>
+        </div>
+      </el-header>
+      <el-main class="el-main">
+        <router-view/>
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+
+<style lang = "less" scoped>
+  .home-container {
+    height: 100%;
+    .el-aside {
+      background-color: #304156;
+      .logo {
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        height: 50px;
+        color: #fff;
+        font-style: italic;
+        .sidebar-logo {
+          width: 32px;
+          height: 32px;
+          margin: 0 16px;
+        }
+      }
+      .el-menu {
+        border-right: none;
+      }
+    }
+    .el-header {
+      background-color: #f9fafc;
+      align-items: center;
+      justify-content: space-between;
+      display: flex;
+      .fold-btn {
+        padding-top: 2px;
+        font-size: 23px;
+        cursor: pointer;
+      }
+    }
+    .el-main {
+      background-color: #eaedf1;
+    }
+  }
+</style>
+```
+
+## 13.6 面包屑
+
+接下来需要实现点击侧边栏展开后，在顶部栏写`首页\XX\XX`的功能。
+
+如果要实现这个功能，需要在路由转发的时候，携带meta数据。在`router.js`中实现。
+
+```js
+// 封装路由
+
+import Vue from 'vue'
+import Router from 'vue-router'
+import Login from '@/views/Login.vue'
+import Home from '@/views/Home.vue'
+import Welcome from '@/views/Welcome.vue'
+import storage from "@/utils/storage";
+import Personal from '@/views/Personal'
+import Admin from '@/views/base/Admin'
+import Role from '@/views/base/Role'
+import Dept from '@/views/base/Dept'
+import Post from '@/views/base/Post'
+import LoginLog from '@/views/monitor/LoginLog'
+import Operator from '@/views/monitor/Operator'
+import Menu from '@/views/base/Menu'
+
+Vue.use(Router)
+
+const router = new Router({
+    // 去掉路径的#
+    mode: 'history',
+    routes: [
+        {path: '/', redirect: '/login'},
+        {path: '/login', component: Login },
+        {
+            path: '/home',
+            component: Home,
+            redirect: '/welcome',
+            children: [
+                {
+                    path: '/welcome',
+                    component: Welcome,
+                    meta: {tTitle: '首页'}
+                },
+                {
+                    path: '/personal',
+                    component: Personal,
+                    meta: {sTitle: '个人中心', tTitle: '个人信息'}
+                },
+                {
+                    path: '/base/admin',
+                    component: Admin,
+                    meta: {sTitle: '基础管理', tTitle: '用户信息'}
+                },
+                {
+                    path: '/base/role',
+                    component: Role,
+                    meta: {sTitle: '基础管理', tTitle: '角色信息'}
+                },
+                {
+                    path: '/base/menu',
+                    component: Menu,
+                    meta: {sTitle: '基础管理', tTitle: '菜单信息'}
+                },
+                {
+                    path: '/base/dept',
+                    component: Dept,
+                    meta: {sTitle: '基础管理', tTitle: '部门信息'}
+                },
+                {
+                    path: '/base/post',
+                    component: Post,
+                    meta: {sTitle: '基础管理', tTitle: '岗位信息'}
+                },
+                {
+                    path: '/monitor/loginLog',
+                    component: LoginLog,
+                    meta: {sTitle: '日志管理', tTitle: '登录日志'}
+                },
+                {
+                    path: '/monitor/operator',
+                    component: Operator,
+                    meta: {sTitle: '日志管理', tTitle: '操作日志'}
+                }
+            ]
+        }
+    ]
+})
+
+// 挂载路由导航数据
+router.beforeEach((to, from, next) => {
+    if (to.path === '/login') {
+        return next()
+    }
+    const tokenStr = storage.getItem("token")
+    if (!tokenStr) {
+        return next('/login')
+    }
+    next()
+})
+
+export default router
+```
+
+这样，在路由转发时，就会携带这里的meta数据。
+
+然后在Home页面的顶部栏使用`el-breadcrumb`来创建面包屑组件，在里面使用`el-breadcrumb-item`来写面包屑内容。
+
+```vue
+<script>
+import storage from "@/utils/storage";
+
+export default {
+  name: "Home",
+  data() {
+    return {
+      leftMenuList: storage.getItem("leftMenuList"),
+      activePath: '',
+      collapseBtnClass: "el-icon-s-fold",
+      isCollapse: false,
+    }
+},
+  computed: {
+    // 无子集
+    noChildren() {
+      return this.leftMenuList.filter(item => !item.menuSVoList)
+    },
+    // 有子集
+    hasChildren() {
+      return this.leftMenuList.filter(item => item.menuSVoList)
+    }
+  },
+  methods: {
+    // 保持路由激活
+    saveNavState(activePath) {
+      storage.setItem('activePath', activePath)
+      this.activePath = activePath
+    },
+    // 顶部栏展开和折叠
+    toggleCollapse() {
+      this.isCollapse = !this.isCollapse
+      if (this.isCollapse) {
+        this.collapseBtnClass = 'el-icon-s-unfold'
+      } else {
+        this.collapseBtnClass = 'el-icon-s-fold'
+      }
+    }
+  }
+}
+</script>
+run
+<template>
+  <el-container class="home-container">
+    <el-aside class="el-aside" :width="isCollapse? '64px' : '200px' ">
+      <div class="logo">
+        <img src="../assets/image/logo.png" class="sidebar-logo"/>
+        <h3 v-show="!isCollapse">通用后台管理系统</h3>
+      </div>
+      <el-menu class="el-menu" background-color="#304156" text-color="#fff" unique-opened router :default-active="$route.path"
+               :collapse="isCollapse" :collapse-transition="false">
+<!--        无子集菜单-->
+        <el-menu-item :index="'/' + item.url" v-for="item in noChildren" :key="item.menuName"
+        @click="saveNavState('/' + item.url)">
+          <i :class="item.icon"></i>
+          <template slot="title">
+            <span>{{item.menuName}}</span>
+          </template>
+        </el-menu-item>
+<!--        有子集菜单-->
+        <el-submenu :index="item.id + ''" v-for="item in hasChildren" :key="item.id"
+                    @click="saveNavState('/' + item.url)">
+          <template slot="title">
+            <i :class="item.icon"></i>
+            <span>{{ item.menuName }}</span>
+          </template>
+          <el-menu-item :index="'/' + subItem.url" v-for="subItem in item.menuSVoList" :key="subItem.id">
+            <template slot="title">
+              <i :class="subItem.icon"></i>
+              <span>{{subItem.menuName}}</span>
+            </template>
+          </el-menu-item>
+        </el-submenu>
+      </el-menu>
+    </el-aside>
+    <el-container>
+      <el-header class="el-header">
+<!--        顶部栏设置-->
+        <div class="fold-btn">
+          <i :class="collapseBtnClass" @click="toggleCollapse"></i>
+        </div>
+<!--        面包屑功能-->
+        <div class="bread-btn">
+<!--          当前处于首页，面包屑首个元素为首页-->
+          <el-breadcrumb separator="/" v-if="$router.currentRoute.path !== '/welcome'">
+            <el-breadcrumb-item :to="{path: '/welcome'}">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>{{$route.meta.sTitle}}</el-breadcrumb-item>
+            <el-breadcrumb-item>{{$route.meta.tTitle}}</el-breadcrumb-item>
+          </el-breadcrumb>
+<!--          不在首页，不需要显示首页-->
+          <el-breadcrumb separator="/" v-else>
+            <el-breadcrumb-item>{{$route.meta.sTitle}}</el-breadcrumb-item>
+            <el-breadcrumb-item>{{$route.meta.tTitle}}</el-breadcrumb-item>
+          </el-breadcrumb>
+        </div>
+      </el-header>
+      <el-main class="el-main">
+        <router-view/>
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+
+<style lang = "less" scoped>
+  .home-container {
+    height: 100%;
+    .el-aside {
+      background-color: #304156;
+      .logo {
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        height: 50px;
+        color: #fff;
+        font-style: italic;
+        .sidebar-logo {
+          width: 32px;
+          height: 32px;
+          margin: 0 16px;
+        }
+      }
+      .el-menu {
+        border-right: none;
+      }
+    }
+    .el-header {
+      background-color: #f9fafc;
+      align-items: center;
+      justify-content: space-between;
+      display: flex;
+      .fold-btn {
+        padding-top: 2px;
+        font-size: 23px;
+        cursor: pointer;
+      }
+    .bread-btn {
+      padding-top: 2px;
+      position: fixed;
+      margin-left: 40px;
+    }
+    }
+    .el-main {
+      background-color: #eaedf1;
+    }
+  }
+</style>
+```
+
+![image-20260328174541328](assets/image-20260328174541328.png)
+
+这样，页面左上角就存在面包屑，同时能够点击首页来返回首页。

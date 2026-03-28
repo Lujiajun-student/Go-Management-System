@@ -29,40 +29,49 @@ const router = new Router({
             redirect: '/welcome',
             children: [
                 {
-                path: '/welcome',
-                component: Welcome
+                    path: '/welcome',
+                    component: Welcome,
+                    meta: {tTitle: '首页'}
                 },
                 {
                     path: '/personal',
-                    component: Personal
+                    component: Personal,
+                    meta: {sTitle: '个人中心', tTitle: '个人信息'}
                 },
                 {
                     path: '/base/admin',
-                    component: Admin
+                    component: Admin,
+                    meta: {sTitle: '基础管理', tTitle: '用户信息'}
                 },
                 {
                     path: '/base/role',
-                    component: Role
+                    component: Role,
+                    meta: {sTitle: '基础管理', tTitle: '角色信息'}
                 },
                 {
                     path: '/base/menu',
-                    component: Menu
+                    component: Menu,
+                    meta: {sTitle: '基础管理', tTitle: '菜单信息'}
                 },
                 {
                     path: '/base/dept',
-                    component: Dept
+                    component: Dept,
+                    meta: {sTitle: '基础管理', tTitle: '部门信息'}
                 },
                 {
                     path: '/base/post',
-                    component: Post
+                    component: Post,
+                    meta: {sTitle: '基础管理', tTitle: '岗位信息'}
                 },
                 {
                     path: '/monitor/loginLog',
-                    component: LoginLog
+                    component: LoginLog,
+                    meta: {sTitle: '日志管理', tTitle: '登录日志'}
                 },
                 {
                     path: '/monitor/operator',
-                    component: Operator
+                    component: Operator,
+                    meta: {sTitle: '日志管理', tTitle: '操作日志'}
                 }
             ]
         }
