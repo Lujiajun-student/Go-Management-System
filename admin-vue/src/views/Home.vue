@@ -5,7 +5,8 @@ export default {
   name: "Home",
   data() {
     return {
-      leftMenuList: storage.getItem("leftMenuList")
+      leftMenuList: storage.getItem("leftMenuList"),
+      activePath: '',
     }
 },
   computed: {
@@ -16,6 +17,12 @@ export default {
     // 有子集
     hasChildren() {
       return this.leftMenuList.filter(item => item.menuSVoList)
+    }
+  },
+  methods: {
+    saveNavState(activePath) {
+      storage.setItem('activePath', activePath)
+      this.activePath = activePath
     }
   }
 }
@@ -28,16 +35,18 @@ run
         <img src="../assets/image/logo.png" class="sidebar-logo"/>
         <h3>通用后台管理系统</h3>
       </div>
-      <el-menu class="el-menu" background-color="#304156" text-color="#fff" unique-opened>
+      <el-menu class="el-menu" background-color="#304156" text-color="#fff" unique-opened router :default-active="$route.path">
 <!--        无子集菜单-->
-        <el-menu-item :index="'/' + item.url" v-for="item in noChildren" :key="item.menuName">
+        <el-menu-item :index="'/' + item.url" v-for="item in noChildren" :key="item.menuName"
+        @click="saveNavState('/' + item.url)">
           <i :class="item.icon"></i>
           <template slot="title">
             <span>{{item.menuName}}</span>
           </template>
         </el-menu-item>
 <!--        有子集菜单-->
-        <el-submenu :index="item.id + ''" v-for="item in hasChildren" :key="item.id">
+        <el-submenu :index="item.id + ''" v-for="item in hasChildren" :key="item.id"
+                    @click="saveNavState('/' + item.url)">
           <template slot="title">
             <i :class="item.icon"></i>
             <span>{{ item.menuName }}</span>
@@ -54,7 +63,9 @@ run
     </el-aside>
     <el-container>
       <el-header class="el-header">Header</el-header>
-      <el-main class="el-main">Main</el-main>
+      <el-main class="el-main">
+        <router-view/>
+      </el-main>
     </el-container>
   </el-container>
 </template>

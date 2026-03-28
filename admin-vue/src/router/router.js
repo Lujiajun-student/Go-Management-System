@@ -6,6 +6,14 @@ import Login from '@/views/Login.vue'
 import Home from '@/views/Home.vue'
 import Welcome from '@/views/Welcome.vue'
 import storage from "@/utils/storage";
+import Personal from '@/views/Personal'
+import Admin from '@/views/base/Admin'
+import Role from '@/views/base/Role'
+import Dept from '@/views/base/Dept'
+import Post from '@/views/base/Post'
+import LoginLog from '@/views/monitor/LoginLog'
+import Operator from '@/views/monitor/Operator'
+import Menu from '@/views/base/Menu'
 
 Vue.use(Router)
 
@@ -23,6 +31,38 @@ const router = new Router({
                 {
                 path: '/welcome',
                 component: Welcome
+                },
+                {
+                    path: '/personal',
+                    component: Personal
+                },
+                {
+                    path: '/base/admin',
+                    component: Admin
+                },
+                {
+                    path: '/base/role',
+                    component: Role
+                },
+                {
+                    path: '/base/menu',
+                    component: Menu
+                },
+                {
+                    path: '/base/dept',
+                    component: Dept
+                },
+                {
+                    path: '/base/post',
+                    component: Post
+                },
+                {
+                    path: '/monitor/loginLog',
+                    component: LoginLog
+                },
+                {
+                    path: '/monitor/operator',
+                    component: Operator
                 }
             ]
         }

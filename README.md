@@ -7337,3 +7337,343 @@ run
 
 ![image-20260328135814394](assets/image-20260328135814394.png)
 
+## 13.2 路由转发
+
+实现路由转发前，首先创建对应的基础页面。
+
+![image-20260328140834463](assets/image-20260328140834463.png)
+
+然后就能进行路由转发。在router的`router.js`中实现。
+
+```js
+// 封装路由
+
+import Vue from 'vue'
+import Router from 'vue-router'
+import Login from '@/views/Login.vue'
+import Home from '@/views/Home.vue'
+import Welcome from '@/views/Welcome.vue'
+import storage from "@/utils/storage";
+import Personal from '@/views/Personal'
+import Admin from '@/views/base/Admin'
+import Role from '@/views/base/Role'
+import Dept from '@/views/base/Dept'
+import Post from '@/views/base/Post'
+import LoginLog from '@/views/monitor/LoginLog'
+import Operator from '@/views/monitor/Operator'
+import Menu from '@/views/base/Menu'
+
+Vue.use(Router)
+
+const router = new Router({
+    // 去掉路径的#
+    mode: 'history',
+    routes: [
+        {path: '/', redirect: '/login'},
+        {path: '/login', component: Login },
+        {
+            path: '/home',
+            component: Home,
+            redirect: '/welcome',
+            children: [
+                {
+                path: '/welcome',
+                component: Welcome
+                },
+                {
+                    path: '/personal',
+                    component: Personal
+                },
+                {
+                    path: '/base/admin',
+                    component: Admin
+                },
+                {
+                    path: '/base/role',
+                    component: Role
+                },
+                {
+                    path: '/base/menu',
+                    component: Menu
+                },
+                {
+                    path: '/base/dept',
+                    component: Dept
+                },
+                {
+                    path: '/base/post',
+                    component: Post
+                },
+                {
+                    path: '/monitor/loginLog',
+                    component: LoginLog
+                },
+                {
+                    path: '/monitor/operator',
+                    component: Operator
+                }
+            ]
+        }
+    ]
+})
+
+// 挂载路由导航数据
+router.beforeEach((to, from, next) => {
+    if (to.path === '/login') {
+        return next()
+    }
+    const tokenStr = storage.getItem("token")
+    if (!tokenStr) {
+        return next('/login')
+    }
+    next()
+})
+
+export default router
+```
+
+这样，只要访问对应的地址，就能获取组件。
+
+在`Home.vue`中添加路由功能，就能让`menu-item`根据index拼接的地址来进行跳转，跳转后根据router里的配置打开组件。
+
+```vue
+<script>
+import storage from "@/utils/storage";
+
+export default {
+  name: "Home",
+  data() {
+    return {
+      leftMenuList: storage.getItem("leftMenuList")
+    }
+},
+  computed: {
+    // 无子集
+    noChildren() {
+      return this.leftMenuList.filter(item => !item.menuSVoList)
+    },
+    // 有子集
+    hasChildren() {
+      return this.leftMenuList.filter(item => item.menuSVoList)
+    }
+  }
+}
+</script>
+run
+<template>
+  <el-container class="home-container">
+    <el-aside class="el-aside">
+      <div class="logo">
+        <img src="../assets/image/logo.png" class="sidebar-logo"/>
+        <h3>通用后台管理系统</h3>
+      </div>
+      <el-menu class="el-menu" background-color="#304156" text-color="#fff" unique-opened router>
+<!--        无子集菜单-->
+        <el-menu-item :index="'/' + item.url" v-for="item in noChildren" :key="item.menuName">
+          <i :class="item.icon"></i>
+          <template slot="title">
+            <span>{{item.menuName}}</span>
+          </template>
+        </el-menu-item>
+<!--        有子集菜单-->
+        <el-submenu :index="item.id + ''" v-for="item in hasChildren" :key="item.id">
+          <template slot="title">
+            <i :class="item.icon"></i>
+            <span>{{ item.menuName }}</span>
+          </template>
+          <el-menu-item :index="'/' + subItem.url" v-for="subItem in item.menuSVoList" :key="subItem.id">
+            <template slot="title">
+              <i :class="subItem.icon"></i>
+              <span>{{subItem.menuName}}</span>
+            </template>
+          </el-menu-item>
+
+        </el-submenu>
+      </el-menu>
+    </el-aside>
+    <el-container>
+      <el-header class="el-header">Header</el-header>
+      <el-main class="el-main">
+        <router-view/>
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+
+<style lang = "less" scoped>
+  .home-container {
+    height: 100%;
+    .el-aside {
+      background-color: #304156;
+      .logo {
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        height: 50px;
+        color: #fff;
+        font-style: italic;
+        .sidebar-logo {
+          width: 32px;
+          height: 32px;
+          margin: 0 16px;
+        }
+      }
+      .el-menu {
+        border-right: none;
+      }
+    }
+    .el-header {
+      background-color: #f9fafc;
+    }
+    .el-main {
+      background-color: #eaedf1;
+    }
+  }
+</style>
+```
+
+## 13.3 保持路由激活
+
+现在虽然实现了路由跳转，但这是临时的跳转，如果刷新，就会回到首页。因此需要想办法将路由保持激活。
+
+首先，在store的`mutations.js`中创建保存方法，将当前路径保存到localStorage中。
+
+```js
+    saveActivePath(state, activePath) {
+        state.setItem = activePath
+        storage.setItem('activePath', activePath)
+    }
+}
+```
+
+然后在`index.js`中激活。
+
+```js
+// vuex状态管理
+import Vue from 'vue'
+import Vuex from 'vuex'
+import mutations from './mutations'
+import storage from "@/utils/storage";
+
+Vue.use(Vuex)
+
+const state = new Vuex.Store({
+    sysAdmin: "" || storage.getItem("sysAdmin"),
+    token: "" || storage.getItem("token"),
+    leftMenuList: "" || storage.getItem("leftMenuList"),
+    permissionList: "" || storage.getItem("permissionList"),
+    activePath: '' || storage.getItem("activePath"),
+    mutations
+})
+
+export default state
+```
+
+ 接下来在`Home.vue`中，通过设定点击事件来保存当前的url，然后设置默认激活的菜单`:default-active`来从地址映射到需要激活的菜单栏。
+
+```vue
+<script>
+import storage from "@/utils/storage";
+
+export default {
+  name: "Home",
+  data() {
+    return {
+      leftMenuList: storage.getItem("leftMenuList"),
+      activePath: '',
+    }
+},
+  computed: {
+    // 无子集
+    noChildren() {
+      return this.leftMenuList.filter(item => !item.menuSVoList)
+    },
+    // 有子集
+    hasChildren() {
+      return this.leftMenuList.filter(item => item.menuSVoList)
+    }
+  },
+  methods: {
+    saveNavState(activePath) {
+      storage.setItem('activePath', activePath)
+      this.activePath = activePath
+    }
+  }
+}
+</script>
+run
+<template>
+  <el-container class="home-container">
+    <el-aside class="el-aside">
+      <div class="logo">
+        <img src="../assets/image/logo.png" class="sidebar-logo"/>
+        <h3>通用后台管理系统</h3>
+      </div>
+      <el-menu class="el-menu" background-color="#304156" text-color="#fff" unique-opened router :default-active="$route.path">
+<!--        无子集菜单-->
+        <el-menu-item :index="'/' + item.url" v-for="item in noChildren" :key="item.menuName"
+        @click="saveNavState('/' + item.url)">
+          <i :class="item.icon"></i>
+          <template slot="title">
+            <span>{{item.menuName}}</span>
+          </template>
+        </el-menu-item>
+<!--        有子集菜单-->
+        <el-submenu :index="item.id + ''" v-for="item in hasChildren" :key="item.id"
+                    @click="saveNavState('/' + item.url)">
+          <template slot="title">
+            <i :class="item.icon"></i>
+            <span>{{ item.menuName }}</span>
+          </template>
+          <el-menu-item :index="'/' + subItem.url" v-for="subItem in item.menuSVoList" :key="subItem.id">
+            <template slot="title">
+              <i :class="subItem.icon"></i>
+              <span>{{subItem.menuName}}</span>
+            </template>
+          </el-menu-item>
+
+        </el-submenu>
+      </el-menu>
+    </el-aside>
+    <el-container>
+      <el-header class="el-header">Header</el-header>
+      <el-main class="el-main">
+        <router-view/>
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+
+<style lang = "less" scoped>
+  .home-container {
+    height: 100%;
+    .el-aside {
+      background-color: #304156;
+      .logo {
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+        height: 50px;
+        color: #fff;
+        font-style: italic;
+        .sidebar-logo {
+          width: 32px;
+          height: 32px;
+          margin: 0 16px;
+        }
+      }
+      .el-menu {
+        border-right: none;
+      }
+    }
+    .el-header {
+      background-color: #f9fafc;
+    }
+    .el-main {
+      background-color: #eaedf1;
+    }
+  }
+</style>
+```
