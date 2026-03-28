@@ -26,14 +26,21 @@
           }
         }
       }
+    },
+    methods: {
+      goTo(path) {
+        this.$router.push(path)
+      }
     }
   }
 </script>
 
 <template>
   <div class="tags">
-    <el-tag class="tag" size="medium" closable :effect="item.title === $route.meta.tTitle ? 'dark' : 'plain'" v-for="item in tags" :key="item.path">
-    {{item.title}}
+    <el-tag class="tag" size="medium" closable :effect="item.title === $route.meta.tTitle ? 'dark' : 'plain'" v-for="item in tags" :key="item.path"
+    @click="goTo(item.path)">
+      <i class="circular" v-show="item.title === $route.meta.tTitle"></i>
+      {{item.title}}
     </el-tag>
   </div>
 </template>
@@ -47,5 +54,13 @@
   .tag {
     cursor: pointer;
     margin-right: 3px;
+    .circular {
+      width: 8px;
+      height: 8px;
+      margin-right: 4px;
+      background-color: #fff;
+      border-radius: 50%;
+      display: inline-block;
+    }
   }
 </style>

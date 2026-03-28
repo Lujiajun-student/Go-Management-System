@@ -8410,7 +8410,8 @@ run
 <template>
   <div class="tags">
     <el-tag class="tag" size="medium" closable :effect="item.title === $route.meta.tTitle ? 'dark' : 'plain'" v-for="item in tags" :key="item.path">
-    {{item.title}}
+      <i class="circular" v-show="item.title === $route.meta.tTitle"></i>
+      {{item.title}}
     </el-tag>
   </div>
 </template>
@@ -8424,9 +8425,75 @@ run
   .tag {
     cursor: pointer;
     margin-right: 3px;
+    .circular {
+      width: 8px;
+      height: 8px;
+      margin-right: 4px;
+      background-color: #fff;
+      border-radius: 50%;
+      display: inline-block;
+    }
   }
 </style>
 ```
 
 ![image-20260328203657249](assets/image-20260328203657249.png)
 
+## 13.10 点击实现路由跳转
+
+这里的标签页需要实现点击后跳转。
+
+只需要在`Tags.vue`下的`el-tag`标签添加点击事件，获取item的path，然后在点击事件中通过`this.$router.push(path)`进行跳转即可。
+
+```vue
+<template>
+  <div class="tags">
+    <el-tag class="tag" size="medium" closable :effect="item.title === $route.meta.tTitle ? 'dark' : 'plain'" v-for="item in tags" :key="item.path"
+    @click="goTo(item.path)">
+      <i class="circular" v-show="item.title === $route.meta.tTitle"></i>
+      {{item.title}}
+    </el-tag>
+  </div>
+</template>
+```
+
+```vue
+<script>
+  export default {
+    name: "Tags",
+    data() {
+      return {
+        tags:[{
+          title: "首页",
+          path: "/welcome"
+        }]
+      }
+    },
+    watch: {
+      $route: {
+        immediate: true,
+        handler(val) {
+          // 查看新的页面是否在当前的tags数组下
+          const boolean = this.tags.find(item => {
+            return val.path === item.path
+          })
+          // 如果不在，在tags下添加这个新的页面
+          if (!boolean) {
+            this.tags.push({
+              title: val.meta.tTitle,
+              path: val.path
+            })
+          }
+        }
+      }
+    },
+    methods: {
+      goTo(path) {
+        this.$router.push(path)
+      }
+    }
+  }
+</script>
+```
+
+这样就可以点击标签页来进行跳转。
