@@ -1,11 +1,13 @@
 <script>
 import storage from "@/utils/storage";
 import HeadImage from '@/components/HeadImage'
+import Tags from '@/components/Tags'
 
 export default {
   name: "Home",
   components: {
-    HeadImage
+    HeadImage,
+    Tags
   },
   data() {
     return {
@@ -100,6 +102,7 @@ run
 <!--        引入右上角的信息展示-->
         <HeadImage/>
       </el-header>
+      <Tags/>
       <el-main class="el-main">
         <router-view/>
       </el-main>
