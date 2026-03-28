@@ -8197,3 +8197,173 @@ run
 ![image-20260328174541328](assets/image-20260328174541328.png)
 
 这样，页面左上角就存在面包屑，同时能够点击首页来返回首页。
+
+## 13.7 首页右上方头像
+
+这里需要实现展示用户名、用户头像和下拉列表提供个人信息和退出登录两个按钮。因此最好使用新的vue来实现。在components中创建`HeadImage.vue`。
+
+```vue
+<script>
+  import storage from "@/utils/storage";
+
+  export default {
+    name: "HeadImage",
+    data() {
+      return  {
+        sysAdmin: storage.getItem("sysAdmin")
+      }
+    }
+  }
+</script>
+
+<template>
+  <div>
+    <span class="user-username">{{sysAdmin.username}}</span>
+    <el-dropdown>
+      <img v-if="!sysAdmin.icon" src="./../assets/image/logo.png" class="user-avator"/>
+      <image v-else :src="sysAdmin.icon" class="user-avator"/>
+      <el-dropdown-menu>
+        <el-dropdown-item>
+          <span>个人信息</span>
+        </el-dropdown-item>
+        <el-dropdown-item>
+          <span>退出登录</span>
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </el-dropdown>
+  </div>
+</template>
+
+<style scoped lang="less">
+
+</style>
+```
+
+接下来在`Home.vue`中引入该组件即可。
+
+```vue
+<script>
+  import storage from "@/utils/storage";
+
+  export default {
+    name: "HeadImage",
+    data() {
+      return  {
+        sysAdmin: storage.getItem("sysAdmin")
+      }
+    }
+  }
+</script>
+
+<template>
+  <div>
+    <span class="user-username">{{sysAdmin.username}}</span>
+    <el-dropdown>
+      <img v-if="!sysAdmin.icon" src="./../assets/image/logo.png" class="user-avator"/>
+      <img v-else :src="sysAdmin.icon" class="user-avator"/>
+      <el-dropdown-menu>
+        <el-dropdown-item>
+          <span>个人信息</span>
+        </el-dropdown-item>
+        <el-dropdown-item>
+          <span>退出登录</span>
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </el-dropdown>
+  </div>
+</template>
+
+<style scoped lang="less">
+  .user-username {
+    position: fixed;
+    right: 70px;
+    font-size: medium;
+    margin-top: 11px;
+  }
+  .user-avator {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+</style>
+```
+
+这样就实现了右上角的信息展示。
+
+![image-20260328193733358](assets/image-20260328193733358.png)
+
+## 13.8 点击退出和个人信息
+
+在`HeadImage.vue`中，需要给个人信息和退出登录两个按键绑定点击事件，个人信息使用`this.$router.push('/personal')`即可，而退出登录则需要先清除localStorage中保存的个人信息`this.storage.clearAll()`，然后转到登录页面`this.$router.push('/login')`即可。
+
+```vue
+<script>
+  import storage from "@/utils/storage";
+
+  export default {
+    name: "HeadImage",
+    data() {
+      return  {
+        sysAdmin: storage.getItem("sysAdmin")
+      }
+    },
+    methods: {
+      openPersonal() {
+        // 点击跳转个人信息页面
+        this.$router.push("/personal")
+      },
+      // 退出登录
+      async logout() {
+        const confirmResult = await this.$confirm('确定要退出登录吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          return this.$message.info('已取消注销')
+        } else {
+          this.$storage.clearAll()
+          this.$router.push('/login')
+          this.$message.success('退出成功')
+        }
+      }
+    }
+  }
+</script>
+
+<template>
+  <div>
+    <span class="user-username">{{sysAdmin.username}}</span>
+    <el-dropdown>
+      <img v-if="!sysAdmin.icon" src="./../assets/image/logo.png" class="user-avator"/>
+      <img v-else :src="sysAdmin.icon" class="user-avator"/>
+      <el-dropdown-menu>
+        <el-dropdown-item>
+          <span @click="openPersonal">个人信息</span>
+        </el-dropdown-item>
+        <el-dropdown-item>
+          <span @click="logout">退出登录</span>
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </el-dropdown>
+  </div>
+</template>
+
+<style scoped lang="less">
+  .user-username {
+    position: fixed;
+    right: 70px;
+    font-size: medium;
+    margin-top: 11px;
+  }
+  .user-avator {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+</style>
+```
+
+![image-20260328194629493](assets/image-20260328194629493.png)

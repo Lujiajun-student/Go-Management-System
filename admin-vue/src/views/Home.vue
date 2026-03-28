@@ -1,8 +1,12 @@
 <script>
 import storage from "@/utils/storage";
+import HeadImage from '@/components/HeadImage'
 
 export default {
   name: "Home",
+  components: {
+    HeadImage
+  },
   data() {
     return {
       leftMenuList: storage.getItem("leftMenuList"),
@@ -93,6 +97,8 @@ run
             <el-breadcrumb-item>{{$route.meta.tTitle}}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
+<!--        引入右上角的信息展示-->
+        <HeadImage/>
       </el-header>
       <el-main class="el-main">
         <router-view/>
