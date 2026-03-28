@@ -8497,3 +8497,184 @@ run
 ```
 
 这样就可以点击标签页来进行跳转。
+
+## 13.11 关闭标签页
+
+现在需要实现点击标签页的关闭来关闭标签页。
+
+在`Tags.vue`的标签页标签上添加`@close`来添加关闭事件，需要传入在`vl-for`循环中获取的索引`i`。再通过`this.tags.splice(i)`来实现标签页关闭。
+
+```vue
+<script>
+
+  export default {
+    name: "Tags",
+    computed: {
+      index() {
+        return index
+      }
+    },
+    data() {
+      return {
+        tags:[{
+          title: "首页",
+          path: "/welcome"
+        }]
+      }
+    },
+    watch: {
+      $route: {
+        immediate: true,
+        handler(val) {
+          // 查看新的页面是否在当前的tags数组下
+          const boolean = this.tags.find(item => {
+            return val.path === item.path
+          })
+          // 如果不在，在tags下添加这个新的页面
+          if (!boolean) {
+            this.tags.push({
+              title: val.meta.tTitle,
+              path: val.path
+            })
+          }
+        }
+      }
+    },
+    methods: {
+      // 点击跳转
+      goTo(path) {
+        this.$router.push(path)
+      },
+      // 点击关闭
+      close(i) {
+        this.tags.splice(i, 1)
+      }
+    }
+  }
+</script>
+
+<template>
+  <div class="tags">
+    <el-tag class="tag" size="medium" closable :effect="item.title === $route.meta.tTitle ? 'dark' : 'plain'" v-for="(item, i) in tags" :key="item.path"
+    @click="goTo(item.path)" @close="close(i)" :closable="i >0" disable-transitions >
+      <i class="circular" v-show="item.title === $route.meta.tTitle"></i>
+      {{item.title}}
+    </el-tag>
+  </div>
+</template>
+
+<style scoped lang="less">
+  .tags {
+    padding-left: 20px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+  .tag {
+    cursor: pointer;
+    margin-right: 3px;
+    .circular {
+      width: 8px;
+      height: 8px;
+      margin-right: 4px;
+      background-color: #fff;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  }
+</style>
+```
+
+同时，设置`:closable="i > 0"`让只有索引大于0的页面能够被关闭，保证了首页不会被关闭。而`disable-transitions`能够关闭动画效果，能够瞬间关闭。
+
+![image-20260328210352608](assets/image-20260328210352608.png)
+
+## 13.12 关闭标签页后跳转
+
+如果直接关闭了当前标签页，就会变成空页面。现在需要实现关闭页面后，跳转到最后一个标签页。也就是在关闭事件中实现，根据索引来判断，如果关闭的是当前的标签页，且当前标签页不是最后一个，那么先跳转到最后一个标签页再关闭；如果关闭当前标签页，且当前标签页是最后一个，那么先跳转到倒数第二个标签页，然后关闭最后一个标签页即可。
+
+```vue
+<script>
+
+  export default {
+    name: "Tags",
+    computed: {
+      index() {
+        return index
+      }
+    },
+    data() {
+      return {
+        tags:[{
+          title: "首页",
+          path: "/welcome"
+        }]
+      }
+    },
+    watch: {
+      $route: {
+        immediate: true,
+        handler(val) {
+          // 查看新的页面是否在当前的tags数组下
+          const boolean = this.tags.find(item => {
+            return val.path === item.path
+          })
+          // 如果不在，在tags下添加这个新的页面
+          if (!boolean) {
+            this.tags.push({
+              title: val.meta.tTitle,
+              path: val.path
+            })
+          }
+        }
+      }
+    },
+    methods: {
+      // 点击跳转
+      goTo(path) {
+        this.$router.push(path)
+      },
+      // 点击关闭
+      close(i) {
+        // 如果关闭当前激活的页面，且当前页面不是最后一个，那么关闭后会跳转到最后一个页面
+        if (this.tags[i].path === this.$route.meta.path && i !== this.tags.length - 1) {
+          this.$router.push(this.tags[this.tags.length - 1].path)
+        }else if (i === this.tags.length - 1) {
+          // 如果当前激活的页面是最后一个，关闭的是最后一个页面，那么关闭后会跳转到原本倒数第二个页面
+          this.$router.push(this.tags[this.tags.length - 2].path)
+        }
+        this.tags.splice(i, 1)
+      }
+    }
+  }
+</script>
+
+<template>
+  <div class="tags">
+    <el-tag class="tag" size="medium" closable :effect="item.title === $route.meta.tTitle ? 'dark' : 'plain'" v-for="(item, i) in tags" :key="item.path"
+    @click="goTo(item.path)" @close="close(i)" :closable="i >0" disable-transitions >
+      <i class="circular" v-show="item.title === $route.meta.tTitle"></i>
+      {{item.title}}
+    </el-tag>
+  </div>
+</template>
+
+<style scoped lang="less">
+  .tags {
+    padding-left: 20px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+  .tag {
+    cursor: pointer;
+    margin-right: 3px;
+    .circular {
+      width: 8px;
+      height: 8px;
+      margin-right: 4px;
+      background-color: #fff;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  }
+</style>
+```
