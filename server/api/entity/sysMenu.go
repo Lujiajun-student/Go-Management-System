@@ -24,9 +24,9 @@ func (SysMenu) TableName() string {
 
 // SysMenuVO 返回给前端的对象
 type SysMenuVO struct {
-	Id       uint   `json:"id"`
-	ParentId uint   `json:"parentId"`
-	Label    string `json:"label"`
+	Id       uint   `gorm:"column:id" json:"id"`
+	ParentId uint   `gorm:"column:parent_id" json:"parentId"`
+	Label    string `gorm:"column:label" json:"label"`
 }
 
 func (SysMenuVO) TableName() string {

@@ -34,7 +34,6 @@ func CreateSysMenu(c *gin.Context) {
 // @Success 200 {object} result.Result
 // @router /api/menu/vo/list [get]
 func QuerySysMenuVOList(c *gin.Context) {
-	_ = c.BindJSON(&sysMenuVO)
 	service.SysMenuService().QuerySysMenuVOList(c)
 }
 
