@@ -191,7 +191,6 @@
         this.multiple = !selection.length;
       }
     },
-
     created() {
       this.getPostList()
     }

@@ -8,11 +8,13 @@ import request from '@/utils/request'
 import storage from '@/utils/storage'
 import './assets/css/global.css'
 import api from './api'
+import handleTree from '@/utils/common'
 
 Vue.prototype.$storage = storage
 Vue.prototype.$request = request
 Vue.prototype.$store = store
 Vue.prototype.$api = api
+Vue.prototype.$handleTree = handleTree
 
 Vue.use(ElementUI)
 
