@@ -192,4 +192,162 @@ export default {
             data: data
         })
     },
+    // role角色
+    queryRoleList(params) {
+        return request({
+            url: "/role/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysRoleVoList() {
+        return request({
+            url: "/role/vo/list",
+            method: 'get'
+        })
+    },
+    addRole(data) {
+        return request({
+            url: '/role/add',
+            method: 'post',
+            data: data
+        })
+    },
+    roleInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/info',
+            method: 'get',
+            data: data
+        })
+    },
+    roleUpdate(data) {
+        return request({
+            url: '/role/update',
+            method: 'put',
+            data: data
+        })
+    },
+    deleteRole(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    updateRoleStatus(id, status) {
+        const data = {
+            id,
+            status
+        }
+        return request({
+            url: "/role/updateStatus",
+            method: 'put',
+            data: data
+        })
+    },
+    QueryRoleMenuIdList(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: "/role/vo/idList",
+            method: 'get',
+            data: data
+        })
+    },
+    AssignPermissions(id, menuIds) {
+        const data = {
+            id,
+            menuIds
+        }
+        return request({
+            url: "/role/assignPermissions",
+            method: 'put',
+            data: data
+        })
+    },
+    // admin用户
+    queryAdminList(params) {
+        return request({
+            url: "/admin/list",
+            method: 'get',
+            data: params
+        })
+    },
+    updateAdminStatus(id, status) {
+        const data = {
+            id,
+            status
+        }
+        return request({
+            url: "/admin/updateStatus",
+            method: 'put',
+            data: data
+        })
+    },
+    addAdmin(data) {
+        return request({
+            url: '/admin/add',
+            method: 'post',
+            data: data
+        })
+    },
+    adminInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/admin/info',
+            method: 'get',
+            data: data
+        })
+    },
+    adminUpdate(data) {
+        return request({
+            url: '/admin/update',
+            method: 'put',
+            data: data
+        })
+    },
+    resetPassword(id, password) {
+        const data = {
+            id,
+            password
+        }
+        return request({
+            url: '/admin/updatePassword',
+            method: 'put',
+            data: data
+        })
+    },
+    deleteAdmin(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/admin/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    adminUpdatePersonal(data) {
+        return request({
+            url: '/admin/updatePersonal',
+            method: 'put',
+            data: data
+        })
+    },
+    adminUpdatePersonalPassword(data) {
+        return request({
+            url: '/admin/updatePersonalPassword',
+            method: 'put',
+            data: data
+        })
+    },
 }

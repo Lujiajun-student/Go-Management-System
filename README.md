@@ -12120,8 +12120,1761 @@ import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 </style>
 ```
 
-## 17. 角色开发
+# 17. 角色开发
 
 这里需要展示所有注册的角色。
 
- 
+首先先创建角色接口，在api实现。
+
+```js
+/*
+后端api接口管理
+ */
+
+import request from '@/utils/request'
+
+export default {
+    // 验证码接口
+    captcha() {
+        return request ({
+            url: '/captcha',
+            method: 'get'
+        })
+    },
+    // 登录接口
+    login(params) {
+        return request({
+            url: '/login',
+            method: 'post',
+            data: params
+        })
+    },
+    // post岗位
+    queryPostList(params) {
+        return request({
+            url: '/post/list',
+            method: 'get',
+            data: params
+        })
+    },
+    // 批量删除岗位
+    batchDeleteSysPost(ids) {
+        const data = {
+            ids
+        }
+        return request({
+            url: '/post/batch/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // 根据id删除岗位
+    deleteSysPost(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/post/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // 获取岗位列表
+    querySysPostVOList() {
+        return request({
+            url: '/post/vo/list',
+            method: 'get'
+        })
+    },
+    // 添加岗位
+    addPost(data) {
+        return request({
+            url: '/post/add',
+            method: 'post',
+            data: data
+        })
+    },
+    // 根据id获取岗位信息
+    postInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/post/info',
+            method: 'get',
+            data: data
+        })
+    },
+    // 更新岗位
+    updatePost(data) {
+        return request({
+            url: '/post/update',
+            method: 'put',
+            data: data
+        })
+    },
+    // 更新岗位状态
+    updatePostStatus(id, postStatus) {
+        const data = {
+            id,
+            postStatus
+        }
+        return request({
+            url: '/post/updateStatus',
+            method: 'put',
+            data: data
+        })
+    },
+    // dept部门
+    queryDeptList(params) {
+        return request({
+            url: "/dept/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysDeptVoList() {
+        return request({
+            url: '/dept/vo/list',
+            method: 'get'
+        })
+    },
+    addDept(data) {
+        return request({
+            url: '/dept/add',
+            method: 'post',
+            data: data
+        })
+    },
+    deleteDept(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/dept/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    deptInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/dept/info',
+            method: 'get',
+            data: data
+        })
+    },
+    deptUpdate(data) {
+        return request({
+            url: '/dept/update',
+            method: 'put',
+            data: data
+        })
+    },
+    // menu菜单
+    queryMenuList(params) {
+        return request({
+            url: "/menu/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysMenuVoList() {
+        return request({
+            url: "/menu/vo/list",
+            method: 'get'
+        })
+    },
+    addMenu(data) {
+        return request({
+            url: '/menu/add',
+            method: 'post',
+            data: data
+        })
+    },
+    menuInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/menu/info',
+            method: 'get',
+            data: data
+        })
+    },
+    menuUpdate(data) {
+        return request({
+            url: '/menu/update',
+            method: 'put',
+            data: data
+        })
+    },
+    menuDelete(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/menu/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // role角色
+    queryRoleList(params) {
+        return request({
+            url: "/role/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysRoleVoList() {
+        return request({
+            url: "/role/vo/list",
+            method: 'get'
+        })
+    },
+    addRole(data) {
+        return request({
+            url: '/role/add',
+            method: 'post',
+            data: data
+        })
+    },
+    roleInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/info',
+            method: 'get',
+            data: data
+        })
+    },
+    roleUpdate(data) {
+        return request({
+            url: '/role/update',
+            method: 'put',
+            data: data
+        })
+    },
+    deleteRole(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    updateRoleStatus(id, status) {
+        const data = {
+            id,
+            status
+        }
+        return request({
+            url: "/role/updateStatus",
+            method: 'put',
+            data: data
+        })
+    },
+    QueryRoleMenuIdList(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: "/role/vo/idList",
+            method: 'get',
+            data: data
+        })
+    },
+    AssignPermissions(id, menuIds) {
+        const data = {
+            id,
+            menuIds
+        }
+        return request({
+            url: "/role/assignPermissions",
+            method: 'put',
+            data: data
+        })
+    },
+}
+```
+
+ 然后开发页面，并在created钩子函数上加载后端数据。
+
+```vue
+<script>
+  export default {
+    data() {
+      return {
+        statusList: [{
+          value: '1',
+          label: '启用'
+        },
+          {
+            value: '2',
+            label: '停用'
+          }],
+        queryParams: {},
+        Loading: false,
+        roleList: [],
+        total: 0
+      }
+    },
+    methods: {
+      // 列表
+      async getRoleList() {
+        this.Loading = true
+        const {data:res} = await this.$api.queryRoleList(this.queryParams)
+        if (res.code !== 200) {
+          this.$message.error(res.message);
+        } else {
+          this.roleList = res.data.list
+          this.total = res.data.total
+          this.Loading = false
+        }
+      },
+      // 搜索
+      handleQuery() {
+        this.getRoleList()
+      },
+      // 重置
+      resetQuery() {
+        this.queryParams = {}
+        this.getRoleList()
+        this.$message.success('重置成功')
+      },
+      // pageSize
+      handleSizeChange(newSize) {
+        this.queryParams.pageSize = newSize
+        this.getRoleList()
+      },
+      // pageNum
+      handleCurrentChange(newPage) {
+        this.queryParams.pageNum = newPage
+        this.getRoleList()
+      },
+    },
+    created() {
+      this.getRoleList()
+    }
+  }
+</script>
+
+<template>
+  <el-card>
+    <!--搜索-->
+    <el-form :inline="true" :model="queryParams">
+      <el-form-item label="角色名称" prop="roleName">
+        <el-input placeholder="请输入角色名称" size="mini" clearable v-model="queryParams.roleName"
+                  @keyup.enter.native="handleQuery"></el-input>
+      </el-form-item>
+      <el-form-item label="账号状态" prop="status">
+        <el-select size="mini" placeholder="请选择账号状态" v-model="queryParams.status">
+          <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="开始时间" prop="beginTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择开始时间" v-model="queryParams.beginTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item label="结束时间" prop="endTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择结束时间" v-model="queryParams.endTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button type="primary" icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <!--操作按钮-->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button plain type="primary" icon="el-icon-plus" size="mini"
+                   @click="addRoleDialogVisible = true" v-authority="['base:role:add']">新增</el-button>
+      </el-col>
+    </el-row>
+    <!--列表-->
+    <el-table v-loading="Loading" :data="roleList" border stripe style="width: 100%"
+              :header-cell-style="{ background: '#eef1f6', color: '#606266' }">
+      <el-table-column label="ID" prop="id" v-if="false" />
+      <el-table-column label="角色名称" prop="roleName" />
+      <el-table-column label="权限字符串" prop="roleKey" />
+      <el-table-column label="创建时间" prop="createTime" />
+      <el-table-column label="账号状态">
+        <template slot-scope="scope">
+          <el-switch v-model="scope.row.status" :active-value="1" :inactive-value="2" active-color="#13ce66"
+                     inactive-color="#F5222D" active-text="启用" inactive-text="停用" @change="roleUpdateStatus(scope.row)">
+          </el-switch>
+        </template>
+      </el-table-column>
+      <el-table-column label="描述" prop="description" />
+      <el-table-column label="更多操作">
+        <template slot-scope="scope">
+          <el-button size="small" type="text" icon="el-icon-edit" @click="showEditRoleDialog(scope.row.id)" v-authority="['base:role:edit']">编辑
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-delete" @click="handleRoleDelete(scope.row)" v-authority="['base:role:delete']">删除
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-setting" @click="showSetMenuDialog(scope.row)" v-authority="['base:role:assign']">分配权限
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </el-card>
+</template>
+
+<style lang="less" scoped>
+
+</style>
+```
+
+![image-20260330111657302](assets/image-20260330111657302.png)
+
+## 17.1 角色状态切换
+
+接下来需要实现这个账号状态按钮的状态切换。
+
+```vue
+<script>
+  export default {
+    data() {
+      return {
+        statusList: [{
+          value: '1',
+          label: '启用'
+        },
+          {
+            value: '2',
+            label: '停用'
+          }],
+        queryParams: {},
+        Loading: false,
+        roleList: [],
+        total: 0
+      }
+    },
+    methods: {
+      // 列表
+      async getRoleList() {
+        this.Loading = true
+        const {data:res} = await this.$api.queryRoleList(this.queryParams)
+        if (res.code !== 200) {
+          this.$message.error(res.message);
+        } else {
+          this.roleList = res.data.list
+          this.total = res.data.total
+          this.Loading = false
+        }
+      },
+      // 搜索
+      handleQuery() {
+        this.getRoleList()
+      },
+      // 重置
+      resetQuery() {
+        this.queryParams = {}
+        this.getRoleList()
+        this.$message.success('重置成功')
+      },
+      // pageSize
+      handleSizeChange(newSize) {
+        this.queryParams.pageSize = newSize
+        this.getRoleList()
+      },
+      // pageNum
+      handleCurrentChange(newPage) {
+        this.queryParams.pageNum = newPage
+        this.getRoleList()
+      },
+      // 角色状态切换
+      async roleUpdateStatus(row) {
+        const text = row.status === 2 ? '停用' : '启用'
+        const confirmResult = await this.$confirm('确定要' + text + row.roleName + '角色吗？', '警告', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          await this.getRoleList()
+          return this.$message.info('取消删除')
+        }
+        await this.$api.updateRoleStatus(row.id, row.status)
+        await this.getRoleList()
+        return this.$message.success(text + '成功')
+      }
+    },
+    created() {
+      this.getRoleList()
+    }
+  }
+</script>
+
+<template>
+  <el-card>
+    <!--搜索-->
+    <el-form :inline="true" :model="queryParams">
+      <el-form-item label="角色名称" prop="roleName">
+        <el-input placeholder="请输入角色名称" size="mini" clearable v-model="queryParams.roleName"
+                  @keyup.enter.native="handleQuery"></el-input>
+      </el-form-item>
+      <el-form-item label="账号状态" prop="status">
+        <el-select size="mini" placeholder="请选择账号状态" v-model="queryParams.status">
+          <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="开始时间" prop="beginTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择开始时间" v-model="queryParams.beginTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item label="结束时间" prop="endTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择结束时间" v-model="queryParams.endTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button type="primary" icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <!--操作按钮-->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button plain type="primary" icon="el-icon-plus" size="mini"
+                   @click="addRoleDialogVisible = true" v-authority="['base:role:add']">新增</el-button>
+      </el-col>
+    </el-row>
+    <!--列表-->
+    <el-table v-loading="Loading" :data="roleList" border stripe style="width: 100%"
+              :header-cell-style="{ background: '#eef1f6', color: '#606266' }">
+      <el-table-column label="ID" prop="id" v-if="false" />
+      <el-table-column label="角色名称" prop="roleName" />
+      <el-table-column label="权限字符串" prop="roleKey" />
+      <el-table-column label="创建时间" prop="createTime" />
+      <el-table-column label="账号状态">
+        <template slot-scope="scope">
+          <el-switch v-model="scope.row.status" :active-value="1" :inactive-value="2" active-color="#13ce66"
+                     inactive-color="#F5222D" active-text="启用" inactive-text="停用" @change="roleUpdateStatus(scope.row)">
+          </el-switch>
+        </template>
+      </el-table-column>
+      <el-table-column label="描述" prop="description" />
+      <el-table-column label="更多操作">
+        <template slot-scope="scope">
+          <el-button size="small" type="text" icon="el-icon-edit" @click="showEditRoleDialog(scope.row.id)" v-authority="['base:role:edit']">编辑
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-delete" @click="handleRoleDelete(scope.row)" v-authority="['base:role:delete']">删除
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-setting" @click="showSetMenuDialog(scope.row)" v-authority="['base:role:assign']">分配权限
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </el-card>
+</template>
+
+<style lang="less" scoped>
+
+</style>
+```
+
+## 17.2 新增角色
+
+```vue
+<script>
+  export default {
+    data() {
+      return {
+        statusList: [{
+          value: '1',
+          label: '启用'
+        },
+          {
+            value: '2',
+            label: '停用'
+          }],
+        queryParams: {},
+        Loading: false,
+        roleList: [],
+        total: 0,
+        addRoleDialogVisible: false,
+        addRoleForm: {
+          roleName: '',
+          roleKey: '',
+          description: '',
+          status: 1
+        },
+        addRoleFormRules: {
+          roleName:   [{required: true, message: '请输入角色名称', trigger: 'blur'}],
+          roleKey:      [{required: true, message: '请输入角色权限标识', trigger: 'blur'}],
+          status:         [{required: true, message: '请输入角色状态', trigger: 'blur'}],
+          description: [{required: true, message: '请输入角色描述', trigger: 'blur'}],
+        },
+      }
+    },
+    methods: {
+      // 列表
+      async getRoleList() {
+        this.Loading = true
+        const {data:res} = await this.$api.queryRoleList(this.queryParams)
+        if (res.code !== 200) {
+          this.$message.error(res.message);
+        } else {
+          this.roleList = res.data.list
+          this.total = res.data.total
+          this.Loading = false
+        }
+      },
+      // 搜索
+      handleQuery() {
+        this.getRoleList()
+      },
+      // 重置
+      resetQuery() {
+        this.queryParams = {}
+        this.getRoleList()
+        this.$message.success('重置成功')
+      },
+      // pageSize
+      handleSizeChange(newSize) {
+        this.queryParams.pageSize = newSize
+        this.getRoleList()
+      },
+      // pageNum
+      handleCurrentChange(newPage) {
+        this.queryParams.pageNum = newPage
+        this.getRoleList()
+      },
+      // 角色状态切换
+      async roleUpdateStatus(row) {
+        const text = row.status === 2 ? '停用' : '启用'
+        const confirmResult = await this.$confirm('确定要' + text + row.roleName + '角色吗？', '警告', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          await this.getRoleList()
+          return this.$message.info('取消删除')
+        }
+        await this.$api.updateRoleStatus(row.id, row.status)
+        await this.getRoleList()
+        return this.$message.success(text + '成功')
+      },
+      // 监听新建角色对话框
+      addRoleDialogClosed() {
+        this.$refs.addRoleFormRefForm.resetFields()
+      },
+      // 新增
+      addRole() {
+        this.$refs.addRoleFormRefForm.validate(async valid => {
+          if (!valid) return
+          const {data: res} = await this.$api.addRole(this.addRoleForm);
+          if (res.code !== 200) {
+            this.$message.error(res.message);
+          } else {
+            this.$message.success('新建角色成功')
+            this.addRoleDialogVisible = false
+            await this.getRoleList()
+          }
+        })
+      }
+    },
+    created() {
+      this.getRoleList()
+    }
+  }
+</script>
+
+<template>
+  <el-card>
+    <!--搜索-->
+    <el-form :inline="true" :model="queryParams">
+      <el-form-item label="角色名称" prop="roleName">
+        <el-input placeholder="请输入角色名称" size="mini" clearable v-model="queryParams.roleName"
+                  @keyup.enter.native="handleQuery"></el-input>
+      </el-form-item>
+      <el-form-item label="账号状态" prop="status">
+        <el-select size="mini" placeholder="请选择账号状态" v-model="queryParams.status">
+          <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="开始时间" prop="beginTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择开始时间" v-model="queryParams.beginTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item label="结束时间" prop="endTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择结束时间" v-model="queryParams.endTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button type="primary" icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <!--操作按钮-->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button plain type="primary" icon="el-icon-plus" size="mini"
+                   @click="addRoleDialogVisible = true" v-authority="['base:role:add']">新增</el-button>
+      </el-col>
+    </el-row>
+    <!--列表-->
+    <el-table v-loading="Loading" :data="roleList" border stripe style="width: 100%"
+              :header-cell-style="{ background: '#eef1f6', color: '#606266' }">
+      <el-table-column label="ID" prop="id" v-if="false" />
+      <el-table-column label="角色名称" prop="roleName" />
+      <el-table-column label="权限字符串" prop="roleKey" />
+      <el-table-column label="创建时间" prop="createTime" />
+      <el-table-column label="账号状态">
+        <template slot-scope="scope">
+          <el-switch v-model="scope.row.status" :active-value="1" :inactive-value="2" active-color="#13ce66"
+                     inactive-color="#F5222D" active-text="启用" inactive-text="停用" @change="roleUpdateStatus(scope.row)">
+          </el-switch>
+        </template>
+      </el-table-column>
+      <el-table-column label="描述" prop="description" />
+      <el-table-column label="更多操作">
+        <template slot-scope="scope">
+          <el-button size="small" type="text" icon="el-icon-edit" @click="showEditRoleDialog(scope.row.id)" v-authority="['base:role:edit']">编辑
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-delete" @click="handleRoleDelete(scope.row)" v-authority="['base:role:delete']">删除
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-setting" @click="showSetMenuDialog(scope.row)" v-authority="['base:role:assign']">分配权限
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!--分页区域-->
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                   :current-page="queryParams.pageNum" :page-sizes="[10, 50, 100, 500, 1000]" :page-size="queryParams.pageSize"
+                   layout="total, sizes, prev, pager, next, jumper" :total="total">
+    </el-pagination>
+    <!--新增角色-->
+    <el-dialog title="新增角色" :visible.sync="addRoleDialogVisible" width="30%" @close="addRoleDialogClosed">
+      <el-form ref="addRoleFormRefForm" label-width="80px" :model="addRoleForm" :rules="addRoleFormRules">
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input placeholder="请输入角色名称" v-model="addRoleForm.roleName" />
+        </el-form-item>
+        <el-form-item label="角色标识" prop="roleKey">
+          <el-input placeholder="请输入角色标识" v-model="addRoleForm.roleKey" />
+        </el-form-item>
+        <el-form-item label="角色状态" prop="status">
+          <el-radio-group v-model="addRoleForm.status">
+            <el-radio :label="1">正常</el-radio>
+            <el-radio :label="2">停用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="角色描述" prop="description">
+          <el-input placeholder="请输入角色描述" type="textarea" v-model="addRoleForm.description" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="addRole">确 定</el-button>
+                <el-button type="primary" @click="addRoleDialogVisible = false">取 消</el-button>
+            </span>
+    </el-dialog>
+  </el-card>
+</template>
+
+<style lang="less" scoped>
+
+</style>
+```
+
+## 17.3 编辑角色
+
+首先添加编辑窗口，然后在方法中实现数据回显和调用后端修改角色的接口。
+
+```vue
+<script>
+  export default {
+    data() {
+      return {
+        statusList: [{
+          value: '1',
+          label: '启用'
+        },
+          {
+            value: '2',
+            label: '停用'
+          }],
+        queryParams: {},
+        Loading: false,
+        roleList: [],
+        total: 0,
+        addRoleDialogVisible: false,
+        addRoleForm: {
+          roleName: '',
+          roleKey: '',
+          description: '',
+          status: 1
+        },
+        addRoleFormRules: {
+          roleName:   [{required: true, message: '请输入角色名称', trigger: 'blur'}],
+          roleKey:      [{required: true, message: '请输入角色权限标识', trigger: 'blur'}],
+          status:         [{required: true, message: '请输入角色状态', trigger: 'blur'}],
+          description: [{required: true, message: '请输入角色描述', trigger: 'blur'}],
+        },
+        editRoleDialogVisible: false,
+        roleInfo: {},
+        editRoleFormRules: {
+          roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
+          roleKey: [{ required: true, message: '请输入角色权限标识', trigger: 'blur' }],
+          status: [{ required: true, message: '请输入角色状态', trigger: 'blur' }],
+          description: [{ required: true, message: '请输入角色描述', trigger: 'blur' }],
+        },
+      }
+    },
+    methods: {
+      // 列表
+      async getRoleList() {
+        this.Loading = true
+        const {data:res} = await this.$api.queryRoleList(this.queryParams)
+        if (res.code !== 200) {
+          this.$message.error(res.message);
+        } else {
+          this.roleList = res.data.list
+          this.total = res.data.total
+          this.Loading = false
+        }
+      },
+      // 搜索
+      handleQuery() {
+        this.getRoleList()
+      },
+      // 重置
+      resetQuery() {
+        this.queryParams = {}
+        this.getRoleList()
+        this.$message.success('重置成功')
+      },
+      // pageSize
+      handleSizeChange(newSize) {
+        this.queryParams.pageSize = newSize
+        this.getRoleList()
+      },
+      // pageNum
+      handleCurrentChange(newPage) {
+        this.queryParams.pageNum = newPage
+        this.getRoleList()
+      },
+      // 角色状态切换
+      async roleUpdateStatus(row) {
+        const text = row.status === 2 ? '停用' : '启用'
+        const confirmResult = await this.$confirm('确定要' + text + row.roleName + '角色吗？', '警告', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          await this.getRoleList()
+          return this.$message.info('取消删除')
+        }
+        await this.$api.updateRoleStatus(row.id, row.status)
+        await this.getRoleList()
+        return this.$message.success(text + '成功')
+      },
+      // 监听新建角色对话框
+      addRoleDialogClosed() {
+        this.$refs.addRoleFormRefForm.resetFields()
+      },
+      // 新增
+      addRole() {
+        this.$refs.addRoleFormRefForm.validate(async valid => {
+          if (!valid) return
+          const {data: res} = await this.$api.addRole(this.addRoleForm);
+          if (res.code !== 200) {
+            this.$message.error(res.message);
+          } else {
+            this.$message.success('新建角色成功')
+            this.addRoleDialogVisible = false
+            await this.getRoleList()
+          }
+        })
+      },
+      // 监听修改角色对话框的关闭事件
+      editRoleDialogClosed() {
+        this.$refs.editRoleFormRefForm.resetFields()
+      },
+      // 展示修改对话框
+      async showEditRoleDialog(id) {
+        const { data: res } = await this.$api.roleInfo(id)
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.roleInfo = res.data
+          this.editRoleDialogVisible = true
+        }
+      },
+      // 修改角色信息并提交
+      editRole() {
+        this.$refs.editRoleFormRefForm.validate(async valid => {
+          if (!valid) return
+          const { data: res } = await this.$api.roleUpdate(this.roleInfo)
+          if (res.code !== 200) {
+            this.$message.error(res.message)
+          } else {
+            this.editRoleDialogVisible = false
+            await this.getRoleList()
+            this.$message.success("修改角色成功")
+          }
+        })
+      },
+    },
+    created() {
+      this.getRoleList()
+    }
+  }
+</script>
+
+<template>
+  <el-card>
+    <!--搜索-->
+    <el-form :inline="true" :model="queryParams">
+      <el-form-item label="角色名称" prop="roleName">
+        <el-input placeholder="请输入角色名称" size="mini" clearable v-model="queryParams.roleName"
+                  @keyup.enter.native="handleQuery"></el-input>
+      </el-form-item>
+      <el-form-item label="账号状态" prop="status">
+        <el-select size="mini" placeholder="请选择账号状态" v-model="queryParams.status">
+          <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="开始时间" prop="beginTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择开始时间" v-model="queryParams.beginTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item label="结束时间" prop="endTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择结束时间" v-model="queryParams.endTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button type="primary" icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <!--操作按钮-->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button plain type="primary" icon="el-icon-plus" size="mini"
+                   @click="addRoleDialogVisible = true" v-authority="['base:role:add']">新增</el-button>
+      </el-col>
+    </el-row>
+    <!--列表-->
+    <el-table v-loading="Loading" :data="roleList" border stripe style="width: 100%"
+              :header-cell-style="{ background: '#eef1f6', color: '#606266' }">
+      <el-table-column label="ID" prop="id" v-if="false" />
+      <el-table-column label="角色名称" prop="roleName" />
+      <el-table-column label="权限字符串" prop="roleKey" />
+      <el-table-column label="创建时间" prop="createTime" />
+      <el-table-column label="账号状态">
+        <template slot-scope="scope">
+          <el-switch v-model="scope.row.status" :active-value="1" :inactive-value="2" active-color="#13ce66"
+                     inactive-color="#F5222D" active-text="启用" inactive-text="停用" @change="roleUpdateStatus(scope.row)">
+          </el-switch>
+        </template>
+      </el-table-column>
+      <el-table-column label="描述" prop="description" />
+      <el-table-column label="更多操作">
+        <template slot-scope="scope">
+          <el-button size="small" type="text" icon="el-icon-edit" @click="showEditRoleDialog(scope.row.id)" v-authority="['base:role:edit']">编辑
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-delete" @click="handleRoleDelete(scope.row)" v-authority="['base:role:delete']">删除
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-setting" @click="showSetMenuDialog(scope.row)" v-authority="['base:role:assign']">分配权限
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!--分页区域-->
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                   :current-page="queryParams.pageNum" :page-sizes="[10, 50, 100, 500, 1000]" :page-size="queryParams.pageSize"
+                   layout="total, sizes, prev, pager, next, jumper" :total="total">
+    </el-pagination>
+    <!--新增角色-->
+    <el-dialog title="新增角色" :visible.sync="addRoleDialogVisible" width="30%" @close="addRoleDialogClosed">
+      <el-form ref="addRoleFormRefForm" label-width="80px" :model="addRoleForm" :rules="addRoleFormRules">
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input placeholder="请输入角色名称" v-model="addRoleForm.roleName" />
+        </el-form-item>
+        <el-form-item label="角色标识" prop="roleKey">
+          <el-input placeholder="请输入角色标识" v-model="addRoleForm.roleKey" />
+        </el-form-item>
+        <el-form-item label="角色状态" prop="status">
+          <el-radio-group v-model="addRoleForm.status">
+            <el-radio :label="1">正常</el-radio>
+            <el-radio :label="2">停用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="角色描述" prop="description">
+          <el-input placeholder="请输入角色描述" type="textarea" v-model="addRoleForm.description" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="addRole">确 定</el-button>
+                <el-button type="primary" @click="addRoleDialogVisible = false">取 消</el-button>
+            </span>
+    </el-dialog>
+    <!--编辑角色-->
+    <el-dialog title="编辑角色" :visible.sync="editRoleDialogVisible" width="30%" @close="editRoleDialogClosed">
+      <el-form ref="editRoleFormRefForm" label-width="80px" :model="roleInfo" :rules="editRoleFormRules">
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input placeholder="请输入角色名称" v-model="roleInfo.roleName" />
+        </el-form-item>
+        <el-form-item label="角色标识" prop="roleKey">
+          <el-input placeholder="请输入角色标识" v-model="roleInfo.roleKey" />
+        </el-form-item>
+        <el-form-item label="角色状态" prop="status">
+          <el-radio-group v-model="roleInfo.status">
+            <el-radio :label="1">正常</el-radio>
+            <el-radio :label="2">停用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="角色描述" prop="status">
+          <el-input placeholder="请输入角色描述" type="textarea" v-model="roleInfo.description" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="editRole">确 定</el-button>
+                <el-button type="primary" @click="editRoleDialogVisible = false">取 消</el-button>
+            </span>
+    </el-dialog>
+  </el-card>
+</template>
+
+<style lang="less" scoped>
+
+</style>
+```
+
+## 17.4 删除角色
+
+这里需要实现根据id删除角色。为删除按钮绑定事件，添加这个事件即可。
+
+```java
+// 删除角色
+async handleRoleDelete(row) {
+  const confirmResult = await this.$confirm('是否删除' + row.roleName + '角色？', '警告', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).catch(err => err)
+  if (confirmResult !== 'confirm') {
+    return this.$message.info('取消删除')
+  }
+  const {data: res} = await this.$api.deleteRole(row.id)
+  console.log(row.id)
+  if (res.code !== 200) {
+    this.$message.error(res.message)
+  } else {
+    this.$message.success('删除成功')
+    await this.getRoleList()
+  }
+}
+```
+
+## 17.5 分配权限
+
+这里的权限需要展示所有的菜单，为用户添加能够访问功能的权限。分配权限的窗口使用的是`element-UI`的树型控件。
+
+```vue
+<script>
+import Treeselect from '@riophae/vue-treeselect'
+import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+  export default {
+  components: {
+    Treeselect
+  },
+    data() {
+      return {
+        statusList: [{
+          value: '1',
+          label: '启用'
+        },
+          {
+            value: '2',
+            label: '停用'
+          }],
+        queryParams: {},
+        Loading: false,
+        roleList: [],
+        total: 0,
+        addRoleDialogVisible: false,
+        addRoleForm: {
+          roleName: '',
+          roleKey: '',
+          description: '',
+          status: 1
+        },
+        addRoleFormRules: {
+          roleName:   [{required: true, message: '请输入角色名称', trigger: 'blur'}],
+          roleKey:      [{required: true, message: '请输入角色权限标识', trigger: 'blur'}],
+          status:         [{required: true, message: '请输入角色状态', trigger: 'blur'}],
+          description: [{required: true, message: '请输入角色描述', trigger: 'blur'}],
+        },
+        editRoleDialogVisible: false,
+        roleInfo: {},
+        editRoleFormRules: {
+          roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
+          roleKey: [{ required: true, message: '请输入角色权限标识', trigger: 'blur' }],
+          status: [{ required: true, message: '请输入角色状态', trigger: 'blur' }],
+          description: [{ required: true, message: '请输入角色描述', trigger: 'blur' }],
+        },
+        setMenuDialogVisible: false,
+        menuList: [],
+        treeProps: {
+          label: 'label',
+        },
+        defKeys: [],
+        id: '',
+      }
+    },
+    methods: {
+      // 列表
+      async getRoleList() {
+        this.Loading = true
+        const {data:res} = await this.$api.queryRoleList(this.queryParams)
+        if (res.code !== 200) {
+          this.$message.error(res.message);
+        } else {
+          this.roleList = res.data.list
+          this.total = res.data.total
+          this.Loading = false
+        }
+      },
+      // 搜索
+      handleQuery() {
+        this.getRoleList()
+      },
+      // 重置
+      resetQuery() {
+        this.queryParams = {}
+        this.getRoleList()
+        this.$message.success('重置成功')
+      },
+      // pageSize
+      handleSizeChange(newSize) {
+        this.queryParams.pageSize = newSize
+        this.getRoleList()
+      },
+      // pageNum
+      handleCurrentChange(newPage) {
+        this.queryParams.pageNum = newPage
+        this.getRoleList()
+      },
+      // 角色状态切换
+      async roleUpdateStatus(row) {
+        const text = row.status === 2 ? '停用' : '启用'
+        const confirmResult = await this.$confirm('确定要' + text + row.roleName + '角色吗？', '警告', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          await this.getRoleList()
+          return this.$message.info('取消删除')
+        }
+        await this.$api.updateRoleStatus(row.id, row.status)
+        await this.getRoleList()
+        return this.$message.success(text + '成功')
+      },
+      // 监听新建角色对话框
+      addRoleDialogClosed() {
+        this.$refs.addRoleFormRefForm.resetFields()
+      },
+      // 新增
+      addRole() {
+        this.$refs.addRoleFormRefForm.validate(async valid => {
+          if (!valid) return
+          const {data: res} = await this.$api.addRole(this.addRoleForm);
+          if (res.code !== 200) {
+            this.$message.error(res.message);
+          } else {
+            this.$message.success('新建角色成功')
+            this.addRoleDialogVisible = false
+            await this.getRoleList()
+          }
+        })
+      },
+      // 监听修改角色对话框的关闭事件
+      editRoleDialogClosed() {
+        this.$refs.editRoleFormRefForm.resetFields()
+      },
+      // 展示修改对话框
+      async showEditRoleDialog(id) {
+        const { data: res } = await this.$api.roleInfo(id)
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.roleInfo = res.data
+          this.editRoleDialogVisible = true
+        }
+      },
+      // 修改角色信息并提交
+      editRole() {
+        this.$refs.editRoleFormRefForm.validate(async valid => {
+          if (!valid) return
+          const { data: res } = await this.$api.roleUpdate(this.roleInfo)
+          if (res.code !== 200) {
+            this.$message.error(res.message)
+          } else {
+            this.editRoleDialogVisible = false
+            await this.getRoleList()
+            this.$message.success("修改角色成功")
+          }
+        })
+      },
+      // 删除角色
+      async handleRoleDelete(row) {
+        const confirmResult = await this.$confirm('是否删除' + row.roleName + '角色？', '警告', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          return this.$message.info('取消删除')
+        }
+        const {data: res} = await this.$api.deleteRole(row.id)
+        console.log(row.id)
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.$message.success('删除成功')
+          await this.getRoleList()
+        }
+      },
+      // 展示分配菜单权限对话框
+      showSetMenuDialog(role) {
+        this.id = role.id
+        this.$api.querySysMenuVoList().then(res => {
+          this.menuList = this.$handleTree.handleTree(res.data.data, "id")
+        })
+        this.$api.QueryRoleMenuIdList(role.id).then(res => {
+          this.defKeys = res.data.data
+        })
+        this.setMenuDialogVisible = true
+      },
+      // 监听权限对话框关闭事件
+      setRightDialogClosed() {
+        this.defKeys = []
+      },
+      // 分配菜单权限
+      async allotMenus() {
+        const keys = [
+            ...this.$refs.treeRef.getCheckedKeys(),
+            ...this.$refs.treeRef.getHalfCheckedKeys(),
+        ]
+        const {data: res} = await this.$api.AssignPermissions(this.id, keys)
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.$message.success('分配权限成功')
+          await this.getRoleList()
+          this.setMenuDialogVisible = false
+        }
+      }
+    },
+    created() {
+      this.getRoleList()
+    }
+  }
+</script>
+
+<template>
+  <el-card>
+    <!--搜索-->
+    <el-form :inline="true" :model="queryParams">
+      <el-form-item label="角色名称" prop="roleName">
+        <el-input placeholder="请输入角色名称" size="mini" clearable v-model="queryParams.roleName"
+                  @keyup.enter.native="handleQuery"></el-input>
+      </el-form-item>
+      <el-form-item label="账号状态" prop="status">
+        <el-select size="mini" placeholder="请选择账号状态" v-model="queryParams.status">
+          <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="开始时间" prop="beginTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择开始时间" v-model="queryParams.beginTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item label="结束时间" prop="endTime">
+        <el-date-picker class="input-width" size="mini" type="date" style="width:190px" value-format="yyyy-MM-dd"
+                        clearable placeholder="请选择结束时间" v-model="queryParams.endTime" @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button type="primary" icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <!--操作按钮-->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button plain type="primary" icon="el-icon-plus" size="mini"
+                   @click="addRoleDialogVisible = true" v-authority="['base:role:add']">新增</el-button>
+      </el-col>
+    </el-row>
+    <!--列表-->
+    <el-table v-loading="Loading" :data="roleList" border stripe style="width: 100%"
+              :header-cell-style="{ background: '#eef1f6', color: '#606266' }">
+      <el-table-column label="ID" prop="id" v-if="false" />
+      <el-table-column label="角色名称" prop="roleName" />
+      <el-table-column label="权限字符串" prop="roleKey" />
+      <el-table-column label="创建时间" prop="createTime" />
+      <el-table-column label="账号状态">
+        <template slot-scope="scope">
+          <el-switch v-model="scope.row.status" :active-value="1" :inactive-value="2" active-color="#13ce66"
+                     inactive-color="#F5222D" active-text="启用" inactive-text="停用" @change="roleUpdateStatus(scope.row)">
+          </el-switch>
+        </template>
+      </el-table-column>
+      <el-table-column label="描述" prop="description" />
+      <el-table-column label="更多操作">
+        <template slot-scope="scope">
+          <el-button size="small" type="text" icon="el-icon-edit" @click="showEditRoleDialog(scope.row.id)" v-authority="['base:role:edit']">编辑
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-delete" @click="handleRoleDelete(scope.row)" v-authority="['base:role:delete']">删除
+          </el-button>
+          <el-button size="small" type="text" icon="el-icon-setting" @click="showSetMenuDialog(scope.row)" v-authority="['base:role:assign']">分配权限
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!--分页区域-->
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                   :current-page="queryParams.pageNum" :page-sizes="[10, 50, 100, 500, 1000]" :page-size="queryParams.pageSize"
+                   layout="total, sizes, prev, pager, next, jumper" :total="total">
+    </el-pagination>
+    <!--新增角色-->
+    <el-dialog title="新增角色" :visible.sync="addRoleDialogVisible" width="30%" @close="addRoleDialogClosed">
+      <el-form ref="addRoleFormRefForm" label-width="80px" :model="addRoleForm" :rules="addRoleFormRules">
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input placeholder="请输入角色名称" v-model="addRoleForm.roleName" />
+        </el-form-item>
+        <el-form-item label="角色标识" prop="roleKey">
+          <el-input placeholder="请输入角色标识" v-model="addRoleForm.roleKey" />
+        </el-form-item>
+        <el-form-item label="角色状态" prop="status">
+          <el-radio-group v-model="addRoleForm.status">
+            <el-radio :label="1">正常</el-radio>
+            <el-radio :label="2">停用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="角色描述" prop="description">
+          <el-input placeholder="请输入角色描述" type="textarea" v-model="addRoleForm.description" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="addRole">确 定</el-button>
+                <el-button type="primary" @click="addRoleDialogVisible = false">取 消</el-button>
+            </span>
+    </el-dialog>
+    <!--编辑角色-->
+    <el-dialog title="编辑角色" :visible.sync="editRoleDialogVisible" width="30%" @close="editRoleDialogClosed">
+      <el-form ref="editRoleFormRefForm" label-width="80px" :model="roleInfo" :rules="editRoleFormRules">
+        <el-form-item label="角色名称" prop="roleName">
+          <el-input placeholder="请输入角色名称" v-model="roleInfo.roleName" />
+        </el-form-item>
+        <el-form-item label="角色标识" prop="roleKey">
+          <el-input placeholder="请输入角色标识" v-model="roleInfo.roleKey" />
+        </el-form-item>
+        <el-form-item label="角色状态" prop="status">
+          <el-radio-group v-model="roleInfo.status">
+            <el-radio :label="1">正常</el-radio>
+            <el-radio :label="2">停用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="角色描述" prop="status">
+          <el-input placeholder="请输入角色描述" type="textarea" v-model="roleInfo.description" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="editRole">确 定</el-button>
+                <el-button type="primary" @click="editRoleDialogVisible = false">取 消</el-button>
+            </span>
+    </el-dialog>
+<!--    分配权限页面-->
+    <el-dialog title="分配权限" :visible.sync="setMenuDialogVisible" width="20%" @close="setRightDialogClosed">
+      <el-tree :data="menuList" :props="treeProps" show-checkbox node-key="id" default-expand-all :default-checked-keys="defKeys" ref="treeRef">
+
+      </el-tree>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="allotMenus">确 定</el-button>
+        <el-button type="primary" @click="setMenuDialogVisible= false">取 消</el-button>
+      </span>
+    </el-dialog>
+  </el-card>
+</template>
+
+<style lang="less" scoped>
+
+</style>
+```
+
+# 18. 用户开发
+
+这里需要实现用户信息的页面。
+
+## 18.1 用户列表
+
+同样的，在钩子函数上访问后端接口，在前端使用elementUI展示即可。
+
+首先在api上引入后端接口。
+
+```js
+/*
+后端api接口管理
+ */
+
+import request from '@/utils/request'
+
+export default {
+    // 验证码接口
+    captcha() {
+        return request ({
+            url: '/captcha',
+            method: 'get'
+        })
+    },
+    // 登录接口
+    login(params) {
+        return request({
+            url: '/login',
+            method: 'post',
+            data: params
+        })
+    },
+    // post岗位
+    queryPostList(params) {
+        return request({
+            url: '/post/list',
+            method: 'get',
+            data: params
+        })
+    },
+    // 批量删除岗位
+    batchDeleteSysPost(ids) {
+        const data = {
+            ids
+        }
+        return request({
+            url: '/post/batch/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // 根据id删除岗位
+    deleteSysPost(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/post/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // 获取岗位列表
+    querySysPostVOList() {
+        return request({
+            url: '/post/vo/list',
+            method: 'get'
+        })
+    },
+    // 添加岗位
+    addPost(data) {
+        return request({
+            url: '/post/add',
+            method: 'post',
+            data: data
+        })
+    },
+    // 根据id获取岗位信息
+    postInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/post/info',
+            method: 'get',
+            data: data
+        })
+    },
+    // 更新岗位
+    updatePost(data) {
+        return request({
+            url: '/post/update',
+            method: 'put',
+            data: data
+        })
+    },
+    // 更新岗位状态
+    updatePostStatus(id, postStatus) {
+        const data = {
+            id,
+            postStatus
+        }
+        return request({
+            url: '/post/updateStatus',
+            method: 'put',
+            data: data
+        })
+    },
+    // dept部门
+    queryDeptList(params) {
+        return request({
+            url: "/dept/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysDeptVoList() {
+        return request({
+            url: '/dept/vo/list',
+            method: 'get'
+        })
+    },
+    addDept(data) {
+        return request({
+            url: '/dept/add',
+            method: 'post',
+            data: data
+        })
+    },
+    deleteDept(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/dept/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    deptInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/dept/info',
+            method: 'get',
+            data: data
+        })
+    },
+    deptUpdate(data) {
+        return request({
+            url: '/dept/update',
+            method: 'put',
+            data: data
+        })
+    },
+    // menu菜单
+    queryMenuList(params) {
+        return request({
+            url: "/menu/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysMenuVoList() {
+        return request({
+            url: "/menu/vo/list",
+            method: 'get'
+        })
+    },
+    addMenu(data) {
+        return request({
+            url: '/menu/add',
+            method: 'post',
+            data: data
+        })
+    },
+    menuInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/menu/info',
+            method: 'get',
+            data: data
+        })
+    },
+    menuUpdate(data) {
+        return request({
+            url: '/menu/update',
+            method: 'put',
+            data: data
+        })
+    },
+    menuDelete(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/menu/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // role角色
+    queryRoleList(params) {
+        return request({
+            url: "/role/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysRoleVoList() {
+        return request({
+            url: "/role/vo/list",
+            method: 'get'
+        })
+    },
+    addRole(data) {
+        return request({
+            url: '/role/add',
+            method: 'post',
+            data: data
+        })
+    },
+    roleInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/info',
+            method: 'get',
+            data: data
+        })
+    },
+    roleUpdate(data) {
+        return request({
+            url: '/role/update',
+            method: 'put',
+            data: data
+        })
+    },
+    deleteRole(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    updateRoleStatus(id, status) {
+        const data = {
+            id,
+            status
+        }
+        return request({
+            url: "/role/updateStatus",
+            method: 'put',
+            data: data
+        })
+    },
+    QueryRoleMenuIdList(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: "/role/vo/idList",
+            method: 'get',
+            data: data
+        })
+    },
+    AssignPermissions(id, menuIds) {
+        const data = {
+            id,
+            menuIds
+        }
+        return request({
+            url: "/role/assignPermissions",
+            method: 'put',
+            data: data
+        })
+    },
+    // admin用户
+    queryAdminList(params) {
+        return request({
+            url: "/admin/list",
+            method: 'get',
+            data: params
+        })
+    },
+    updateAdminStatus(id, status) {
+        const data = {
+            id,
+            status
+        }
+        return request({
+            url: "/admin/updateStatus",
+            method: 'put',
+            data: data
+        })
+    },
+    addAdmin(data) {
+        return request({
+            url: '/admin/add',
+            method: 'post',
+            data: data
+        })
+    },
+    adminInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/admin/info',
+            method: 'get',
+            data: data
+        })
+    },
+    adminUpdate(data) {
+        return request({
+            url: '/admin/update',
+            method: 'put',
+            data: data
+        })
+    },
+    resetPassword(id, password) {
+        const data = {
+            id,
+            password
+        }
+        return request({
+            url: '/admin/updatePassword',
+            method: 'put',
+            data: data
+        })
+    },
+    deleteAdmin(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/admin/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    adminUpdatePersonal(data) {
+        return request({
+            url: '/admin/updatePersonal',
+            method: 'put',
+            data: data
+        })
+    },
+    adminUpdatePersonalPassword(data) {
+        return request({
+            url: '/admin/updatePersonalPassword',
+            method: 'put',
+            data: data
+        })
+    },
+}
+```
