@@ -20,11 +20,11 @@ export default {
   computed: {
     // 无子集
     noChildren() {
-      return this.leftMenuList.filter(item => !item.menuSVoList)
+      return (this.leftMenuList || []).filter(item => !item.menuSVoList)
     },
     // 有子集
     hasChildren() {
-      return this.leftMenuList.filter(item => item.menuSVoList)
+      return (this.leftMenuList || []).filter(item => item.menuSVoList)
     }
   },
   methods: {

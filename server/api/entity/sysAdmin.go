@@ -74,7 +74,7 @@ type UpdateSysAdminDto struct {
 	Id       uint
 	PostId   int
 	DeptId   int
-	RoleId   uint
+	RoleId   int
 	Username string
 	Nickname string
 	Phone    string

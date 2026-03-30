@@ -10,7 +10,7 @@
           <el-input placeholder="账号" prefix-icon="el-icon-user-solid" v-model="loginForm.username" clearable></el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input placeholder="密码" prefix-icon="el-icon-key" v-model="loginForm.password" clearable></el-input>
+          <el-input placeholder="密码" prefix-icon="el-icon-key" v-model="loginForm.password" clearable type="password"></el-input>
         </el-form-item>
         <el-form-item prop="image">
           <el-input placeholder="验证码" prefix-icon="el-icon-view" style="width: 200px; float: left; " maxlength="6" v-model="loginForm.image" clearable/>

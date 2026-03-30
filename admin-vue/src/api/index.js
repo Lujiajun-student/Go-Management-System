@@ -51,7 +51,7 @@ export default {
         })
     },
     // 获取岗位列表
-    querySysPostVOList() {
+    querySysPostVoList() {
         return request({
             url: '/post/vo/list',
             method: 'get'

@@ -43,7 +43,7 @@ func CreateSysAdmin(dto entity.AddSysAdminDto) bool {
 	sysAdminExist := GetSysAdminByUsername(dto.Username)
 	var e entity.SysAdminRole
 	e.AdminId = sysAdminExist.ID
-	e.RoleId = sysAdminExist.ID
+	e.RoleId = dto.RoleId
 	Db.Create(&e)
 	if tx.RowsAffected > 0 {
 		return true

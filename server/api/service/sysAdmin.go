@@ -105,12 +105,18 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto entity.LoginDto) {
 
 // CreateSysAdmin 新增用户
 func (s SysAdminServiceImpl) CreateSysAdmin(c *gin.Context, dto entity.AddSysAdminDto) {
+	err := validator.New().Struct(dto)
+	if err != nil {
+		result.Failed(c, int(result.ApiCode.MissingNewAdminParameter), result.ApiCode.GetMessage(result.ApiCode.MissingNewAdminParameter))
+		return
+	}
 	ok := dao.CreateSysAdmin(dto)
 	if !ok {
 		result.Failed(c, int(result.ApiCode.USERNAMEALREADYEXISTS), result.ApiCode.GetMessage(result.ApiCode.USERNAMEALREADYEXISTS))
 		return
 	}
 	result.Success(c, true)
+	return
 }
 
 // GetSysAdminInfo 根据id查询用户

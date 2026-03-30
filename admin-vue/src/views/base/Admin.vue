@@ -1,5 +1,10 @@
 <script>
+import Treeselect from '@riophae/vue-treeselect'
+import '@riophae/vue-treeselect/dist/vue-treeselect.css'
   export default {
+  components: {
+    Treeselect
+  },
     data() {
       return {
         statusList: [{
@@ -14,7 +19,210 @@
         queryParams: {},
         adminList: [],
         total: 0,
+        addDialogVisible: false,
+        deptList: [],
+        roleList: [],
+        postList: [],
+        addForm: {
+          username: '',
+          password: '',
+          deptId: undefined,
+          postId: undefined,
+          roleId: undefined,
+          email: '',
+          nickname: '',
+          status: 1,
+          phone: '',
+          note: ''
+        },
+        addFormRules: {
+          deptId: [{ required: true, message: '请选择部门', trigger: 'blur' }],
+          postId: [{ required: true, message: '请选择岗位', trigger: 'blur' }],
+          roleId: [{ required: true, message: '请选择角色', trigger: 'blur' }],
+          username: [{ required: true, message: '请输入用户账号', trigger: 'blur' }],
+          password: [{ required: true, message: '请输入用户密码', trigger: 'blur' }],
+          status: [{ required: true, message: '请选择状态', trigger: 'blur' }],
+          email: [{ required: true, message: '请输入用户邮箱', trigger: 'blur' }],
+          nickname: [{ required: true, message: '请输入用户昵称', trigger: 'blur' }],
+          phone: [{ required: true, message: '请输入用户手机', trigger: 'blur' }]
+        },
+        editDialogVisible: false,
+        adminInfo: {},
+        editFormRules: {
+          deptId: [{ required: true, message: '请选择部门', trigger: 'blur' }],
+          postId: [{ required: true, message: '请选择岗位', trigger: 'blur' }],
+          roleId: [{ required: true, message: '请选择角色', trigger: 'blur' }],
+          username: [{ required: true, message: '请输入用户账号', trigger: 'blur' }],
+          status: [{ required: true, message: '请选择状态', trigger: 'blur' }],
+          email: [{ required: true, message: '请输入用户邮箱', trigger: 'blur' }],
+          nickname: [{ required: true, message: '请输入用户昵称', trigger: 'blur' }],
+          phone: [{ required: true, message: '请输入用户手机', trigger: 'blur' }]
+        },
       }
+    },
+    methods: {
+      // 查询列表
+      async getAdminList() {
+        this.Loading = true
+        const {data: res} = await this.$api.queryAdminList(this.queryParams)
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.adminList = res.data.list
+          this.total = res.data.total
+          this.Loading = false
+        }
+      },
+      // 搜索按钮操作
+      handleQuery() {
+        this.getAdminList();
+      },
+      // 重置按钮操作
+      resetQuery() {
+        this.queryParams = {}
+        this.getAdminList();
+        this.$message.success('重置成功')
+      },
+      // pageSize
+      handleSizeChange(newSize) {
+        this.queryParams.pageSize = newSize
+        this.getAdminList()
+      },
+      // pageNum
+      handleCurrentChange(newPage) {
+        this.queryParams.pageNum = newPage
+        this.getAdminList()
+      },
+      // 修改用户状态
+      async adminUpdateStatus(row) {
+        const text = row.status === 2 ? '停用' : '启用';
+        const confirmResult = await this.$confirm('确定' + text + row.username + '用户吗？', '警告', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          await this.getAdminList()
+          return this.$message.info('取消删除')
+        }
+        this.$api.updateAdminStatus(row.id, row.status)
+        this.$message.success(text + '成功')
+        await this.getAdminList()
+      },
+      // 部门下拉列表
+      async getDeptVoList() {
+        const {data:res} = await this.$api.querySysDeptVoList()
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.deptList = this.$handleTree.handleTree(res.data, "id")
+        }
+      },
+      // 角色下拉列表
+      async getRoleVoList() {
+        const {data: res} = await this.$api.querySysRoleVoList()
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.roleList =res.data
+        }
+      },
+      // 岗位下拉列表
+      async getPostVoList() {
+        const {data: res} = await this.$api.querySysPostVoList()
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.postList = res.data
+        }
+      },
+      // 监听添加用户对话框关闭
+      addDialogClosed() {
+        this.$refs.addFormRefForm.resetFields()
+      },
+      // 新增用户
+      addAdmin() {
+        this.$refs.addFormRefForm.validate(async valid => {
+          if (!valid) return
+          const {data: res} = await this.$api.addAdmin(this.addForm);
+          if (res.code !== 200) {
+            this.$message.error(res.message)
+          } else {
+            this.$message.success('新增用户成功')
+            this.addDialogVisible = false
+            await this.getAdminList()
+          }
+        })
+      },
+      // 展示编辑用户的对话框
+      async showEditAdminDialog(id) {
+        const {data: res} = await this.$api.adminInfo(id)
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.adminInfo = res.data
+          this.editDialogVisible = true
+        }
+      },
+      // 监听修改用户对话框的关闭
+      editDialogClosed() {
+        this.$refs.editFormRefForm.resetFields()
+      },
+      // 修改用户
+      editAdminInfo() {
+        this.$refs.editFormRefForm.validate(async valid => {
+          if (!valid) return
+          const {data: res} = await this.$api.adminUpdate(this.adminInfo)
+          if (res.code !== 200) {
+            this.$message.error(res.message)
+          } else {
+            this.editDialogVisible = false
+            await this.getAdminList()
+            this.$message.success('修改用户成功')
+          }
+        })
+      },
+      // 删除用户
+      async handleAdminDelete(row) {
+        const confirmResult = await this.$confirm('是否删除' + row.username + '用户吗？', '警告', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        if (confirmResult !== 'confirm') {
+          return this.$message.info('取消删除')
+        }
+        const {data: res} = await this.$api.deleteAdmin(row.id)
+        if (res.code !== 200) {
+          this.$message.error(res.message)
+        } else {
+          this.$message.success('删除成功')
+          await this.getAdminList()
+        }
+      },
+      // 重置密码
+      handleResetPwd(row) {
+        this.$prompt('请输入' + row.username + '的新密码：', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          closeOnClickModel: false,
+          inputPattern: /^.{5,20}$/,
+          inputErrorMessage: '用户密码必须在5-20位之间'
+        }).then(({value}) => {
+          this.$api.resetPassword(row.id, value).then(response => {
+            this.$message.success('修改成功, 新密码为：' + value);
+          });
+        }).catch(() => {
+          this.$message.info('取消重置密码')
+        });
+
+      }
+    },
+    created() {
+      this.getAdminList()
+      this.getRoleVoList()
+      this.getPostVoList()
+      this.getDeptVoList()
     }
   }
 </script>
@@ -103,6 +311,162 @@
                      layout="total, sizes, prev, pager, next, jumper" :total="total">
       </el-pagination>
     </el-form>
+    <!-- 添加用户 -->
+    <el-dialog title="新增用户" :visible.sync="addDialogVisible" width="40%" @close="addDialogClosed">
+      <el-form :model="addForm" :rules="addFormRules" ref="addFormRefForm" label-width="80px">
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="用户昵称" prop="nickname">
+              <el-input v-model="addForm.nickname" placeholder="请输入用户昵称" maxlength="30" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item size="mini" label="归属部门" prop="deptId">
+              <treeselect v-model="addForm.deptId" :options="deptList" :show-count="true"
+                          placeholder="请选择归属部门" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="手机号码" prop="phone">
+              <el-input v-model="addForm.phone" placeholder="请输入手机号码" maxlength="11" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用户邮箱" prop="email">
+              <el-input v-model="addForm.email" placeholder="请输入邮箱" maxlength="50" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="用户名称" prop="username">
+              <el-input v-model="addForm.username" placeholder="请输入用户名称" maxlength="30" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用户密码" prop="password">
+              <el-input v-model="addForm.password" placeholder="请输入用户密码" type="password" maxlength="20"
+                        show-password />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="用户状态" prop="status">
+              <el-radio-group v-model="addForm.status">
+                <el-radio :label="1">正常</el-radio>
+                <el-radio :label="2">停用</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="用户岗位" prop="postId">
+              <el-select placeholder="请选择岗位" v-model="addForm.postId">
+                <el-option v-for="item in postList" :key="item.id" :label="item.postName" :value="item.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用户角色" prop="roleId">
+              <el-select placeholder="请选择角色" v-model="addForm.roleId">
+                <el-option v-for="item in roleList" :key="item.id" :label="item.roleName"
+                           :value="item.id"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="个人简介" prop="note">
+              <el-input v-model="addForm.note" type="textarea" placeholder="请输入内容"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="addAdmin">确 定</el-button>
+                <el-button type="primary" @click="addDialogVisible = false">取 消</el-button>
+            </span>
+    </el-dialog>
+    <!--修改用户-->
+    <el-dialog title="修改用户" :visible.sync="editDialogVisible" width="40%" @close="editDialogClosed">
+      <el-form :model="adminInfo" :rules="editFormRules" ref="editFormRefForm" label-width="80px">
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="用户昵称" prop="nickname">
+              <el-input v-model="adminInfo.nickname" placeholder="请输入用户昵称" maxlength="30" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item size="mini" label="归属部门" prop="deptId">
+              <treeselect v-model="adminInfo.deptId" :options="deptList" :show-count="true"
+                          placeholder="请选择归属部门" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="手机号码" prop="phone">
+              <el-input v-model="adminInfo.phone" placeholder="请输入手机号码" maxlength="11" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用户邮箱" prop="email">
+              <el-input v-model="adminInfo.email" placeholder="请输入邮箱" maxlength="50" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="用户名称" prop="username">
+              <el-input v-model="adminInfo.username" placeholder="请输入用户名称" maxlength="30" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用户状态" prop="status">
+              <el-radio-group v-model="adminInfo.status">
+                <el-radio :label="1">正常</el-radio>
+                <el-radio :label="2">停用</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="用户岗位" prop="postId">
+              <el-select placeholder="请选择岗位" v-model="adminInfo.postId">
+                <el-option v-for="item in postList" :key="item.id" :label="item.postName" :value="item.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用户角色" prop="roleId">
+              <el-select placeholder="请选择角色" v-model="adminInfo.roleId">
+                <el-option v-for="item in roleList" :key="item.id" :label="item.roleName"
+                           :value="item.id"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="个人简介" prop="note">
+              <el-input v-model="adminInfo.note" type="textarea" placeholder="请输入内容"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="editAdminInfo">确 定</el-button>
+                <el-button type="primary" @click="editDialogVisible = false">取 消</el-button>
+            </span>
+    </el-dialog>
   </el-card>
 </template>
 
