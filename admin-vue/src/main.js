@@ -9,6 +9,7 @@ import storage from '@/utils/storage'
 import './assets/css/global.css'
 import api from './api'
 import handleTree from '@/utils/common'
+import AuthorityDirective from '@/permission/index.js'
 
 Vue.prototype.$storage = storage
 Vue.prototype.$request = request
@@ -16,7 +17,7 @@ Vue.prototype.$store = store
 Vue.prototype.$api = api
 Vue.prototype.$handleTree = handleTree
 
-Vue.use(ElementUI)
+Vue.use(ElementUI).use(AuthorityDirective)
 
 Vue.config.productionTip = false
 

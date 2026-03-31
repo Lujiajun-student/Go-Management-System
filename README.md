@@ -16246,3 +16246,110 @@ export default {
 # 21. 权限管理
 
 不同的用户拥有不同的权限，访问不同的页面。
+
+首先在utils下创建`authority.js`。
+
+```js
+/*
+检测是否有权限
+ */
+export function checkAuthority(permissionCode, permissions) {
+    let hasPermission = true
+    if (permissionCode) {
+        if (permissionCode instanceof Array && permissionCode.length > 0) {
+            hasPermission = permissions.some(permissions => permissionCode.includes(permissions))
+        } else {
+            hasPermission = permissions.some(item => item === permissionCode)
+        }
+    }
+    return hasPermission
+}
+```
+
+这个方法用来检测是否有权限。
+
+然后在`permission`中添加`Authority.js`文件，用来验证是否有权限，没有权限则将当前节点移出父节点。
+
+```js
+/*
+获取前线配置
+ */
+import {checkAuthority} from '@/utils/authority'
+import storage from '@/uitls/storage'
+
+export default {
+    inserted(el, binding, vnode) {
+        const {value} = binding
+        const permissions = storage.getItem('permissionList') || []
+        const hasPermission = checkAuthority(value, permissions)
+        if (!hasPermission) {
+            if (el.parentNode) {
+                el.parentNode.removeChild(el)
+            } else {
+                el.innerHTML = ''
+            }
+        } else {
+            el && el.setAttribute('code', value)
+        }
+    }
+}
+```
+
+然后创建`index.js`用来给前端使用。
+
+```js
+/*
+vue使用配置
+ */
+import authority from "./Authority";
+import Vue from 'vue'
+const install = function (Vue) {
+    Vue.directive('authority', authority)
+}
+
+if (window.Vue) {
+    window.authority = authority
+    Vue.use(install)
+}
+authority.install = install
+export default authority
+```
+
+在前端`main.js`中使用即可。
+
+```js
+import Vue from 'vue'
+import App from './App.vue'
+import router from "@/router/router"
+import store from "@/store"
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+import request from '@/utils/request'
+import storage from '@/utils/storage'
+import './assets/css/global.css'
+import api from './api'
+import handleTree from '@/utils/common'
+import AuthorityDirective from '@/permission/index.js'
+
+Vue.prototype.$storage = storage
+Vue.prototype.$request = request
+Vue.prototype.$store = store
+Vue.prototype.$api = api
+Vue.prototype.$handleTree = handleTree
+
+Vue.use(ElementUI).use(AuthorityDirective)
+
+Vue.config.productionTip = false
+
+console.log("环境变量 -> ", process.env["VUE_APP_BASE_API"])
+
+new Vue({
+  router,
+  render: h => h(App),
+}).$mount('#app')
+```
+
+设置后给管理员仅添加新增的功能，就能看到管理员无法编辑和删除。
+
+![image-20260331124016423](assets/image-20260331124016423.png)
+
