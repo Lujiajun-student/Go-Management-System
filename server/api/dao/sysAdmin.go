@@ -155,6 +155,9 @@ func UpdatePersonal(dto entity.UpdatePersonalDto) (sysAdmin entity.SysAdmin) {
 	if dto.Email != "" {
 		sysAdmin.Email = dto.Email
 	}
+	if dto.Note != "" {
+		sysAdmin.Note = dto.Note
+	}
 	Db.Save(&sysAdmin)
 	return sysAdmin
 }

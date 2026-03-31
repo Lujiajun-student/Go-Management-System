@@ -350,4 +350,72 @@ export default {
             data: data
         })
     },
+    // sysLoginInfo登录日志
+    querySysLoginInfoList(params) {
+        return request({
+            url: "/sysLoginInfo/list",
+            method: 'get',
+            data: params
+        })
+    },
+    batchDeleteSysLoginInfo(ids) {
+        const data = {
+            ids
+        }
+        return request({
+            url: '/sysLoginInfo/batch/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    cleanSysLoginInfo() {
+        return request({
+            url: '/sysLoginInfo/clean',
+            method: 'delete'
+        })
+    },
+    deleteSysLoginInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/sysLoginInfo/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // SysOperationLog操作日志
+    querySysOperationLogList(params) {
+        return request({
+            url: "/sysOperationLog/list",
+            method: 'get',
+            data: params
+        })
+    },
+    batchDeleteSysOperationLog(ids) {
+        const data = {
+            ids
+        }
+        return request({
+            url: '/sysOperationLog/batch/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    cleanSysOperationLog() {
+        return request({
+            url: '/sysOperationLog/clean',
+            method: 'delete'
+        })
+    },
+    deleteSysOperationLog(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/sysOperationLog/delete',
+            method: 'delete',
+            data: data
+        })
+    },
 }

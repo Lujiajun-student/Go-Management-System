@@ -27,5 +27,5 @@ type SysLoginInfoIdDto struct {
 
 // DelSysLoginInfoDto 批量删除日志所需参数
 type DelSysLoginInfoDto struct {
-	Ids []uint `json:"id"`
+	Ids []uint `json:"ids"`
 }

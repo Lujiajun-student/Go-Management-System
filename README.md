@@ -4811,24 +4811,27 @@ type UpdatePersonalDto struct {
 ```go
 // UpdatePersonal 修改个人信息
 func UpdatePersonal(dto entity.UpdatePersonalDto) (sysAdmin entity.SysAdmin) {
-    Db.First(&sysAdmin, dto.Id)
-    if dto.Icon != "" {
-       sysAdmin.Icon = dto.Icon
-    }
-    if dto.Username != "" {
-       sysAdmin.Username = dto.Username
-    }
-    if dto.Nickname != "" {
-       sysAdmin.Nickname = dto.Nickname
-    }
-    if dto.Phone != "" {
-       sysAdmin.Phone = dto.Phone
-    }
-    if dto.Email != "" {
-       sysAdmin.Email = dto.Email
-    }
-    Db.Save(&sysAdmin)
-    return sysAdmin
+	Db.First(&sysAdmin, dto.Id)
+	if dto.Icon != "" {
+		sysAdmin.Icon = dto.Icon
+	}
+	if dto.Username != "" {
+		sysAdmin.Username = dto.Username
+	}
+	if dto.Nickname != "" {
+		sysAdmin.Nickname = dto.Nickname
+	}
+	if dto.Phone != "" {
+		sysAdmin.Phone = dto.Phone
+	}
+	if dto.Email != "" {
+		sysAdmin.Email = dto.Email
+	}
+	if dto.Note != "" {
+		sysAdmin.Note = dto.Note
+	}
+	Db.Save(&sysAdmin)
+	return sysAdmin
 }
 ```
 
@@ -5868,7 +5871,7 @@ type SysLoginInfoIdDto struct {
 
 // DelSysLoginInfoDto 批量删除日志所需参数
 type DelSysLoginInfoDto struct {
-	Ids []uint `json:"id"`
+	Ids []uint `json:"ids"`
 }
 
 // CleanSysLoginInfo 清空登录日志
@@ -15019,3 +15022,1227 @@ import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 
 </style>
 ```
+
+## 18.5 个人信息
+
+点击右上角头像有个人信息，打开可以展示个人信息，并实现个人信息的修改。
+
+# 19. 登录日志
+
+这里需要实现登录日志的列表查看、删除、批量删除和清空登录日志。
+
+首先需要在api中添加接口。
+
+```js
+/*
+后端api接口管理
+ */
+
+import request from '@/utils/request'
+
+export default {
+    // 验证码接口
+    captcha() {
+        return request ({
+            url: '/captcha',
+            method: 'get'
+        })
+    },
+    // 登录接口
+    login(params) {
+        return request({
+            url: '/login',
+            method: 'post',
+            data: params
+        })
+    },
+    // post岗位
+    queryPostList(params) {
+        return request({
+            url: '/post/list',
+            method: 'get',
+            data: params
+        })
+    },
+    // 批量删除岗位
+    batchDeleteSysPost(ids) {
+        const data = {
+            ids
+        }
+        return request({
+            url: '/post/batch/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // 根据id删除岗位
+    deleteSysPost(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/post/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // 获取岗位列表
+    querySysPostVoList() {
+        return request({
+            url: '/post/vo/list',
+            method: 'get'
+        })
+    },
+    // 添加岗位
+    addPost(data) {
+        return request({
+            url: '/post/add',
+            method: 'post',
+            data: data
+        })
+    },
+    // 根据id获取岗位信息
+    postInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/post/info',
+            method: 'get',
+            data: data
+        })
+    },
+    // 更新岗位
+    updatePost(data) {
+        return request({
+            url: '/post/update',
+            method: 'put',
+            data: data
+        })
+    },
+    // 更新岗位状态
+    updatePostStatus(id, postStatus) {
+        const data = {
+            id,
+            postStatus
+        }
+        return request({
+            url: '/post/updateStatus',
+            method: 'put',
+            data: data
+        })
+    },
+    // dept部门
+    queryDeptList(params) {
+        return request({
+            url: "/dept/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysDeptVoList() {
+        return request({
+            url: '/dept/vo/list',
+            method: 'get'
+        })
+    },
+    addDept(data) {
+        return request({
+            url: '/dept/add',
+            method: 'post',
+            data: data
+        })
+    },
+    deleteDept(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/dept/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    deptInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/dept/info',
+            method: 'get',
+            data: data
+        })
+    },
+    deptUpdate(data) {
+        return request({
+            url: '/dept/update',
+            method: 'put',
+            data: data
+        })
+    },
+    // menu菜单
+    queryMenuList(params) {
+        return request({
+            url: "/menu/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysMenuVoList() {
+        return request({
+            url: "/menu/vo/list",
+            method: 'get'
+        })
+    },
+    addMenu(data) {
+        return request({
+            url: '/menu/add',
+            method: 'post',
+            data: data
+        })
+    },
+    menuInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/menu/info',
+            method: 'get',
+            data: data
+        })
+    },
+    menuUpdate(data) {
+        return request({
+            url: '/menu/update',
+            method: 'put',
+            data: data
+        })
+    },
+    menuDelete(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/menu/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // role角色
+    queryRoleList(params) {
+        return request({
+            url: "/role/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysRoleVoList() {
+        return request({
+            url: "/role/vo/list",
+            method: 'get'
+        })
+    },
+    addRole(data) {
+        return request({
+            url: '/role/add',
+            method: 'post',
+            data: data
+        })
+    },
+    roleInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/info',
+            method: 'get',
+            data: data
+        })
+    },
+    roleUpdate(data) {
+        return request({
+            url: '/role/update',
+            method: 'put',
+            data: data
+        })
+    },
+    deleteRole(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    updateRoleStatus(id, status) {
+        const data = {
+            id,
+            status
+        }
+        return request({
+            url: "/role/updateStatus",
+            method: 'put',
+            data: data
+        })
+    },
+    QueryRoleMenuIdList(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: "/role/vo/idList",
+            method: 'get',
+            data: data
+        })
+    },
+    AssignPermissions(id, menuIds) {
+        const data = {
+            id,
+            menuIds
+        }
+        return request({
+            url: "/role/assignPermissions",
+            method: 'put',
+            data: data
+        })
+    },
+    // admin用户
+    queryAdminList(params) {
+        return request({
+            url: "/admin/list",
+            method: 'get',
+            data: params
+        })
+    },
+    updateAdminStatus(id, status) {
+        const data = {
+            id,
+            status
+        }
+        return request({
+            url: "/admin/updateStatus",
+            method: 'put',
+            data: data
+        })
+    },
+    addAdmin(data) {
+        return request({
+            url: '/admin/add',
+            method: 'post',
+            data: data
+        })
+    },
+    adminInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/admin/info',
+            method: 'get',
+            data: data
+        })
+    },
+    adminUpdate(data) {
+        return request({
+            url: '/admin/update',
+            method: 'put',
+            data: data
+        })
+    },
+    resetPassword(id, password) {
+        const data = {
+            id,
+            password
+        }
+        return request({
+            url: '/admin/updatePassword',
+            method: 'put',
+            data: data
+        })
+    },
+    deleteAdmin(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/admin/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    adminUpdatePersonal(data) {
+        return request({
+            url: '/admin/updatePersonal',
+            method: 'put',
+            data: data
+        })
+    },
+    adminUpdatePersonalPassword(data) {
+        return request({
+            url: '/admin/updatePersonalPassword',
+            method: 'put',
+            data: data
+        })
+    },
+    // sysLoginInfo登录日志
+    querySysLoginInfoList(params) {
+        return request({
+            url: "/sysLoginInfo/list",
+            method: 'get',
+            data: params
+        })
+    },
+    batchDeleteSysLoginInfo(ids) {
+        const data = {
+            ids
+        }
+        return request({
+            url: '/sysLoginInfo/batch/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    cleanSysLoginInfo() {
+        return request({
+            url: '/sysLoginInfo/clean',
+            method: 'delete'
+        })
+    },
+    deleteSysLoginInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/sysLoginInfo/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+}
+```
+
+然后修改`LoginLog.vue`页面即可。
+
+```vue
+<script>
+export default {
+  data() {
+    return {
+      queryParams: {},
+      loginStatusList: [{
+        value: '1',
+        label: '成功'
+      }, {
+        value: '2',
+        label: '失败'
+      }],
+      sysLoginInfoList: [],
+      Loading: true,
+      ids: [],
+      single: true,
+      multiple: true,
+      total: 0,
+    }
+  },
+  methods: {
+    // 多选框选中数据
+    handleSelectionChange(selection) {
+      this.ids = selection.map(item => item.id);
+      this.single = selection.length != 1;
+      this.multiple = !selection.length;
+    },
+    // 查询列表
+    async getSysLoginInfoList() {
+      this.Loading = true
+      const { data: res } = await this.$api.querySysLoginInfoList(this.queryParams)
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      } else {
+        this.sysLoginInfoList = res.data.list
+        this.total = res.data.total
+        this.Loading = false
+      }
+    },
+    // 搜索按钮操作
+    handleQuery() {
+      this.getSysLoginInfoList();
+    },
+    // 重置按钮操作
+    resetQuery() {
+      this.queryParams = {}
+      this.getSysLoginInfoList();
+      this.$message.success("重置成功")
+    },
+    // pageSize
+    handleSizeChange(newSize) {
+      this.queryParams.pageSize = newSize
+      this.getSysLoginInfoList()
+    },
+    // pageNum
+    handleCurrentChange(newPage) {
+      this.queryParams.pageNum = newPage
+      this.getSysLoginInfoList()
+    },
+    // 清空
+    async handleClean() {
+      const confirmResult = await this.$confirm('是否清空登录日志？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(err => err)
+      if (confirmResult !== 'confirm') {
+        return this.$message.info('已取消')
+      }
+      const { data: res } = await this.$api.cleanSysLoginInfo()
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      } else {
+        this.$message.success('清空成功')
+        await this.getSysLoginInfoList()
+      }
+    },
+    // 删除
+    async handleDelete(id) {
+      const confirmResult = await this.$confirm('是否确认删除登录日志编号为"' + id + '"的数据项？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(err => err)
+      if (confirmResult !== 'confirm') {
+        return this.$message.info('已取消删除')
+      }
+      const { data: res } = await this.$api.deleteSysLoginInfo(id)
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      } else {
+        this.$message.success('删除成功')
+        await this.getSysLoginInfoList()
+      }
+    },
+    // 批量删除
+    async batchHandleDelete() {
+      const loginInfoIds = this.ids;
+      const confirmResult = await this.$confirm('是否确认删除登录日志编号为"' + loginInfoIds + '"的数据项？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(err => err)
+      if (confirmResult !== 'confirm') {
+        return this.$message.info('已取消删除')
+      }
+      const { data: res } = await this.$api.batchDeleteSysLoginInfo(loginInfoIds)
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      } else {
+        this.$message.success('删除成功')
+
+        await this.getSysLoginInfoList()
+      }
+    },
+  },
+  created() {
+    this.getSysLoginInfoList()
+  }
+}
+</script>
+
+<template>
+  <el-card>
+    <!--条件搜索区域-->
+    <el-form :model="queryParams" :inline="true">
+      <el-form-item prop="username" label="用户名称">
+        <el-input v-model="queryParams.username" placeholder="请输入用户名称" clearable size="mini"
+                  @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item prop="loginStatus" label="登录状态">
+        <el-select size="mini" placeholder="请选择岗位状态" v-model="queryParams.loginStatus">
+          <el-option v-for="item in loginStatusList" :key="item.value" :label="item.label" :value="item.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item prop="beginTime" label="开始时间">
+        <el-date-picker class="input-width" v-model="queryParams.beginTime" size="mini" type="date"
+                        style="width: 190px" value-format="yyyy-MM-dd" clearable placeholder="请选择开始时间"
+                        @keyup.enter.native="handleQuery"></el-date-picker>
+      </el-form-item>
+      <el-form-item prop="endTime" label="结束时间">
+        <el-date-picker class="input-width" v-model="queryParams.endTime" size="mini" type="date"
+                        style="width: 190px" value-format="yyyy-MM-dd" clearable placeholder="请选择结束时间"
+                        @keyup.enter.native="handleQuery"></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button type="primary" icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <!--操作按钮-->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple"
+                   @click="batchHandleDelete" v-authority="['monitor:loginLog:delete']">删除
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="danger" plain icon="el-icon-delete" size="mini" @click="handleClean" v-authority="['monitor:loginLog:clean']">清空</el-button>
+      </el-col>
+    </el-row>
+    <!--列表区域-->
+    <el-table v-loading="Loading" :data="sysLoginInfoList" border stripe style="width: 100%"
+              :header-cell-style="{ background: '#eef1f6', color: '#606266' }" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" />
+      <el-table-column label="ID" prop="id" v-if="false" />
+      <el-table-column label="用户账号" prop="username" />
+      <el-table-column label="登录IP地址" prop="ipAddress" />
+      <el-table-column label="登录地点" prop="loginLocation" />
+      <el-table-column label="浏览器类型" prop="browser" />
+      <el-table-column label="操作系统" prop="os" />
+      <el-table-column label="登录状态" prop="loginStatus">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.loginStatus === 1" type="success">成功</el-tag>
+          <el-tag v-else-if="scope.row.loginStatus === 2" type="danger">失败</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="提示消息" prop="message" />
+      <el-table-column label="访问时间" prop="loginTime" />
+      <el-table-column label="更多操作">
+        <template slot-scope="scope">
+          <el-button size="small" type="text" icon="el-icon-delete" @click="handleDelete(scope.row.id)" v-authority="['monitor:loginLog:delete']">删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!--分页区域-->
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                   :current-page="queryParams.pageNum" :page-sizes="[10, 50, 100, 500, 1000]" :page-size="queryParams.pageSize"
+                   layout="total, sizes, prev, pager, next, jumper" :total="total">
+    </el-pagination>
+  </el-card>
+</template>
+<style lang="less" scoped lang="less">
+
+</style>
+```
+
+![image-20260331115207556](assets/image-20260331115207556.png)
+
+同时也可以清空日志、删除和批量删除日志。
+
+# 20. 操作日志
+
+同样的，先在api添加操作日志的接口。
+
+```js
+/*
+后端api接口管理
+ */
+
+import request from '@/utils/request'
+
+export default {
+    // 验证码接口
+    captcha() {
+        return request ({
+            url: '/captcha',
+            method: 'get'
+        })
+    },
+    // 登录接口
+    login(params) {
+        return request({
+            url: '/login',
+            method: 'post',
+            data: params
+        })
+    },
+    // post岗位
+    queryPostList(params) {
+        return request({
+            url: '/post/list',
+            method: 'get',
+            data: params
+        })
+    },
+    // 批量删除岗位
+    batchDeleteSysPost(ids) {
+        const data = {
+            ids
+        }
+        return request({
+            url: '/post/batch/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // 根据id删除岗位
+    deleteSysPost(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/post/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // 获取岗位列表
+    querySysPostVoList() {
+        return request({
+            url: '/post/vo/list',
+            method: 'get'
+        })
+    },
+    // 添加岗位
+    addPost(data) {
+        return request({
+            url: '/post/add',
+            method: 'post',
+            data: data
+        })
+    },
+    // 根据id获取岗位信息
+    postInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/post/info',
+            method: 'get',
+            data: data
+        })
+    },
+    // 更新岗位
+    updatePost(data) {
+        return request({
+            url: '/post/update',
+            method: 'put',
+            data: data
+        })
+    },
+    // 更新岗位状态
+    updatePostStatus(id, postStatus) {
+        const data = {
+            id,
+            postStatus
+        }
+        return request({
+            url: '/post/updateStatus',
+            method: 'put',
+            data: data
+        })
+    },
+    // dept部门
+    queryDeptList(params) {
+        return request({
+            url: "/dept/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysDeptVoList() {
+        return request({
+            url: '/dept/vo/list',
+            method: 'get'
+        })
+    },
+    addDept(data) {
+        return request({
+            url: '/dept/add',
+            method: 'post',
+            data: data
+        })
+    },
+    deleteDept(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/dept/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    deptInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/dept/info',
+            method: 'get',
+            data: data
+        })
+    },
+    deptUpdate(data) {
+        return request({
+            url: '/dept/update',
+            method: 'put',
+            data: data
+        })
+    },
+    // menu菜单
+    queryMenuList(params) {
+        return request({
+            url: "/menu/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysMenuVoList() {
+        return request({
+            url: "/menu/vo/list",
+            method: 'get'
+        })
+    },
+    addMenu(data) {
+        return request({
+            url: '/menu/add',
+            method: 'post',
+            data: data
+        })
+    },
+    menuInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/menu/info',
+            method: 'get',
+            data: data
+        })
+    },
+    menuUpdate(data) {
+        return request({
+            url: '/menu/update',
+            method: 'put',
+            data: data
+        })
+    },
+    menuDelete(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/menu/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // role角色
+    queryRoleList(params) {
+        return request({
+            url: "/role/list",
+            method: 'get',
+            data: params
+        })
+    },
+    querySysRoleVoList() {
+        return request({
+            url: "/role/vo/list",
+            method: 'get'
+        })
+    },
+    addRole(data) {
+        return request({
+            url: '/role/add',
+            method: 'post',
+            data: data
+        })
+    },
+    roleInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/info',
+            method: 'get',
+            data: data
+        })
+    },
+    roleUpdate(data) {
+        return request({
+            url: '/role/update',
+            method: 'put',
+            data: data
+        })
+    },
+    deleteRole(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/role/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    updateRoleStatus(id, status) {
+        const data = {
+            id,
+            status
+        }
+        return request({
+            url: "/role/updateStatus",
+            method: 'put',
+            data: data
+        })
+    },
+    QueryRoleMenuIdList(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: "/role/vo/idList",
+            method: 'get',
+            data: data
+        })
+    },
+    AssignPermissions(id, menuIds) {
+        const data = {
+            id,
+            menuIds
+        }
+        return request({
+            url: "/role/assignPermissions",
+            method: 'put',
+            data: data
+        })
+    },
+    // admin用户
+    queryAdminList(params) {
+        return request({
+            url: "/admin/list",
+            method: 'get',
+            data: params
+        })
+    },
+    updateAdminStatus(id, status) {
+        const data = {
+            id,
+            status
+        }
+        return request({
+            url: "/admin/updateStatus",
+            method: 'put',
+            data: data
+        })
+    },
+    addAdmin(data) {
+        return request({
+            url: '/admin/add',
+            method: 'post',
+            data: data
+        })
+    },
+    adminInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/admin/info',
+            method: 'get',
+            data: data
+        })
+    },
+    adminUpdate(data) {
+        return request({
+            url: '/admin/update',
+            method: 'put',
+            data: data
+        })
+    },
+    resetPassword(id, password) {
+        const data = {
+            id,
+            password
+        }
+        return request({
+            url: '/admin/updatePassword',
+            method: 'put',
+            data: data
+        })
+    },
+    deleteAdmin(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/admin/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    adminUpdatePersonal(data) {
+        return request({
+            url: '/admin/updatePersonal',
+            method: 'put',
+            data: data
+        })
+    },
+    adminUpdatePersonalPassword(data) {
+        return request({
+            url: '/admin/updatePersonalPassword',
+            method: 'put',
+            data: data
+        })
+    },
+    // sysLoginInfo登录日志
+    querySysLoginInfoList(params) {
+        return request({
+            url: "/sysLoginInfo/list",
+            method: 'get',
+            data: params
+        })
+    },
+    batchDeleteSysLoginInfo(ids) {
+        const data = {
+            ids
+        }
+        return request({
+            url: '/sysLoginInfo/batch/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    cleanSysLoginInfo() {
+        return request({
+            url: '/sysLoginInfo/clean',
+            method: 'delete'
+        })
+    },
+    deleteSysLoginInfo(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/sysLoginInfo/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    // SysOperationLog操作日志
+    querySysOperationLogList(params) {
+        return request({
+            url: "/sysOperationLog/list",
+            method: 'get',
+            data: params
+        })
+    },
+    batchDeleteSysOperationLog(ids) {
+        const data = {
+            ids
+        }
+        return request({
+            url: '/sysOperationLog/batch/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+    cleanSysOperationLog() {
+        return request({
+            url: '/sysOperationLog/clean',
+            method: 'delete'
+        })
+    },
+    deleteSysOperationLog(id) {
+        const data = {
+            id
+        }
+        return request({
+            url: '/sysOperationLog/delete',
+            method: 'delete',
+            data: data
+        })
+    },
+}
+```
+
+然后编辑`Operator.vue`页面。
+
+```vue
+<script>
+export default {
+  data() {
+    return {
+      Loading: true,
+      ids: [],
+      single: true,
+      multiple: true,
+      showSearch: true,
+      total: 0,
+      queryParams: {},
+      sysOperationLogList: [],
+    }
+  },
+  methods: {
+    // 多选框选中数据
+    handleSelectionChange(selection) {
+      this.ids = selection.map(item => item.id);
+      this.single = selection.length !== 1;
+      this.multiple = !selection.length;
+    },
+    // 查询列表
+    async getSysOperationLogList() {
+      this.Loading = true
+      const { data: res } = await this.$api.querySysOperationLogList(this.queryParams)
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      } else {
+        this.sysOperationLogList = res.data.list
+        this.total = res.data.total
+        this.Loading = false
+      }
+    },
+    // 搜索按钮操作
+    handleQuery() {
+      this.getSysOperationLogList();
+    },
+    // 重置按钮操作
+    resetQuery() {
+      this.queryParams = {}
+      this.getSysOperationLogList();
+      this.$message.success("重置成功")
+    },
+    // pageSize
+    handleSizeChange(newSize) {
+      this.queryParams.pageSize = newSize
+      this.getSysOperationLogList()
+    },
+    // pageNum
+    handleCurrentChange(newPage) {
+      this.queryParams.pageNum = newPage
+      this.getSysOperationLogList()
+    },
+    // 清空
+    async handleClean() {
+      const confirmResult = await this.$confirm('是否清空操作日志？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(err => err)
+      if (confirmResult !== 'confirm') {
+        return this.$message.info('已取消')
+      }
+      const { data: res } = await this.$api.cleanSysOperationLog()
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      } else {
+        this.$message.success('清空成功')
+        await this.getSysOperationLogList()
+      }
+    },
+    // 删除
+    async handleDelete(id) {
+      const confirmResult = await this.$confirm('是否确认删除操作日志编号为"' + id + '"的数据项？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(err => err)
+      if (confirmResult !== 'confirm') {
+        return this.$message.info('已取消删除')
+      }
+      const { data: res } = await this.$api.deleteSysOperationLog(id)
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      } else {
+        this.$message.success('删除成功')
+        await this.getSysOperationLogList()
+      }
+    },
+    // 批量删除
+    async batchHandleDelete() {
+      const sysOperationLogIds = this.ids;
+      const confirmResult = await this.$confirm('是否确认删除操作日志编号为"' + sysOperationLogIds + '"的数据项？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).catch(err => err)
+      if (confirmResult !== 'confirm') {
+        return this.$message.info('已取消删除')
+      }
+      const { data: res } = await this.$api.batchDeleteSysOperationLog(sysOperationLogIds)
+      if (res.code !== 200) {
+        this.$message.error(res.message)
+      } else {
+        this.$message.success('删除成功')
+        await this.getSysOperationLogList()
+      }
+    },
+  },
+  created() {
+    this.getSysOperationLogList()
+  },
+}
+</script>
+
+<template>
+  <el-card>
+    <!--条件搜索区域-->
+    <el-form :model="queryParams" :inline="true" v-show="showSearch">
+      <el-form-item prop="username" label="用户名称">
+        <el-input v-model="queryParams.username" placeholder="请输入用户名称" clearable size="mini"
+                  @keyup.enter.native="handleQuery" />
+      </el-form-item>
+      <el-form-item prop="beginTime" label="开始时间">
+        <el-date-picker class="input-width" v-model="queryParams.beginTime" size="mini" type="date"
+                        style="width: 190px" value-format="yyyy-MM-dd" clearable placeholder="请选择开始时间"
+                        @keyup.enter.native="handleQuery"></el-date-picker>
+      </el-form-item>
+      <el-form-item prop="endTime" label="结束时间">
+        <el-date-picker class="input-width" v-model="queryParams.endTime" size="mini" type="date"
+                        style="width: 190px" value-format="yyyy-MM-dd" clearable placeholder="请选择结束时间"
+                        @keyup.enter.native="handleQuery"></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+        <el-button type="primary" icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <!--操作按钮-->
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple"
+                   @click="batchHandleDelete" v-authority="['monitor:operator:delete']">删除
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="danger" plain icon="el-icon-delete" size="mini" @click="handleClean"
+                   v-authority="['monitor:operator:clean']">清空</el-button>
+      </el-col>
+    </el-row>
+    <!--列表区域-->
+    <el-table v-loading="Loading" :data="sysOperationLogList" border stripe style="width: 100%"
+              :header-cell-style="{ background: '#eef1f6', color: '#606266' }" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" />
+      <el-table-column label="ID" prop="id" v-if="false" />
+      <el-table-column label="用户账号" prop="username" />
+      <el-table-column label="请求方式" prop="method" />
+      <el-table-column label="登录IP" prop="ip" />
+      <el-table-column label="请求的URL" prop="url" />
+      <el-table-column label="操作时间" prop="createTime" />
+      <el-table-column label="更多操作">
+        <template slot-scope="scope">
+          <el-button size="small" type="text" icon="el-icon-delete" @click=handleDelete(scope.row.id)
+                     v-authority="['monitor:operator:delete']">删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!--分页区域-->
+    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                   :current-page="queryParams.pageNum" :page-sizes="[10, 50, 100, 500, 1000]" :page-size="queryParams.pageSize"
+                   layout="total, sizes, prev, pager, next, jumper" :total="total">
+    </el-pagination>
+  </el-card>
+</template>
+
+<style scoped lang="less">
+
+</style>
+```
+
+![image-20260331121920127](assets/image-20260331121920127.png)
+
+# 21. 权限管理
+
+不同的用户拥有不同的权限，访问不同的页面。
